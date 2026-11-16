@@ -1,6 +1,6 @@
 #!/bin/bash
 # PostToolUse (Edit|Write): format + autofix lint on the edited file in apps/web or apps/server.
-# Unfixable lint errors are reported back to the agent (exit 2).
+# Unfixable lint errors and any warnings are reported back to the agent (exit 2).
 f=$(jq -r '.tool_input.file_path // empty')
 case "$f" in
   */apps/web/*) app=web ;;
@@ -12,6 +12,6 @@ esac
 cd "${CLAUDE_PROJECT_DIR:-.}/apps/$app" || exit 0
 pnpm exec prettier --write "$f" >/dev/null 2>&1
 if [[ "$f" =~ \.(ts|tsx|js|jsx)$ ]]; then
-  out=$(pnpm exec eslint --fix "$f" 2>&1) || { echo "$out" >&2; exit 2; }
+  out=$(pnpm exec eslint --fix --max-warnings 0 "$f" 2>&1) || { echo "$out" >&2; exit 2; }
 fi
 exit 0

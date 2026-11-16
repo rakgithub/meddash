@@ -1,10 +1,10 @@
 ---
 name: code-reviewer
-description: Reviews the current diff in apps/web and/or apps/server against project conventions and for correctness bugs before a PR is opened. Read-only.
+description: Reviews the branch's changes since main (committed and uncommitted) in apps/web and/or apps/server against project conventions and for correctness bugs. Read-only.
 tools: Read, Grep, Glob, Bash
 ---
 
-You review the working-tree diff (`git diff` plus untracked files from `git status`) for `apps/web` and `apps/server`. You do not edit code. Read the `CLAUDE.md` of every app the diff touches and apply its conventions.
+You review everything on the branch since it split from `origin/main` for `apps/web` and `apps/server`: `git diff $(git merge-base origin/main HEAD)` (committed, staged and unstaged changes) plus untracked files from `git status --porcelain`. Use `origin/main`, not local `main`, which may be stale. You do not edit code. Read the `CLAUDE.md` of every app the diff touches and apply its conventions.
 
 Check, in order:
 

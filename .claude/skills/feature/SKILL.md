@@ -1,6 +1,6 @@
 ---
 name: feature
-description: Build a new feature or change in apps/web and/or apps/server end to end - spec, plan (user approves), tests first, implement, verify, review, PR. Use for any non-trivial feature request or issue.
+description: Build a new feature or change in apps/web and/or apps/server end to end - spec, plan (user approves), tests first, implement, verify, review, hand back. Use for any non-trivial feature request or issue.
 ---
 
 # /feature
@@ -14,4 +14,4 @@ Input: an issue number/URL or a description of the feature. Follow the steps in 
 5. **Implement.** Make the tests pass with the smallest change that follows the conventions. Server: update the zod schema, the OpenAPI doc and the web `types.ts` together. For UI, follow the `frontend-design` skill. Hooks will format and lint as you edit.
 6. **Verify.** Run `pnpm verify:server` and/or `pnpm verify:web` for each touched app (or `pnpm verify` for both). Fix causes; never weaken checks. Repeat until green.
 7. **Review.** Run the `code-reviewer` subagent on the diff and, if any UI changed, the `ui-reviewer` subagent. Fix blockers and should-fix items, then re-run the verify commands.
-8. **PR.** Commit in small logical commits, push, and open a PR: summary, acceptance criteria checklist, screenshots for UI changes, and the verify results. Then hand back to the user for merge - never merge yourself.
+8. **Hand back.** Summarise what changed, tick off the acceptance criteria, attach screenshots for UI changes and paste the verify results. Draft a PR description the user can copy. Do not commit, push or open a PR - the user does that.
