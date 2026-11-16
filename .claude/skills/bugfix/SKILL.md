@@ -1,6 +1,6 @@
 ---
 name: bugfix
-description: Fix a bug in apps/web and/or apps/server by first reproducing it with a failing test, then the minimal fix, verify and PR. Use for bug reports or regressions.
+description: Fix a bug in apps/web and/or apps/server by first reproducing it with a failing test, then the minimal fix, verify and hand back. Use for bug reports or regressions.
 ---
 
 # /bugfix
@@ -12,4 +12,4 @@ Input: an issue number/URL or a bug description (steps, expected, actual).
 3. **Fix.** Smallest change that fixes the root cause, not the symptom. No drive-by refactors.
 4. **Verify.** The new test passes, then run the verify command for each touched app (`pnpm verify:server`, `pnpm verify:web`) until green.
 5. **Review.** Run the `code-reviewer` subagent (and `ui-reviewer` for visual bugs). Fix findings.
-6. **PR.** Branch `fix/<short-slug>`; PR description: root cause, why the test proves it, how verified. Hand back for merge - never merge yourself.
+6. **Hand back.** Work on a local branch `fix/<short-slug>`. Summarise the root cause, why the test proves it, and how it was verified; draft a PR description the user can copy. Do not commit, push or open a PR - the user does that.
