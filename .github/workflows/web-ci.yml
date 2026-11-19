@@ -2,7 +2,13 @@ name: Web CI
 
 on:
   pull_request:
-    paths: ["apps/web/**", "package.json", "pnpm-lock.yaml", ".github/workflows/web-ci.yml"]
+    # Server schemas are included because web types.ts mirrors them; e2e catches contract drift.
+    paths:
+      - "apps/web/**"
+      - "apps/server/src/schemas/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/web-ci.yml"
   push:
     branches: [main]
 

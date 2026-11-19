@@ -13,4 +13,6 @@ Each app has its own conventions: `apps/web/CLAUDE.md` and `apps/server/CLAUDE.m
 - Do not add dependencies without asking.
 - Do not edit `pnpm-lock.yaml` by hand; use `pnpm add`.
 - Never commit `dist`, `coverage`, `test-results`.
-- `.agents/skills` is managed by `skills-lock.json`; `.claude/skills/*` are symlinks into it. Do not edit skills in place.
+- External skills live in `.agents/skills`, managed by `skills-lock.json`, and `.claude/skills/<name>` symlinks to them. Do not edit those in place.
+- Repo-owned skills (for example `.claude/skills/add-endpoint`) are real directories in `.claude/skills`; edit them like any other file.
+- For a new or changed API endpoint, use the `add-endpoint` skill.
