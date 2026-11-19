@@ -16,12 +16,7 @@ function setup() {
   const onSelect = vi.fn();
   function Harness() {
     const [value, setValue] = useState("");
-    return (
-      <>
-        <label htmlFor="name">Name</label>
-        <SearchSuggest id="name" value={value} onChange={setValue} onSelect={onSelect} />
-      </>
-    );
+    return <SearchSuggest label="Name" value={value} onChange={setValue} onSelect={onSelect} />;
   }
   render(<Harness />);
   return {
@@ -98,7 +93,7 @@ describe("SearchSuggest", () => {
 
     await user.keyboard("{ArrowDown}{ArrowDown}{Enter}");
 
-    expect(onSelect).toHaveBeenCalledWith(gel);
+    expect(onSelect).toHaveBeenCalledWith({ kind: "product", product: gel });
     expect(input).toHaveAttribute("aria-expanded", "false");
     expect(input).not.toHaveAttribute("aria-activedescendant");
   });
@@ -135,7 +130,7 @@ describe("SearchSuggest", () => {
 
     await user.click(await screen.findByRole("option", { name: /Gel/ }));
 
-    expect(onSelect).toHaveBeenCalledWith(gel);
+    expect(onSelect).toHaveBeenCalledWith({ kind: "product", product: gel });
     expect(input).toHaveFocus();
   });
 
@@ -156,6 +151,44 @@ describe("SearchSuggest", () => {
     const first = await screen.findByRole("option", { name: /400mg/ });
     expect(within(first).getByText("Ibu").tagName).toBe("STRONG");
     expect(first).toHaveTextContent("Nurofen");
+  });
+
+  it("lists matching categories in their own group before products", async () => {
+    fetchSuggestions.mockResolvedValue([]);
+    const { input, user } = setup();
+
+    await user.type(input, "headache");
+
+    const categories = await screen.findByRole("group", { name: "Categories" });
+    expect(within(categories).getByRole("option")).toHaveTextContent("Pain relief");
+    expect(within(categories).getByRole("option")).toHaveTextContent("for headache");
+    expect(screen.queryByRole("group", { name: "Products" })).not.toBeInTheDocument();
+  });
+
+  it("navigates across groups and selects a category", async () => {
+    fetchSuggestions.mockResolvedValue([tablets]);
+    const { input, onSelect, user } = setup();
+    await user.type(input, "pain");
+    await screen.findByRole("group", { name: "Products" });
+
+    await user.keyboard("{ArrowDown}");
+    expect(input).toHaveAttribute("aria-activedescendant", option(/Pain relief/).id);
+    await user.keyboard("{ArrowDown}");
+    expect(input).toHaveAttribute("aria-activedescendant", option(/400mg/).id);
+    await user.keyboard("{ArrowUp}{Enter}");
+
+    expect(onSelect).toHaveBeenCalledWith({ kind: "category", slug: "pain-relief" });
+  });
+
+  it("still shows categories when product suggestions fail", async () => {
+    fetchSuggestions.mockRejectedValue(new Error("boom"));
+    const { input, user } = setup();
+
+    await user.type(input, "vitamin");
+
+    await waitFor(() => expect(fetchSuggestions).toHaveBeenCalled());
+    expect(await screen.findByRole("option", { name: /Vitamins/ })).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("1 suggestion available");
   });
 
   it("tells the user when nothing matches", async () => {

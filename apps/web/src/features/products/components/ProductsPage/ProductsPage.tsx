@@ -1,23 +1,34 @@
 import { useProductSearch } from "../../hooks/useProductSearch";
 import { formatResultRange } from "../../utils/formatResultRange";
+import { FilterBar } from "../FilterBar/FilterBar";
 import { Pagination } from "../Pagination/Pagination";
-import { ProductFilters } from "../ProductFilters/ProductFilters";
 import { ProductList } from "../ProductList/ProductList";
+import { SearchBar } from "../SearchBar/SearchBar";
+import { UploadPrescriptionButton } from "../UploadPrescriptionButton/UploadPrescriptionButton";
 import styles from "./ProductsPage.module.css";
 
 export function ProductsPage() {
-  const { products, pagination, status, search, goToPage } = useProductSearch();
+  const { products, pagination, status, filters, search, goToPage } = useProductSearch();
 
   const range = status === "success" && pagination ? formatResultRange(pagination) : "";
 
   return (
     <div className={styles.page}>
-      <header className={styles.header}>
-        <h1>Products</h1>
-        {range && <p>{range}</p>}
-      </header>
+      <div className={styles.searchRow}>
+        <SearchBar
+          onSearch={(q) => search({ ...filters, q })}
+          onSelectCategory={(category) => search({ ...filters, q: "", category })}
+        />
+        <UploadPrescriptionButton />
+      </div>
 
-      <ProductFilters onSearch={search} />
+      <div className={styles.resultsHead}>
+        <header className={styles.header}>
+          <h1>Products</h1>
+          {range && <p>{range}</p>}
+        </header>
+        <FilterBar filters={filters} onChange={search} />
+      </div>
 
       <section aria-label="Results" className={styles.results}>
         <ProductList products={products} status={status} />

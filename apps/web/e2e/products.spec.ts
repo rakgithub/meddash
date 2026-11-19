@@ -48,42 +48,47 @@ test.describe("Product browsing", () => {
   });
 });
 
-test.describe("Filters", () => {
-  test("only calls the search API when Search is clicked", async ({ page }) => {
+const searchBox = (page: Page) => page.getByRole("combobox", { name: "Search products" });
+
+async function setPrice(page: Page, min: string, max: string) {
+  await page.getByRole("button", { name: "Price" }).click();
+  await page.getByLabel("Minimum price").fill(min);
+  await page.getByLabel("Maximum price").fill(max);
+  await page.getByRole("button", { name: "Apply" }).click();
+}
+
+test.describe("Search and filters", () => {
+  test("only calls the search API when the user searches, not while typing", async ({ page }) => {
     await page.goto("/");
     await expect(cards(page).first()).toBeVisible();
 
     let calls = 0;
     page.on("request", (req) => isSearchCall(req.url()) && calls++);
 
-    await page.getByLabel("Name").fill("ibuprofen");
-    await page.getByLabel("Category").selectOption("pain-relief");
+    await searchBox(page).fill("ibuprofen");
     expect(calls).toBe(0);
 
     const request = page.waitForRequest((req) => isSearchCall(req.url()));
     await search(page).click();
 
-    const url = new URL((await request).url());
-    expect(url.searchParams.get("q")).toBe("ibuprofen");
-    expect(url.searchParams.get("category")).toBe("pain-relief");
+    expect(new URL((await request).url()).searchParams.get("q")).toBe("ibuprofen");
   });
 
-  test("filters by name", async ({ page }) => {
+  test("searches by name", async ({ page }) => {
     await page.goto("/");
 
-    await page.getByLabel("Name").fill("ibuprofen");
-    await search(page).click();
+    await searchBox(page).fill("ibuprofen");
+    await searchBox(page).press("Enter");
 
     await expect(cards(page)).toHaveCount(2);
     await expect(page.getByText("Showing 1–2 of 2 results")).toBeVisible();
   });
 
-  test("filters by category and brand", async ({ page }) => {
+  test("filters by category and brand as soon as they are picked", async ({ page }) => {
     await page.goto("/");
 
     await page.getByLabel("Category").selectOption("skin-care");
     await page.getByLabel("Brand").selectOption("Eucerin");
-    await search(page).click();
 
     await expect(cards(page)).toHaveCount(2);
     await expect(page.getByRole("heading", { name: "Sunscreen SPF 50" })).toBeVisible();
@@ -93,9 +98,7 @@ test.describe("Filters", () => {
   test("filters by price range", async ({ page }) => {
     await page.goto("/");
 
-    await page.getByLabel("Minimum price").fill("5");
-    await page.getByLabel("Maximum price").fill("7");
-    await search(page).click();
+    await setPrice(page, "5", "7");
 
     // Ibuprofen 6.49, Vitamin C 5.49, Magnesium 7.25 (out), Throat Lozenges 6.20
     await expect(cards(page)).toHaveCount(3);
@@ -103,45 +106,55 @@ test.describe("Filters", () => {
     await expect(page.getByRole("heading", { name: "Magnesium 400" })).toBeHidden();
   });
 
-  test("combines filters", async ({ page }) => {
+  test("combines the search term with filters", async ({ page }) => {
     await page.goto("/");
 
-    await page.getByLabel("Category").selectOption("pain-relief");
-    await page.getByLabel("Maximum price").fill("7");
+    await searchBox(page).fill("ibuprofen");
     await search(page).click();
-
     await expect(cards(page)).toHaveCount(2);
+
+    await setPrice(page, "", "7");
+
+    await expect(cards(page)).toHaveCount(1);
+    await expect(page.getByRole("heading", { name: "Ibuprofen 400mg", exact: true })).toBeVisible();
   });
 
   test("shows a message when nothing matches", async ({ page }) => {
     await page.goto("/");
 
-    await page.getByLabel("Name").fill("zzzz-no-such-product");
+    await searchBox(page).fill("zzzz-no-such-product");
     await search(page).click();
 
     await expect(page.getByText("No products found")).toBeVisible();
   });
 
-  test("prevents searching with min price above max price", async ({ page }) => {
+  test("rejects a min price above the max price", async ({ page }) => {
     await page.goto("/");
 
-    await page.getByLabel("Minimum price").fill("20");
-    await page.getByLabel("Maximum price").fill("5");
+    await setPrice(page, "20", "5");
 
     await expect(page.getByRole("alert")).toBeVisible();
-    await expect(search(page)).toBeDisabled();
+    await expect(cards(page)).toHaveCount(10);
   });
 
-  test("Reset clears the filters and shows all products again", async ({ page }) => {
+  test("Clear filters removes the filters and keeps the search term", async ({ page }) => {
     await page.goto("/");
-    await page.getByLabel("Name").fill("ibuprofen");
-    await search(page).click();
-    await expect(cards(page)).toHaveCount(2);
+    await page.getByLabel("Category").selectOption("pain-relief");
+    await expect(cards(page)).toHaveCount(3);
 
-    await page.getByRole("button", { name: "Reset" }).click();
+    await page.getByRole("button", { name: "Clear filters" }).click();
 
-    await expect(page.getByLabel("Name")).toHaveValue("");
+    await expect(page.getByLabel("Category")).toHaveValue("");
     await expect(cards(page)).toHaveCount(10);
+    await expect(page.getByRole("button", { name: "Clear filters" })).toBeHidden();
+  });
+
+  test("Upload prescription says it is coming soon", async ({ page }) => {
+    await page.goto("/");
+
+    await page.getByRole("button", { name: "Upload prescription" }).click();
+
+    await expect(page.getByText("Prescription upload is coming soon.")).toBeVisible();
   });
 });
 
@@ -150,7 +163,7 @@ test.describe("Search suggestions", () => {
     page,
   }) => {
     await page.goto("/");
-    const name = page.getByRole("combobox", { name: "Name" });
+    const name = searchBox(page);
 
     await name.fill("ibu");
 
@@ -171,9 +184,23 @@ test.describe("Search suggestions", () => {
     await expect(cards(page)).toHaveCount(1);
   });
 
+  test("a symptom suggests a category, which filters the results", async ({ page }) => {
+    await page.goto("/");
+
+    await searchBox(page).fill("headache");
+    await page
+      .getByRole("group", { name: "Categories" })
+      .getByRole("option", { name: /Pain relief/ })
+      .click();
+
+    await expect(searchBox(page)).toHaveValue("");
+    await expect(page.getByLabel("Category")).toHaveValue("pain-relief");
+    await expect(cards(page)).toHaveCount(3);
+  });
+
   test("Escape closes the suggestions and keeps the text", async ({ page }) => {
     await page.goto("/");
-    const name = page.getByRole("combobox", { name: "Name" });
+    const name = searchBox(page);
     await name.fill("vit");
     await expect(page.getByRole("listbox", { name: "Suggestions" })).toBeVisible();
 

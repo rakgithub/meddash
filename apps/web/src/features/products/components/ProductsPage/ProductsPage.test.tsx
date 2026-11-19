@@ -1,7 +1,9 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ProductsPage } from "./ProductsPage";
 import * as api from "../../api/searchProducts";
+import { EMPTY_FILTERS } from "../../types";
 import { ibuprofen, vitaminD } from "../../../../test/fixtures";
 
 vi.mock("../../api/searchProducts");
@@ -41,5 +43,36 @@ describe("ProductsPage header", () => {
     await screen.findByRole("heading", { name: "Products", level: 1 });
     const header = screen.getByRole("banner");
     expect(header.querySelector("p")).toBeNull();
+  });
+});
+
+describe("ProductsPage search and filters", () => {
+  const loaded = {
+    items: [ibuprofen],
+    pagination: { page: 1, pageSize: 10, total: 1, totalPages: 1 },
+  };
+
+  it("keeps the search term when a filter changes", async () => {
+    searchProducts.mockResolvedValue(loaded);
+    const user = userEvent.setup();
+    render(<ProductsPage />);
+
+    await user.type(screen.getByRole("combobox", { name: "Search products" }), "ibu{Enter}");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Brand" }), "Nurofen");
+
+    await waitFor(() =>
+      expect(searchProducts).toHaveBeenLastCalledWith(
+        { ...EMPTY_FILTERS, q: "ibu", brand: "Nurofen" },
+        1,
+        expect.any(AbortSignal),
+      ),
+    );
+  });
+
+  it("offers prescription upload next to search", () => {
+    searchProducts.mockReturnValue(new Promise(() => {}));
+    render(<ProductsPage />);
+
+    expect(screen.getByRole("button", { name: "Upload prescription" })).toBeInTheDocument();
   });
 });

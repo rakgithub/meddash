@@ -7,6 +7,12 @@
   padding: 40px 20px 64px;
 }
 
+.searchRow {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
 .header {
   display: flex;
   align-items: baseline;
@@ -25,6 +31,19 @@
   color: var(--text-muted);
 }
 
+/* The filter pills sit close under the heading they refine. */
+.resultsHead {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .results {
   min-height: 240px;
+}
+
+@media (max-width: 720px) {
+  .searchRow {
+    flex-direction: column;
+  }
 }
