@@ -1,6 +1,10 @@
 import { OpenAPIRegistry, OpenApiGeneratorV3 } from "@asteasolutions/zod-to-openapi";
 import "./extend.js";
-import { productListResponseSchema } from "../schemas/product.schema.js";
+import {
+  productDetailSchema,
+  productIdParamsSchema,
+  productListResponseSchema,
+} from "../schemas/product.schema.js";
 import {
   errorResponseSchema,
   searchQuerySchema,
@@ -19,6 +23,29 @@ registry.registerPath({
     200: {
       description: "Every product in the catalogue",
       content: { "application/json": { schema: productListResponseSchema } },
+    },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/products/{id}",
+  summary: "Get one product",
+  description: "The full product detail. The list and search endpoints return a slimmer shape.",
+  tags: ["Products"],
+  request: { params: productIdParamsSchema },
+  responses: {
+    200: {
+      description: "The product with all detail fields",
+      content: { "application/json": { schema: productDetailSchema } },
+    },
+    400: {
+      description: "Invalid product id",
+      content: { "application/json": { schema: errorResponseSchema } },
+    },
+    404: {
+      description: "No product with this id",
+      content: { "application/json": { schema: errorResponseSchema } },
     },
   },
 });

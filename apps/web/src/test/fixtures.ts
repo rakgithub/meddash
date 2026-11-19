@@ -1,4 +1,4 @@
-import type { Product } from "../features/products/types";
+import type { Product, ProductDetail } from "../features/products/types";
 
 export const ibuprofen: Product = {
   id: "1",
@@ -18,4 +18,38 @@ export const vitaminD: Product = {
   brand: "Doppelherz",
   price: 8.95,
   imageUrl: null,
+};
+
+export const ibuprofenDetail: ProductDetail = {
+  ...ibuprofen,
+  sku: "MD-0001",
+  pzn: "04875159",
+  packSize: "20 tablets",
+  dosageForm: "Film-coated tablet",
+  activeIngredients: ["Ibuprofen 400 mg"],
+  usageInstructions: "1 tablet with water, up to 3 times a day.",
+  warnings: "Do not use with stomach ulcers.",
+  requiresPrescription: false,
+  stockQuantity: 120,
+  manufacturer: "Reckitt",
+};
+
+export const coughSyrupDetail: ProductDetail = {
+  id: "7",
+  name: "Cough Syrup",
+  description: "Soothing syrup for dry cough",
+  category: "cold-flu",
+  brand: "Prospan",
+  price: 9.99,
+  imageUrl: null,
+  sku: "MD-0007",
+  pzn: "04337311",
+  packSize: "200 ml",
+  dosageForm: "Syrup",
+  activeIngredients: ["Ivy leaf dry extract"],
+  usageInstructions: "5 ml 3 times a day.",
+  warnings: "Contains sorbitol.",
+  requiresPrescription: true,
+  stockQuantity: 25,
+  manufacturer: "Engelhard Arzneimittel",
 };

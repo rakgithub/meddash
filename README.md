@@ -40,6 +40,7 @@ Interactive docs: <http://localhost:3001/docs> (raw spec at `/openapi.json`).
 | Endpoint              | Description                                                                          |
 | --------------------- | ------------------------------------------------------------------------------------ |
 | `GET /products`       | Every product in the catalogue                                                       |
+| `GET /products/:id`   | One product with every detail field (404 if unknown, 400 for a malformed id)         |
 | `GET /search`         | Search with `q`, `category`, `brand`, `minPrice`, `maxPrice`, `sort`, `page`         |
 | `GET /search/suggest` | Up to 5 products whose name or brand starts with `q` (case-insensitive, names first) |
 

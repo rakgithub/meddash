@@ -68,4 +68,15 @@ describe("SearchBar", () => {
     expect(onSearch).not.toHaveBeenCalled();
     expect(input).toHaveValue("");
   });
+
+  it("shows the current search term and follows it when it changes", () => {
+    const props = { onSearch: vi.fn(), onSelectCategory: vi.fn() };
+    const { rerender } = render(<SearchBar {...props} query="ibu" />);
+    const input = screen.getByRole("combobox", { name: "Search products" });
+    expect(input).toHaveValue("ibu");
+
+    rerender(<SearchBar {...props} query="vitamin" />);
+
+    expect(input).toHaveValue("vitamin");
+  });
 });

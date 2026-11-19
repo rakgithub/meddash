@@ -5,13 +5,22 @@ import { SearchSuggest } from "../SearchSuggest/SearchSuggest";
 import styles from "./SearchBar.module.css";
 
 interface SearchBarProps {
+  /** The current search term from the URL; the box shows it and follows it on Back/Forward. */
+  query?: string;
   onSearch: (q: string) => void;
   onSelectCategory: (category: Category) => void;
 }
 
 /** The single search box: free text, a product suggestion, or a category suggestion. */
-export function SearchBar({ onSearch, onSelectCategory }: SearchBarProps) {
-  const [q, setQ] = useState("");
+export function SearchBar({ query = "", onSearch, onSelectCategory }: SearchBarProps) {
+  const [q, setQ] = useState(query);
+  // Adjust state during render when the URL term changes (not in an effect, and not by
+  // remounting, which would drop focus from the box after every search).
+  const [syncedQuery, setSyncedQuery] = useState(query);
+  if (query !== syncedQuery) {
+    setSyncedQuery(query);
+    setQ(query);
+  }
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -31,10 +40,6 @@ export function SearchBar({ onSearch, onSelectCategory }: SearchBarProps) {
 
   return (
     <form role="search" className={styles.bar} onSubmit={handleSubmit}>
-      <svg className={styles.icon} viewBox="0 0 24 24" aria-hidden="true">
-        <circle cx="11" cy="11" r="7" />
-        <path d="m20 20-3.5-3.5" />
-      </svg>
       <SearchSuggest
         label="Search products"
         placeholder="Search medicines, brands or symptoms"
@@ -42,8 +47,11 @@ export function SearchBar({ onSearch, onSelectCategory }: SearchBarProps) {
         onChange={setQ}
         onSelect={handleSelect}
       />
-      <button type="submit" className={styles.submit}>
-        Search
+      <button type="submit" className={styles.submit} aria-label="Search">
+        <svg className={styles.icon} viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.5-3.5" />
+        </svg>
       </button>
     </form>
   );

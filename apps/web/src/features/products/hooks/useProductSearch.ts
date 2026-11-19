@@ -1,29 +1,29 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { searchProducts } from "../api/searchProducts";
-import { EMPTY_FILTERS, type Pagination, type Product, type ProductFilters } from "../types";
+import type { Pagination, Product } from "../types";
+import { parseSearchParams } from "../utils/parseSearchParams";
+import { buildSearchParams } from "../utils/buildSearchParams";
+import { useSearchQuery } from "./useSearchQuery";
 
 type Status = "loading" | "error" | "success";
 
-interface Query {
-  filters: ProductFilters;
-  page: number;
-}
-
-/**
- * Calls the search API on mount and whenever `search` / `goToPage` is called.
- */
+/** Calls the search API for the filters and page in the URL, and again on every new search. */
 export function useProductSearch() {
-  const [query, setQuery] = useState<Query>({ filters: EMPTY_FILTERS, page: 1 });
+  const { filters, page, navigationKey, search, goToPage } = useSearchQuery();
   const [products, setProducts] = useState<Product[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [status, setStatus] = useState<Status>("loading");
 
+  // A string, so the effect doesn't re-run for each render's freshly parsed filters object.
+  const query = buildSearchParams(filters, page).toString();
+
   useEffect(() => {
     const controller = new AbortController();
+    const current = parseSearchParams(new URLSearchParams(query));
     // Intentional: reset to loading when a new query starts, before the fetch below.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setStatus("loading");
-    searchProducts(query.filters, query.page, controller.signal)
+    searchProducts(current.filters, current.page, controller.signal)
       .then((data) => {
         setProducts(data.items);
         setPagination(data.pagination);
@@ -34,11 +34,7 @@ export function useProductSearch() {
         setStatus("error");
       });
     return () => controller.abort();
-  }, [query]);
+  }, [query, navigationKey]);
 
-  // A new object each call, so searching again with the same filters re-fetches.
-  const search = useCallback((filters: ProductFilters) => setQuery({ filters, page: 1 }), []);
-  const goToPage = useCallback((page: number) => setQuery((q) => ({ ...q, page })), []);
-
-  return { products, pagination, status, filters: query.filters, search, goToPage };
+  return { products, pagination, status, filters, search, goToPage };
 }

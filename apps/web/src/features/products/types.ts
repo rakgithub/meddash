@@ -53,3 +53,18 @@ export type SuggestOption =
 export interface SuggestResponse {
   items: Suggestion[];
 }
+
+/** Mirrors `productDetailSchema` in apps/server/src/schemas/product.schema.ts. */
+export interface ProductDetail extends Product {
+  sku: string | null;
+  /** Pharmazentralnummer, the German pharmaceutical product number. */
+  pzn: string | null;
+  packSize: string | null;
+  dosageForm: string | null;
+  activeIngredients: string[];
+  usageInstructions: string | null;
+  warnings: string | null;
+  requiresPrescription: boolean;
+  stockQuantity: number;
+  manufacturer: string | null;
+}

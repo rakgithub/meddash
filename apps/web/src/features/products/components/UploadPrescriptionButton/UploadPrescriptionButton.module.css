@@ -6,15 +6,15 @@
 .button {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  height: 56px;
-  padding: 0 20px;
-  border: 2px solid var(--accent);
-  border-radius: 14px;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border: 1.5px solid var(--accent);
+  border-radius: 10px;
   background: var(--accent-soft);
   color: var(--accent-hover);
   font: inherit;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s ease;
@@ -25,8 +25,8 @@
 }
 
 .icon {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   fill: none;
   stroke: currentColor;
   stroke-width: 2;
@@ -34,23 +34,24 @@
   stroke-linejoin: round;
 }
 
+/* Floats over the page under the button, so it never moves the header. */
 .note {
   position: absolute;
-  top: calc(100% + 6px);
+  top: calc(100% + 8px);
   right: 0;
+  z-index: 20;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow-hover);
   font-size: 13px;
-  color: var(--text-muted);
   white-space: nowrap;
 }
 
-@media (max-width: 720px) {
-  .button {
-    width: 100%;
-    justify-content: center;
-    height: 48px;
-  }
-  .note {
-    position: static;
-    margin-top: 6px;
-  }
+/* The status element stays in the page so screen readers hear it when the text appears. */
+.note:empty {
+  padding: 0;
+  border: 0;
+  box-shadow: none;
 }

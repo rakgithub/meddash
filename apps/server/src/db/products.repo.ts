@@ -3,6 +3,7 @@ import {
   asc,
   count,
   desc,
+  eq,
   getTableColumns,
   gte,
   ilike,
@@ -11,7 +12,7 @@ import {
   sql,
   type SQL,
 } from "drizzle-orm";
-import type { Product } from "../schemas/product.schema.js";
+import type { Product, ProductDetail } from "../schemas/product.schema.js";
 import type { SortOption } from "../schemas/search.schema.js";
 import type { Suggestion } from "../schemas/suggest.schema.js";
 import { db } from "./client.js";
@@ -47,6 +48,23 @@ export function toProduct(row: ProductRow): Product {
     // pg returns numeric as a string to avoid precision loss; 2-decimal prices fit a JS number.
     price: Number(row.price),
     imageUrl: row.imageUrl,
+  };
+}
+
+/** The full shape for the detail page; the list keeps the slim `toProduct` shape. */
+export function toProductDetail(row: ProductRow): ProductDetail {
+  return {
+    ...toProduct(row),
+    sku: row.sku,
+    pzn: row.pzn,
+    packSize: row.packSize,
+    dosageForm: row.dosageForm,
+    activeIngredients: row.activeIngredients,
+    usageInstructions: row.usageInstructions,
+    warnings: row.warnings,
+    requiresPrescription: row.requiresPrescription,
+    stockQuantity: row.stockQuantity,
+    manufacturer: row.manufacturer,
   };
 }
 
@@ -134,4 +152,9 @@ export const LIST_LIMIT = 100;
 export async function listAllProducts(): Promise<Product[]> {
   const rows = await db.select().from(products).orderBy(asc(products.id)).limit(LIST_LIMIT);
   return rows.map(toProduct);
+}
+
+export async function findProductById(id: number): Promise<ProductDetail | null> {
+  const rows = await db.select().from(products).where(eq(products.id, id)).limit(1);
+  return rows[0] ? toProductDetail(rows[0]) : null;
 }

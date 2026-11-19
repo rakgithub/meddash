@@ -1,5 +1,26 @@
 import { describe, expect, it } from "vitest";
-import { escapeLike, toProduct } from "./products.repo.js";
+import { escapeLike, toProduct, toProductDetail } from "./products.repo.js";
+import type { ProductRow } from "./schema.js";
+
+const row: ProductRow = {
+  id: 7,
+  name: "Cough Syrup",
+  description: "d",
+  category: "cold-flu",
+  brand: "Prospan",
+  price: "9.90",
+  imageUrl: "https://images.unsplash.com/photo-1?w=600",
+  sku: "MD-0007",
+  pzn: "04337311",
+  packSize: "200 ml",
+  dosageForm: "Syrup",
+  activeIngredients: ["Ivy leaf dry extract"],
+  usageInstructions: "5 ml 3 times a day",
+  warnings: "Contains sorbitol",
+  requiresPrescription: true,
+  stockQuantity: 25,
+  manufacturer: "Engelhard",
+};
 
 describe("escapeLike", () => {
   it("escapes %, _ and backslash", () => {
@@ -12,16 +33,7 @@ describe("escapeLike", () => {
 });
 
 describe("toProduct", () => {
-  it("maps a row to the API shape with a string id and numeric price", () => {
-    const row = {
-      id: 7,
-      name: "Cough Syrup",
-      description: "d",
-      category: "cold-flu",
-      brand: "Prospan",
-      price: "9.90",
-      imageUrl: "https://images.unsplash.com/photo-1?w=600",
-    };
+  it("maps a row to the slim API shape with a string id and numeric price", () => {
     expect(toProduct(row)).toEqual({
       id: "7",
       name: "Cough Syrup",
@@ -34,29 +46,10 @@ describe("toProduct", () => {
   });
 
   it("keeps a missing image as null", () => {
-    const row = {
-      id: 1,
-      name: "n",
-      description: "d",
-      category: "c",
-      brand: "b",
-      price: "1.00",
-      imageUrl: null,
-    };
-    expect(toProduct(row).imageUrl).toBeNull();
+    expect(toProduct({ ...row, imageUrl: null }).imageUrl).toBeNull();
   });
 
-  it("drops columns that are not part of the API shape", () => {
-    const row = {
-      id: 1,
-      name: "n",
-      description: "d",
-      category: "c",
-      brand: "b",
-      price: "1.00",
-      imageUrl: null,
-      internal: "x",
-    };
+  it("drops columns that are not part of the list shape", () => {
     expect(Object.keys(toProduct(row))).toEqual([
       "id",
       "name",
@@ -66,5 +59,28 @@ describe("toProduct", () => {
       "price",
       "imageUrl",
     ]);
+  });
+});
+
+describe("toProductDetail", () => {
+  it("adds the detail fields to the slim shape", () => {
+    expect(toProductDetail(row)).toEqual({
+      ...toProduct(row),
+      sku: "MD-0007",
+      pzn: "04337311",
+      packSize: "200 ml",
+      dosageForm: "Syrup",
+      activeIngredients: ["Ivy leaf dry extract"],
+      usageInstructions: "5 ml 3 times a day",
+      warnings: "Contains sorbitol",
+      requiresPrescription: true,
+      stockQuantity: 25,
+      manufacturer: "Engelhard",
+    });
+  });
+
+  it("keeps unknown optional fields as null", () => {
+    const detail = toProductDetail({ ...row, sku: null, pzn: null, warnings: null });
+    expect(detail).toMatchObject({ sku: null, pzn: null, warnings: null });
   });
 });

@@ -1,11 +1,12 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { ProductCard } from "./ProductCard";
 import { ibuprofen, vitaminD } from "../../../../test/fixtures";
+import { renderWithRouter } from "../../../../test/renderWithRouter";
 
 describe("ProductCard", () => {
   it("shows the category, brand, name, description and formatted price", () => {
-    render(<ProductCard product={ibuprofen} />);
+    renderWithRouter(<ProductCard product={ibuprofen} />);
 
     expect(screen.getByText("Pain relief")).toBeInTheDocument();
     expect(screen.getByText("Nurofen")).toBeInTheDocument();
@@ -14,8 +15,17 @@ describe("ProductCard", () => {
     expect(screen.getByText(/6,49\s€/)).toBeInTheDocument();
   });
 
+  it("links the name to the product detail page", () => {
+    renderWithRouter(<ProductCard product={ibuprofen} />);
+
+    expect(screen.getByRole("link", { name: "Ibuprofen 400mg" })).toHaveAttribute(
+      "href",
+      "/products/1",
+    );
+  });
+
   it("shows the product image, lazily loaded and named after the product", () => {
-    render(<ProductCard product={ibuprofen} />);
+    renderWithRouter(<ProductCard product={ibuprofen} />);
 
     const img = screen.getByRole("img", { name: "Ibuprofen 400mg" });
     expect(img).toHaveAttribute("src", ibuprofen.imageUrl);
@@ -23,14 +33,14 @@ describe("ProductCard", () => {
   });
 
   it("shows a placeholder instead of an image when the product has none", () => {
-    render(<ProductCard product={vitaminD} />);
+    renderWithRouter(<ProductCard product={vitaminD} />);
 
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Vitamin D3 1000 IU" })).toBeInTheDocument();
   });
 
   it("falls back to the placeholder when the image fails to load", () => {
-    render(<ProductCard product={ibuprofen} />);
+    renderWithRouter(<ProductCard product={ibuprofen} />);
 
     // A failed load is a browser event, not a user action, so userEvent has no equivalent.
     fireEvent.error(screen.getByRole("img", { name: "Ibuprofen 400mg" }));
@@ -39,7 +49,7 @@ describe("ProductCard", () => {
   });
 
   it("tries again when the image URL changes after a failure", () => {
-    const { rerender } = render(<ProductCard product={ibuprofen} />);
+    const { rerender } = renderWithRouter(<ProductCard product={ibuprofen} />);
     fireEvent.error(screen.getByRole("img", { name: "Ibuprofen 400mg" }));
 
     const newUrl = "https://images.unsplash.com/photo-new?w=600";
