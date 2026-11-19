@@ -46,6 +46,7 @@ export function toProduct(row: ProductRow): Product {
     brand: row.brand,
     // pg returns numeric as a string to avoid precision loss; 2-decimal prices fit a JS number.
     price: Number(row.price),
+    imageUrl: row.imageUrl,
   };
 }
 

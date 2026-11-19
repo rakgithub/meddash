@@ -22,6 +22,17 @@ describe("OpenAPI docs", () => {
     expect(res.body.components.schemas).toHaveProperty("Product");
   });
 
+  it("documents imageUrl on Product as a nullable URL", async () => {
+    const res = await request(app).get("/openapi.json");
+    const product = res.body.components.schemas.Product;
+    expect(product.properties.imageUrl).toMatchObject({
+      type: "string",
+      format: "uri",
+      nullable: true,
+    });
+    expect(product.required).toContain("imageUrl");
+  });
+
   it("documents /search/suggest with its q param and response schema", async () => {
     const res = await request(app).get("/openapi.json");
     const op = res.body.paths["/search/suggest"].get;

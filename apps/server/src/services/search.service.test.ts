@@ -10,6 +10,7 @@ const make = (id: string): Product => ({
   category: "cat-a",
   brand: "Brand A",
   price: 10,
+  imageUrl: null,
 });
 
 const base: SearchQuery = { sort: "relevance", page: 1 };

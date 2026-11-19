@@ -20,6 +20,7 @@ describe("toProduct", () => {
       category: "cold-flu",
       brand: "Prospan",
       price: "9.90",
+      imageUrl: "https://images.unsplash.com/photo-1?w=600",
     };
     expect(toProduct(row)).toEqual({
       id: "7",
@@ -28,7 +29,21 @@ describe("toProduct", () => {
       category: "cold-flu",
       brand: "Prospan",
       price: 9.9,
+      imageUrl: "https://images.unsplash.com/photo-1?w=600",
     });
+  });
+
+  it("keeps a missing image as null", () => {
+    const row = {
+      id: 1,
+      name: "n",
+      description: "d",
+      category: "c",
+      brand: "b",
+      price: "1.00",
+      imageUrl: null,
+    };
+    expect(toProduct(row).imageUrl).toBeNull();
   });
 
   it("drops columns that are not part of the API shape", () => {
@@ -39,6 +54,7 @@ describe("toProduct", () => {
       category: "c",
       brand: "b",
       price: "1.00",
+      imageUrl: null,
       internal: "x",
     };
     expect(Object.keys(toProduct(row))).toEqual([
@@ -48,6 +64,7 @@ describe("toProduct", () => {
       "category",
       "brand",
       "price",
+      "imageUrl",
     ]);
   });
 });

@@ -9,6 +9,7 @@ const p = (id: string): Product => ({
   category: "c",
   brand: "b",
   price: 1,
+  imageUrl: null,
 });
 
 describe("listProducts", () => {

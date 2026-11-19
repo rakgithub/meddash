@@ -7,6 +7,8 @@ export interface Product {
   category: string;
   brand: string;
   price: number;
+  /** Null when the product has no photo; the card shows a placeholder. */
+  imageUrl: string | null;
 }
 
 export interface Pagination {

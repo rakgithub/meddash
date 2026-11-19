@@ -17,7 +17,15 @@ describe("GET /products", () => {
       category: "pain-relief",
       brand: "Nurofen",
       price: 6.49,
+      imageUrl: expect.stringMatching(/^https:\/\/images\.unsplash\.com\//),
     });
+  });
+
+  it("gives every seeded product its own image", async () => {
+    const res = await request(app).get("/products");
+    const urls = res.body.items.map((p: { imageUrl: string | null }) => p.imageUrl);
+    expect(urls.every((u: string | null) => u !== null)).toBe(true);
+    expect(new Set(urls).size).toBe(urls.length);
   });
 
   it("is not limited to one page, unlike /search", async () => {

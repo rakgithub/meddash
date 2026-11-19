@@ -7,6 +7,7 @@ export const ibuprofen: Product = {
   category: "pain-relief",
   brand: "Nurofen",
   price: 6.49,
+  imageUrl: "https://images.unsplash.com/photo-ibuprofen?w=600&h=450&fit=crop&q=75",
 };
 
 export const vitaminD: Product = {
@@ -16,4 +17,5 @@ export const vitaminD: Product = {
   category: "vitamins",
   brand: "Doppelherz",
   price: 8.95,
+  imageUrl: null,
 };
