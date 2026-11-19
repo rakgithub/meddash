@@ -1,5 +1,9 @@
 import type { Product } from "../schemas/product.schema.js";
 
+// Fixed crop/size so every card image has the same aspect ratio and a small payload.
+const unsplash = (photoId: string) =>
+  `https://images.unsplash.com/photo-${photoId}?w=600&h=450&fit=crop&q=75`;
+
 // Seed data only (`pnpm db:seed`); nothing reads this at runtime.
 export const seedProducts: Product[] = [
   {
@@ -9,6 +13,7 @@ export const seedProducts: Product[] = [
     category: "pain-relief",
     brand: "Nurofen",
     price: 6.49,
+    imageUrl: unsplash("1584308666744-24d5c474f2ae"),
   },
   {
     id: "2",
@@ -17,6 +22,7 @@ export const seedProducts: Product[] = [
     category: "pain-relief",
     brand: "Ratiopharm",
     price: 2.99,
+    imageUrl: unsplash("1631549916768-4119b2e5f926"),
   },
   {
     id: "3",
@@ -25,6 +31,7 @@ export const seedProducts: Product[] = [
     category: "vitamins",
     brand: "Doppelherz",
     price: 8.95,
+    imageUrl: unsplash("1587854692152-cbe660dbde88"),
   },
   {
     id: "4",
@@ -33,6 +40,7 @@ export const seedProducts: Product[] = [
     category: "vitamins",
     brand: "Doppelherz",
     price: 5.49,
+    imageUrl: unsplash("1628771065518-0d82f1938462"),
   },
   {
     id: "5",
@@ -41,6 +49,7 @@ export const seedProducts: Product[] = [
     category: "vitamins",
     brand: "Abtei",
     price: 7.25,
+    imageUrl: unsplash("1607619056574-7b8d3ee536b2"),
   },
   {
     id: "6",
@@ -49,6 +58,7 @@ export const seedProducts: Product[] = [
     category: "cold-flu",
     brand: "Otriven",
     price: 4.79,
+    imageUrl: unsplash("1585435557343-3b092031a831"),
   },
   {
     id: "7",
@@ -57,6 +67,7 @@ export const seedProducts: Product[] = [
     category: "cold-flu",
     brand: "Prospan",
     price: 9.99,
+    imageUrl: unsplash("1617897903246-719242758050"),
   },
   {
     id: "8",
@@ -65,6 +76,7 @@ export const seedProducts: Product[] = [
     category: "cold-flu",
     brand: "Dobendan",
     price: 6.2,
+    imageUrl: unsplash("1471864190281-a93a3070b6de"),
   },
   {
     id: "9",
@@ -73,6 +85,7 @@ export const seedProducts: Product[] = [
     category: "skin-care",
     brand: "Eucerin",
     price: 18.5,
+    imageUrl: unsplash("1556228720-195a672e8a03"),
   },
   {
     id: "10",
@@ -81,6 +94,7 @@ export const seedProducts: Product[] = [
     category: "skin-care",
     brand: "Eucerin",
     price: 14.9,
+    imageUrl: unsplash("1612817288484-6f916006741a"),
   },
   {
     id: "11",
@@ -89,6 +103,7 @@ export const seedProducts: Product[] = [
     category: "pain-relief",
     brand: "Nurofen",
     price: 11.45,
+    imageUrl: unsplash("1576602976047-174e57a47881"),
   },
   {
     id: "12",
@@ -97,5 +112,6 @@ export const seedProducts: Product[] = [
     category: "skin-care",
     brand: "Neutrogena",
     price: 4.5,
+    imageUrl: unsplash("1611930022073-b7a4ba5fcccd"),
   },
 ];

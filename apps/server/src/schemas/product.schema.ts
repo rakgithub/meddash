@@ -9,6 +9,11 @@ export const productSchema = z
     category: z.string().openapi({ example: "pain-relief" }),
     brand: z.string().openapi({ example: "Nurofen" }),
     price: z.number().openapi({ example: 6.49 }),
+    imageUrl: z.string().url().nullable().openapi({
+      description: "Product photo; null when the product has none",
+      example:
+        "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&h=450&fit=crop&q=75",
+    }),
   })
   .openapi("Product");
 

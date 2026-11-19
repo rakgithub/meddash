@@ -31,6 +31,10 @@ test.describe("Product browsing", () => {
     await expect(card).toContainText("Nurofen");
     await expect(card).toContainText("Pain relief tablets for headaches and fever");
     await expect(card).toContainText(/6,49\s€/);
+    await expect(card.getByRole("img", { name: "Ibuprofen 400mg" })).toHaveAttribute(
+      "src",
+      /^https:\/\/images\.unsplash\.com\//,
+    );
   });
 
   test("paginates through the results", async ({ page }) => {

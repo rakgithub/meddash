@@ -11,6 +11,7 @@ export const products = pgTable(
     category: text().notNull(),
     brand: text().notNull(),
     price: numeric({ precision: 10, scale: 2 }).notNull(),
+    imageUrl: text("image_url"),
   },
   // Each index matches a query in products.repo.ts.
   (t) => [
