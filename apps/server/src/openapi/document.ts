@@ -64,6 +64,6 @@ registry.registerPath({
 export function buildOpenApiDocument() {
   return new OpenApiGeneratorV3(registry.definitions).generateDocument({
     openapi: "3.0.3",
-    info: { title: "Product Search API", version: "0.0.1" },
+    info: { title: "MedDash API", version: "0.0.1" },
   });
 }
