@@ -1,7 +1,8 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import { BRANDS, CATEGORIES } from "../../filterOptions";
-import { EMPTY_FILTERS, type ProductFilters as Filters } from "../../types";
+import { EMPTY_FILTERS, type ProductFilters as Filters, type Suggestion } from "../../types";
 import { formatCategory } from "../../utils/formatCategory";
+import { SearchSuggest } from "../SearchSuggest/SearchSuggest";
 import styles from "./ProductFilters.module.css";
 
 interface ProductFiltersProps {
@@ -23,6 +24,13 @@ export function ProductFilters({ onSearch }: ProductFiltersProps) {
     if (!rangeInvalid) onSearch(draft);
   }
 
+  // Picking a suggestion searches straight away, like pressing Enter on typed text.
+  function handleSuggestion({ name }: Suggestion) {
+    const next = { ...draft, q: name };
+    setDraft(next);
+    if (!rangeInvalid) onSearch(next);
+  }
+
   function handleReset() {
     setDraft(EMPTY_FILTERS);
     onSearch(EMPTY_FILTERS);
@@ -32,12 +40,12 @@ export function ProductFilters({ onSearch }: ProductFiltersProps) {
     <form className={styles.form} onSubmit={handleSubmit} aria-label="Product filters">
       <div className={`${styles.field} ${styles.wide}`}>
         <label htmlFor="filter-name">Name</label>
-        <input
+        <SearchSuggest
           id="filter-name"
-          type="search"
           placeholder="e.g. ibuprofen"
           value={draft.q}
-          onChange={update("q")}
+          onChange={(q) => setDraft((d) => ({ ...d, q }))}
+          onSelect={handleSuggestion}
         />
       </div>
 

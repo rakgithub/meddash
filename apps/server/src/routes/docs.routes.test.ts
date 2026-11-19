@@ -22,6 +22,15 @@ describe("OpenAPI docs", () => {
     expect(res.body.components.schemas).toHaveProperty("Product");
   });
 
+  it("documents /search/suggest with its q param and response schema", async () => {
+    const res = await request(app).get("/openapi.json");
+    const op = res.body.paths["/search/suggest"].get;
+    expect(op.parameters).toEqual([expect.objectContaining({ name: "q", required: true })]);
+    expect(Object.keys(op.responses)).toEqual(["200", "400"]);
+    expect(res.body.components.schemas).toHaveProperty("SuggestResponse");
+    expect(res.body.components.schemas).toHaveProperty("Suggestion");
+  });
+
   it("serves Swagger UI", async () => {
     const res = await request(app).get("/docs/");
     expect(res.status).toBe(200);

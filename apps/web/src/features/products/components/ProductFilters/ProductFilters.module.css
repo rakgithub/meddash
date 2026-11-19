@@ -11,7 +11,7 @@
 }
 
 .wide {
-  grid-column: span 2;
+  grid-column: 1 / -1;
 }
 
 .field,
@@ -78,8 +78,9 @@
   color: var(--text-muted);
 }
 
+/* Last column of the filters row, so the buttons line up with the inputs. */
 .actions {
-  grid-column: 1 / -1;
+  grid-column: -2 / -1;
   display: flex;
   justify-content: flex-end;
   gap: 8px;
@@ -131,10 +132,8 @@
 }
 
 @media (max-width: 560px) {
-  .wide {
-    grid-column: auto;
-  }
   .actions {
+    grid-column: 1 / -1;
     justify-content: stretch;
   }
   .actions button {

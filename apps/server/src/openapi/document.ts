@@ -6,6 +6,7 @@ import {
   searchQuerySchema,
   searchResponseSchema,
 } from "../schemas/search.schema.js";
+import { suggestQuerySchema, suggestResponseSchema } from "../schemas/suggest.schema.js";
 
 const registry = new OpenAPIRegistry();
 
@@ -35,6 +36,26 @@ registry.registerPath({
     },
     400: {
       description: "Invalid query parameters",
+      content: { "application/json": { schema: errorResponseSchema } },
+    },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/search/suggest",
+  summary: "Autocomplete suggestions",
+  description:
+    "Up to 5 products whose name or brand starts with `q` (case-insensitive). Name matches rank first.",
+  tags: ["Search"],
+  request: { query: suggestQuerySchema },
+  responses: {
+    200: {
+      description: "Matching products, at most 5",
+      content: { "application/json": { schema: suggestResponseSchema } },
+    },
+    400: {
+      description: "Missing or invalid `q`",
       content: { "application/json": { schema: errorResponseSchema } },
     },
   },

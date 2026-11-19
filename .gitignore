@@ -7,3 +7,5 @@ playwright/.cache
 .bash_history
 .cache/
 coverage
+
+.DS_Store
