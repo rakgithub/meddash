@@ -18,3 +18,6 @@ export const productListResponseSchema = z
     total: z.number().int().openapi({ example: 12 }),
   })
   .openapi("ProductListResponse");
+
+export type Product = z.infer<typeof productSchema>;
+export type ProductList = z.infer<typeof productListResponseSchema>;

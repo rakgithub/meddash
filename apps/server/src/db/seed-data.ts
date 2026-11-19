@@ -1,7 +1,7 @@
-import type { Product } from "../types/product.js";
+import type { Product } from "../schemas/product.schema.js";
 
-// In-memory mock catalogue. Swap for a real data source (DB, search index) later.
-export const products: Product[] = [
+// Seed data only (`pnpm db:seed`); nothing reads this at runtime.
+export const seedProducts: Product[] = [
   {
     id: "1",
     name: "Ibuprofen 400mg",

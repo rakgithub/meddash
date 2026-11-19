@@ -2,10 +2,13 @@ name: Web CI
 
 on:
   pull_request:
-    # Server schemas are included because web types.ts mirrors them; e2e catches contract drift.
+    # Server source is included because e2e runs the real API (and web types.ts mirrors its schemas).
     paths:
       - "apps/web/**"
-      - "apps/server/src/schemas/**"
+      - "apps/server/src/**"
+      - "apps/server/drizzle/**"
+      - "docker/**"
+      - "docker-compose.yml"
       - "package.json"
       - "pnpm-lock.yaml"
       - ".github/workflows/web-ci.yml"
@@ -20,6 +23,22 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: meddash
+          POSTGRES_PASSWORD: meddash
+          POSTGRES_DB: meddash
+        ports: ["5433:5432"]
+        options: >-
+          --health-cmd "pg_isready -U meddash"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 15
+    env:
+      # e2e starts the real API, which reads products from this database.
+      DATABASE_URL: postgres://meddash:meddash@localhost:5433/meddash
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -48,6 +67,8 @@ jobs:
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
       - name: Install Playwright browsers
         run: pnpm --filter web exec playwright install --with-deps chromium
+      - name: Migrate and seed the database
+        run: pnpm db:migrate && pnpm db:seed
       - name: End-to-end tests
         run: pnpm --filter web test:e2e
         env:

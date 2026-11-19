@@ -9,7 +9,8 @@ Fix the cause; do not weaken thresholds, skip tests, or add `eslint-disable` wit
 
 - `routes/` - wire paths to controllers and attach `validateQuery(schema)`. No logic. Register in `routes/index.ts`.
 - `controllers/` - thin: read validated input from `res.locals.query`, call a service, `res.json(...)`. No business logic.
-- `services/` - pure business logic over data (`searchProducts(query, source = catalogue)`); no Express types.
+- `services/` - business logic over data (`searchProducts(query, find = findProducts)`); no Express types. Async controllers are wrapped in `asyncHandler` so DB errors reach `errorHandler`.
+- `db/` - Drizzle schema, pool, and `*.repo.ts` data-access functions. Repos map rows to the zod response shapes explicitly. Schema changes: edit `db/schema.ts`, run `pnpm --filter server db:generate`, commit the SQL in `drizzle/`.
 - `schemas/` - zod schemas are the single source of truth for input AND response shapes; infer TS types from them.
 - `openapi/` - every endpoint is registered in `openapi/document.ts` using the zod schemas. A new/changed route is not done until its OpenAPI entry is.
 - `middleware/`, `errors/` - `AppError(statusCode, message, details?)` for expected failures; the central `errorHandler` formats them. Never send error responses ad hoc from controllers.

@@ -16,3 +16,4 @@ Each app has its own conventions: `apps/web/CLAUDE.md` and `apps/server/CLAUDE.m
 - External skills live in `.agents/skills`, managed by `skills-lock.json`, and `.claude/skills/<name>` symlinks to them. Do not edit those in place.
 - Repo-owned skills (for example `.claude/skills/add-endpoint`) are real directories in `.claude/skills`; edit them like any other file.
 - For a new or changed API endpoint, use the `add-endpoint` skill.
+- When asked to make a plan, save it as Markdown in `docs/plans/<kebab-case-name>.md` (e.g. `docs/plans/phase-1-postgres-products-db.md`), not only in chat. Link the roadmap entry it belongs to, if any.

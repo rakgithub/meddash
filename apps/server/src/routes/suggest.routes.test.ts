@@ -21,6 +21,11 @@ describe("GET /search/suggest", () => {
     expect(res.body.items.map((s: { id: string }) => s.id)).toEqual(["9", "10"]);
   });
 
+  it("treats LIKE wildcards in q literally", async () => {
+    const res = await request(app).get("/search/suggest?q=%25");
+    expect(res.body).toEqual({ items: [] });
+  });
+
   it("returns an empty list when nothing matches", async () => {
     const res = await request(app).get("/search/suggest?q=zzz");
     expect(res.status).toBe(200);

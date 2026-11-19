@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Product } from "../types/product.js";
+import type { Product } from "../schemas/product.schema.js";
 import { listProducts } from "./products.service.js";
 
 const p = (id: string): Product => ({
@@ -12,12 +12,12 @@ const p = (id: string): Product => ({
 });
 
 describe("listProducts", () => {
-  it("returns every product with a total", () => {
+  it("returns every product with a total", async () => {
     const data = [p("1"), p("2"), p("3")];
-    expect(listProducts(data)).toEqual({ items: data, total: 3 });
+    expect(await listProducts(async () => data)).toEqual({ items: data, total: 3 });
   });
 
-  it("returns an empty list for an empty source", () => {
-    expect(listProducts([])).toEqual({ items: [], total: 0 });
+  it("returns an empty list for an empty source", async () => {
+    expect(await listProducts(async () => [])).toEqual({ items: [], total: 0 });
   });
 });
