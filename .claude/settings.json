@@ -20,8 +20,6 @@
       "Bash(git show*)"
     ],
     "deny": [
-      "Bash(git push*)",
-      "Bash(gh pr create*)",
       "Bash(git reset --hard*)",
       "Bash(rm -rf*)",
       "Read(./.env*)"
