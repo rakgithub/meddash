@@ -35,3 +35,14 @@ export const EMPTY_FILTERS: ProductFilters = {
   minPrice: "",
   maxPrice: "",
 };
+
+/** Mirrors `suggestionSchema` in apps/server/src/schemas/suggest.schema.ts. */
+export interface Suggestion {
+  id: string;
+  name: string;
+  brand: string;
+}
+
+export interface SuggestResponse {
+  items: Suggestion[];
+}

@@ -1,8 +1,17 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ProductFilters } from "./ProductFilters";
 import { EMPTY_FILTERS } from "../../types";
+import * as suggestApi from "../../api/fetchSuggestions";
+
+vi.mock("../../api/fetchSuggestions");
+const fetchSuggestions = vi.mocked(suggestApi.fetchSuggestions);
+
+beforeEach(() => {
+  vi.resetAllMocks();
+  fetchSuggestions.mockResolvedValue([]);
+});
 
 function setup() {
   const onSearch = vi.fn();
@@ -82,5 +91,21 @@ describe("ProductFilters", () => {
     expect(screen.getByLabelText("Name")).toHaveValue("");
     expect(screen.getByLabelText("Brand")).toHaveValue("");
     expect(onSearch).toHaveBeenCalledWith(EMPTY_FILTERS);
+  });
+
+  it("searches straight away when a suggestion is picked", async () => {
+    fetchSuggestions.mockResolvedValue([{ id: "11", name: "Ibuprofen Gel", brand: "Nurofen" }]);
+    const { onSearch, user } = setup();
+    await user.selectOptions(screen.getByLabelText("Brand"), "Nurofen");
+
+    await user.type(screen.getByLabelText("Name"), "ibu");
+    await user.click(await screen.findByRole("option", { name: /Ibuprofen Gel/ }));
+
+    expect(screen.getByLabelText("Name")).toHaveValue("Ibuprofen Gel");
+    expect(onSearch).toHaveBeenCalledWith({
+      ...EMPTY_FILTERS,
+      q: "Ibuprofen Gel",
+      brand: "Nurofen",
+    });
   });
 });

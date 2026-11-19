@@ -145,6 +145,45 @@ test.describe("Filters", () => {
   });
 });
 
+test.describe("Search suggestions", () => {
+  test("suggests products as you type and searches the one picked with the keyboard", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    const name = page.getByRole("combobox", { name: "Name" });
+
+    await name.fill("ibu");
+
+    const options = page.getByRole("listbox", { name: "Suggestions" }).getByRole("option");
+    await expect(options).toHaveText([/Ibuprofen 400mg/, /Ibuprofen Gel/]);
+
+    await name.press("ArrowDown");
+    await name.press("ArrowDown");
+    await expect(name).toHaveAttribute(
+      "aria-activedescendant",
+      (await options.nth(1).getAttribute("id")) ?? "",
+    );
+
+    await name.press("Enter");
+
+    await expect(name).toHaveValue("Ibuprofen Gel");
+    await expect(name).toHaveAttribute("aria-expanded", "false");
+    await expect(cards(page)).toHaveCount(1);
+  });
+
+  test("Escape closes the suggestions and keeps the text", async ({ page }) => {
+    await page.goto("/");
+    const name = page.getByRole("combobox", { name: "Name" });
+    await name.fill("vit");
+    await expect(page.getByRole("listbox", { name: "Suggestions" })).toBeVisible();
+
+    await name.press("Escape");
+
+    await expect(page.getByRole("listbox", { name: "Suggestions" })).toBeHidden();
+    await expect(name).toHaveValue("vit");
+  });
+});
+
 test.describe("Loading, error and empty states", () => {
   test("shows a loading message while the request is pending", async ({ page }) => {
     let release!: () => void;

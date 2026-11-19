@@ -5,6 +5,7 @@ import * as api from "../../api/searchProducts";
 import { ibuprofen, vitaminD } from "../../../../test/fixtures";
 
 vi.mock("../../api/searchProducts");
+vi.mock("../../api/fetchSuggestions");
 const searchProducts = vi.mocked(api.searchProducts);
 
 beforeEach(() => vi.resetAllMocks());
