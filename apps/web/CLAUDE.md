@@ -1,7 +1,5 @@
 # apps/web
 
-React 18 + Vite + TypeScript (strict). Vitest + Testing Library for unit tests, Playwright for e2e.
-
 ## Definition of done
 
 Run `pnpm verify:web` from the repo root (lint, prettier, tsc, unit tests with coverage floor, build, e2e).
@@ -22,8 +20,6 @@ Feature-first under `src/features/<feature>/`:
 - Styling: CSS Modules only. No inline styles, no CSS-in-JS, no UI library.
 - Network: call the API only through `lib/apiClient` (`apiGet`) from a feature's `api/` module; base path is `/api`, proxied to :3001 by Vite. Pass an `AbortSignal` for cancellable requests.
 - Server data shapes live in `apps/server/src/schemas`; mirror them in the feature's `types.ts`.
-- Use `import type` for type-only imports (lint-enforced).
-- Accessibility is lint-enforced (jsx-a11y): labelled inputs, real buttons, semantic landmarks.
 - UI must handle loading, error, and empty states.
 
 ## Testing

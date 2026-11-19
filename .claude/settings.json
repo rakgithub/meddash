@@ -12,6 +12,7 @@
       "Bash(pnpm exec eslint*)",
       "Bash(pnpm exec prettier*)",
       "Bash(pnpm exec playwright test*)",
+      "Bash(pnpm exec vitest run*)",
       "Bash(git status*)",
       "Bash(git diff*)",
       "Bash(git log*)",
@@ -24,30 +25,6 @@
       "Bash(git reset --hard*)",
       "Bash(rm -rf*)",
       "Read(./.env*)"
-    ]
-  },
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/format-on-edit.sh"
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/stop-gate.sh",
-            "timeout": 180
-          }
-        ]
-      }
     ]
   }
 }
