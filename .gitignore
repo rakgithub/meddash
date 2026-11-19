@@ -9,3 +9,5 @@ playwright/.cache
 coverage
 
 .DS_Store
+
+.env

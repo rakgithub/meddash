@@ -1,11 +1,7 @@
-import { products as catalogue } from "../data/products.js";
-import type { Product } from "../types/product.js";
+import { listAllProducts } from "../db/products.repo.js";
+import type { ProductList } from "../schemas/product.schema.js";
 
-export interface ProductList {
-  items: Product[];
-  total: number;
-}
-
-export function listProducts(source: Product[] = catalogue): ProductList {
-  return { items: source, total: source.length };
+export async function listProducts(list = listAllProducts): Promise<ProductList> {
+  const items = await list();
+  return { items, total: items.length };
 }

@@ -1,2 +1,4 @@
 dist
 coverage
+# Generated and rewritten by drizzle-kit
+drizzle/meta

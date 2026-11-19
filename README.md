@@ -9,12 +9,18 @@ MedDash is an online pharmacy: browse and search medicines, vitamins, cold and f
 
 ## Getting started
 
-Requires Node.js and [pnpm](https://pnpm.io) (version pinned in `package.json`).
+Requires Node.js 22+, [pnpm](https://pnpm.io) (version pinned in `package.json`) and Docker.
 
 ```bash
 pnpm install
+cp apps/server/.env.example apps/server/.env
+docker compose up -d   # or: pnpm db:up
+pnpm db:migrate
+pnpm db:seed
 pnpm dev
 ```
+
+Postgres 16 runs in Docker on host port **5433** (so it doesn't clash with a local Postgres on 5432). It holds two databases: `meddash` for development and `meddash_test`, which the server tests migrate and seed themselves. `pnpm db:seed` replaces all products with the seed catalogue (it refuses to run in production or against a non-local database); `pnpm db:down` stops the container and keeps the data volume.
 
 Open <http://localhost:5173>. Vite proxies `/api/*` to the server on `:3001`.
 
@@ -37,7 +43,7 @@ Interactive docs: <http://localhost:3001/docs> (raw spec at `/openapi.json`).
 | `GET /search`         | Search with `q`, `category`, `brand`, `minPrice`, `maxPrice`, `sort`, `page`         |
 | `GET /search/suggest` | Up to 5 products whose name or brand starts with `q` (case-insensitive, names first) |
 
-Invalid input returns `400` with `{ error: { message, details } }`. Set `PORT` to change the server port.
+Invalid input returns `400` with `{ error: { message, details } }`. The server reads `PORT` and `DATABASE_URL` (required) from the environment or `apps/server/.env`, and exits with a readable message if either is invalid.
 
 ## Scripts
 
@@ -48,6 +54,10 @@ Run from the repo root.
 | `pnpm dev`           | Web and API together                                 |
 | `pnpm dev:web`       | Web only                                             |
 | `pnpm dev:server`    | API only                                             |
+| `pnpm db:up`         | Start Postgres in Docker and wait until healthy      |
+| `pnpm db:down`       | Stop Postgres (data volume is kept)                  |
+| `pnpm db:migrate`    | Apply migrations from `apps/server/drizzle`          |
+| `pnpm db:seed`       | Replace the products table with the seed catalogue   |
 | `pnpm test`          | Unit tests in both apps                              |
 | `pnpm test:e2e`      | Playwright e2e against the real API and Vite server  |
 | `pnpm build`         | Production build of both apps                        |
@@ -55,14 +65,14 @@ Run from the repo root.
 | `pnpm verify:web`    | Lint, format, types, tests with coverage, build, e2e |
 | `pnpm verify`        | Both of the above                                    |
 
-`verify:*` is the definition of done for each app and is what CI runs.
+`verify:*` is the definition of done for each app and is what CI runs. Both need Postgres running; `verify:web` also needs the dev database migrated and seeded, because e2e tests start the real API.
 
 ## Project layout
 
 ```
 apps/
   web/      features/<feature>/{components,hooks,api,utils}, shared code in src/lib
-  server/   routes -> controllers -> services, with zod schemas and OpenAPI in schemas/ and openapi/
+  server/   routes -> controllers -> services -> db (Drizzle + Postgres), with zod schemas and OpenAPI in schemas/ and openapi/
 ```
 
 Zod schemas in `apps/server/src/schemas` are the source of truth for request and response shapes; the web app mirrors them in `types.ts`.

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import "../openapi/extend.js";
+import { emptyToUndefined } from "./emptyToUndefined.js";
 import { productSchema } from "./product.schema.js";
 
 export const SORT_OPTIONS = [
@@ -17,8 +18,6 @@ const optionalText = (max: number) =>
     (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
     z.string().trim().max(max).optional(),
   );
-
-const emptyToUndefined = (v: unknown) => (v === "" ? undefined : v);
 
 export const searchQuerySchema = z
   .object({
