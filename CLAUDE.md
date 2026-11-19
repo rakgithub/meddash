@@ -7,7 +7,6 @@ Each app has its own conventions: `apps/web/CLAUDE.md` and `apps/server/CLAUDE.m
 
 - `pnpm dev` - web (5173) and API (3001) together
 - `pnpm verify:web` / `pnpm verify:server` - the definition of done per app; `pnpm verify` runs both
-- `pnpm test:server`, `pnpm typecheck`, `pnpm build`
 
 ## Rules
 
