@@ -1,4 +1,4 @@
-# product-search
+# MedDash
 
 pnpm monorepo: `apps/web` (React 18 + Vite + TypeScript) and `apps/server` (Express + zod, port 3001).
 Each app has its own conventions: `apps/web/CLAUDE.md` and `apps/server/CLAUDE.md`. Read the one for the app you are changing.
