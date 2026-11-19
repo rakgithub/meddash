@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { AppError } from "../errors/AppError.js";
-import { validateQuery } from "./validate.js";
+import { validateParams, validateQuery } from "./validate.js";
 
 const schema = z.object({ n: z.coerce.number().int() }).strict();
 
@@ -33,5 +33,24 @@ describe("validateQuery", () => {
   it("rejects unknown keys", () => {
     const { next } = run({ n: "1", extra: "x" });
     expect((next.mock.calls[0]![0] as AppError).statusCode).toBe(400);
+  });
+});
+
+describe("validateParams", () => {
+  it("stores parsed data on res.locals.params", () => {
+    const res = { locals: {} } as Response;
+    const next = vi.fn() as unknown as NextFunction;
+    validateParams(schema)({ params: { n: "5" } } as unknown as Request, res, next);
+    expect(res.locals.params).toEqual({ n: 5 });
+    expect(next).toHaveBeenCalledWith();
+  });
+
+  it("passes a 400 AppError on failure", () => {
+    const res = { locals: {} } as Response;
+    const next = vi.fn();
+    validateParams(schema)({ params: { n: "x" } } as unknown as Request, res, next);
+    const err = next.mock.calls[0]![0] as AppError;
+    expect(err.statusCode).toBe(400);
+    expect(err.message).toBe("Invalid path parameters");
   });
 });

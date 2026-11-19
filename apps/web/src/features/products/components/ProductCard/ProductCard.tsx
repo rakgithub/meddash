@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import type { Product } from "../../types";
 import { formatCategory } from "../../utils/formatCategory";
 import { formatPrice } from "../../utils/formatPrice";
@@ -38,7 +39,12 @@ export function ProductCard({ product }: ProductCardProps) {
         <span className={styles.category}>{formatCategory(product.category)}</span>
         <span className={styles.brand}>{product.brand}</span>
       </div>
-      <h3 className={styles.name}>{product.name}</h3>
+      <h3 className={styles.name}>
+        {/* The link's ::after covers the whole card, so the card is one click target. */}
+        <Link className={styles.link} to={`/products/${encodeURIComponent(product.id)}`}>
+          {product.name}
+        </Link>
+      </h3>
       <p className={styles.description}>{product.description}</p>
       <div className={styles.footer}>
         <span className={styles.price}>{formatPrice(product.price)}</span>

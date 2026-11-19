@@ -1,11 +1,11 @@
-import type { Product } from "../schemas/product.schema.js";
+import type { ProductDetail } from "../schemas/product.schema.js";
 
 // Fixed crop/size so every card image has the same aspect ratio and a small payload.
 const unsplash = (photoId: string) =>
   `https://images.unsplash.com/photo-${photoId}?w=600&h=450&fit=crop&q=75`;
 
 // Seed data only (`pnpm db:seed`); nothing reads this at runtime.
-export const seedProducts: Product[] = [
+export const seedProducts: ProductDetail[] = [
   {
     id: "1",
     name: "Ibuprofen 400mg",
@@ -14,6 +14,18 @@ export const seedProducts: Product[] = [
     brand: "Nurofen",
     price: 6.49,
     imageUrl: unsplash("1584308666744-24d5c474f2ae"),
+    sku: "MD-0001",
+    pzn: "04875159",
+    packSize: "20 tablets",
+    dosageForm: "Film-coated tablet",
+    activeIngredients: ["Ibuprofen 400 mg"],
+    usageInstructions:
+      "Adults and adolescents from 12 years: 1 tablet with water, up to 3 times a day, at least 6 hours apart. Take with food if your stomach is sensitive.",
+    warnings:
+      "Do not use with stomach ulcers or in the last 3 months of pregnancy. Do not take for more than 4 days without medical advice.",
+    requiresPrescription: false,
+    stockQuantity: 120,
+    manufacturer: "Reckitt",
   },
   {
     id: "2",
@@ -23,6 +35,18 @@ export const seedProducts: Product[] = [
     brand: "Ratiopharm",
     price: 2.99,
     imageUrl: unsplash("1631549916768-4119b2e5f926"),
+    sku: "MD-0002",
+    pzn: "00767800",
+    packSize: "20 tablets",
+    dosageForm: "Tablet",
+    activeIngredients: ["Paracetamol 500 mg"],
+    usageInstructions:
+      "Adults: 1–2 tablets up to 3 times a day, at least 6 hours apart. Do not exceed 6 tablets in 24 hours.",
+    warnings:
+      "Do not combine with other paracetamol-containing medicines. Overdose can damage the liver.",
+    requiresPrescription: false,
+    stockQuantity: 200,
+    manufacturer: "Ratiopharm",
   },
   {
     id: "3",
@@ -32,6 +56,17 @@ export const seedProducts: Product[] = [
     brand: "Doppelherz",
     price: 8.95,
     imageUrl: unsplash("1587854692152-cbe660dbde88"),
+    sku: "MD-0003",
+    pzn: "10181422",
+    packSize: "60 capsules",
+    dosageForm: "Capsule",
+    activeIngredients: ["Cholecalciferol 25 µg (1000 IU)"],
+    usageInstructions: "Adults: 1 capsule daily with a meal.",
+    warnings:
+      "Do not exceed the recommended daily dose. Ask a doctor first if you take other vitamin D products or have kidney disease.",
+    requiresPrescription: false,
+    stockQuantity: 75,
+    manufacturer: "Queisser Pharma",
   },
   {
     id: "4",
@@ -41,6 +76,17 @@ export const seedProducts: Product[] = [
     brand: "Doppelherz",
     price: 5.49,
     imageUrl: unsplash("1628771065518-0d82f1938462"),
+    sku: "MD-0004",
+    pzn: "00749330",
+    packSize: "40 chewable tablets",
+    dosageForm: "Chewable tablet",
+    activeIngredients: ["Ascorbic acid 500 mg"],
+    usageInstructions: "Adults: 1 tablet daily, chewed thoroughly.",
+    warnings:
+      "Not a substitute for a varied diet. Contains sweeteners; may have a laxative effect in large amounts.",
+    requiresPrescription: false,
+    stockQuantity: 3,
+    manufacturer: "Queisser Pharma",
   },
   {
     id: "5",
@@ -50,6 +96,16 @@ export const seedProducts: Product[] = [
     brand: "Abtei",
     price: 7.25,
     imageUrl: unsplash("1607619056574-7b8d3ee536b2"),
+    sku: "MD-0005",
+    pzn: "01327413",
+    packSize: "30 tablets",
+    dosageForm: "Tablet",
+    activeIngredients: ["Magnesium oxide 400 mg"],
+    usageInstructions: "Adults: 1 tablet daily with plenty of liquid.",
+    warnings: "Ask a doctor first if you have impaired kidney function. May cause loose stools.",
+    requiresPrescription: false,
+    stockQuantity: 90,
+    manufacturer: "Abtei Pharma",
   },
   {
     id: "6",
@@ -59,6 +115,16 @@ export const seedProducts: Product[] = [
     brand: "Otriven",
     price: 4.79,
     imageUrl: unsplash("1585435557343-3b092031a831"),
+    sku: "MD-0006",
+    pzn: "00999591",
+    packSize: "10 ml",
+    dosageForm: "Nasal spray",
+    activeIngredients: ["Xylometazoline hydrochloride 0.1 %"],
+    usageInstructions: "Adults and children from 6 years: 1 spray per nostril up to 3 times a day.",
+    warnings: "Do not use for more than 7 days in a row. Not suitable for children under 6 years.",
+    requiresPrescription: false,
+    stockQuantity: 60,
+    manufacturer: "Haleon",
   },
   {
     id: "7",
@@ -68,6 +134,17 @@ export const seedProducts: Product[] = [
     brand: "Prospan",
     price: 9.99,
     imageUrl: unsplash("1617897903246-719242758050"),
+    sku: "MD-0007",
+    pzn: "04337311",
+    packSize: "200 ml",
+    dosageForm: "Syrup",
+    activeIngredients: ["Ivy leaf dry extract"],
+    usageInstructions: "Adults: 5 ml 3 times a day. Shake well before use.",
+    warnings:
+      "Contains sorbitol. Seek medical advice if the cough lasts longer than a week or comes with fever.",
+    requiresPrescription: true,
+    stockQuantity: 25,
+    manufacturer: "Engelhard Arzneimittel",
   },
   {
     id: "8",
@@ -77,6 +154,18 @@ export const seedProducts: Product[] = [
     brand: "Dobendan",
     price: 6.2,
     imageUrl: unsplash("1471864190281-a93a3070b6de"),
+    sku: "MD-0008",
+    pzn: "03150726",
+    packSize: "20 lozenges",
+    dosageForm: "Lozenge",
+    activeIngredients: ["Amylmetacresol 0.6 mg", "Dichlorobenzyl alcohol 1.2 mg"],
+    usageInstructions:
+      "Adults and children from 6 years: let 1 lozenge dissolve slowly every 2–3 hours, up to 8 a day.",
+    warnings:
+      "Do not chew or swallow whole. See a doctor if the sore throat lasts longer than 3 days.",
+    requiresPrescription: false,
+    stockQuantity: 140,
+    manufacturer: "Klosterfrau",
   },
   {
     id: "9",
@@ -86,6 +175,18 @@ export const seedProducts: Product[] = [
     brand: "Eucerin",
     price: 18.5,
     imageUrl: unsplash("1556228720-195a672e8a03"),
+    sku: "MD-0009",
+    pzn: "16571110",
+    packSize: "200 ml",
+    dosageForm: "Lotion",
+    activeIngredients: ["Octocrylene", "Avobenzone", "Homosalate"],
+    usageInstructions:
+      "Apply generously 20 minutes before sun exposure; reapply every 2 hours and after swimming.",
+    warnings:
+      "For external use only. Avoid contact with eyes. Do not stay in the sun longer than your skin tolerates.",
+    requiresPrescription: false,
+    stockQuantity: 45,
+    manufacturer: "Beiersdorf",
   },
   {
     id: "10",
@@ -95,6 +196,16 @@ export const seedProducts: Product[] = [
     brand: "Eucerin",
     price: 14.9,
     imageUrl: unsplash("1612817288484-6f916006741a"),
+    sku: "MD-0010",
+    pzn: "11140923",
+    packSize: "250 ml",
+    dosageForm: "Cream",
+    activeIngredients: ["Urea 5 %", "Glycerin"],
+    usageInstructions: "Apply to clean, dry skin once or twice daily.",
+    warnings: "For external use only. Stop use if the skin becomes irritated.",
+    requiresPrescription: false,
+    stockQuantity: 80,
+    manufacturer: "Beiersdorf",
   },
   {
     id: "11",
@@ -104,6 +215,18 @@ export const seedProducts: Product[] = [
     brand: "Nurofen",
     price: 11.45,
     imageUrl: unsplash("1576602976047-174e57a47881"),
+    sku: "MD-0011",
+    pzn: "02239510",
+    packSize: "100 g",
+    dosageForm: "Gel",
+    activeIngredients: ["Ibuprofen 5 %"],
+    usageInstructions:
+      "Adults and adolescents from 14 years: rub 4–10 cm of gel into the affected area up to 3 times a day.",
+    warnings:
+      "For external use only. Do not apply to broken skin or mucous membranes. Wash hands after use.",
+    requiresPrescription: false,
+    stockQuantity: 55,
+    manufacturer: "Reckitt",
   },
   {
     id: "12",
@@ -113,5 +236,15 @@ export const seedProducts: Product[] = [
     brand: "Neutrogena",
     price: 4.5,
     imageUrl: unsplash("1611930022073-b7a4ba5fcccd"),
+    sku: "MD-0012",
+    pzn: "14424651",
+    packSize: "75 ml",
+    dosageForm: "Cream",
+    activeIngredients: ["Glycerin 20 %"],
+    usageInstructions: "Apply to hands as often as needed, especially after washing.",
+    warnings: "For external use only. Avoid contact with eyes.",
+    requiresPrescription: false,
+    stockQuantity: 0,
+    manufacturer: "Johnson & Johnson",
   },
 ];

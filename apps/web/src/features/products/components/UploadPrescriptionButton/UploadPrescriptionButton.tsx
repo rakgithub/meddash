@@ -1,9 +1,18 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "./UploadPrescriptionButton.module.css";
+
+const NOTE_MS = 4000;
 
 // Placeholder until prescription upload exists: tells the user instead of doing nothing.
 export function UploadPrescriptionButton() {
   const [clicked, setClicked] = useState(false);
+
+  // The note floats over the page, so it goes away instead of staying on top of the search.
+  useEffect(() => {
+    if (!clicked) return;
+    const timer = setTimeout(() => setClicked(false), NOTE_MS);
+    return () => clearTimeout(timer);
+  }, [clicked]);
 
   return (
     <div className={styles.root}>

@@ -17,6 +17,37 @@ export const productSchema = z
   })
   .openapi("Product");
 
+export const productDetailSchema = productSchema
+  .extend({
+    sku: z.string().nullable().openapi({ example: "MD-0001" }),
+    pzn: z.string().nullable().openapi({
+      description: "Pharmazentralnummer, the German pharmaceutical product number",
+      example: "04875159",
+    }),
+    packSize: z.string().nullable().openapi({ example: "20 tablets" }),
+    dosageForm: z.string().nullable().openapi({ example: "Film-coated tablet" }),
+    activeIngredients: z.array(z.string()).openapi({ example: ["Ibuprofen 400 mg"] }),
+    usageInstructions: z.string().nullable().openapi({
+      example: "Adults: 1 tablet with water, up to 3 times a day.",
+    }),
+    warnings: z.string().nullable().openapi({
+      example: "Do not use with stomach ulcers. Do not take for more than 4 days.",
+    }),
+    requiresPrescription: z.boolean().openapi({
+      description: "Prescription-only products cannot be bought without a prescription",
+    }),
+    stockQuantity: z.number().int().nonnegative().openapi({ example: 120 }),
+    manufacturer: z.string().nullable().openapi({ example: "Reckitt" }),
+  })
+  .openapi("ProductDetail");
+
+export const productIdParamsSchema = z
+  .object({
+    // Upper bound is the Postgres integer max; anything larger can never exist.
+    id: z.coerce.number().int().min(1).max(2_147_483_647).openapi({ example: 1 }),
+  })
+  .strict();
+
 export const productListResponseSchema = z
   .object({
     items: z.array(productSchema),
@@ -25,4 +56,6 @@ export const productListResponseSchema = z
   .openapi("ProductListResponse");
 
 export type Product = z.infer<typeof productSchema>;
+export type ProductDetail = z.infer<typeof productDetailSchema>;
+export type ProductIdParams = z.infer<typeof productIdParamsSchema>;
 export type ProductList = z.infer<typeof productListResponseSchema>;

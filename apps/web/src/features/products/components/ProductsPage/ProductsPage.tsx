@@ -3,8 +3,6 @@ import { formatResultRange } from "../../utils/formatResultRange";
 import { FilterBar } from "../FilterBar/FilterBar";
 import { Pagination } from "../Pagination/Pagination";
 import { ProductList } from "../ProductList/ProductList";
-import { SearchBar } from "../SearchBar/SearchBar";
-import { UploadPrescriptionButton } from "../UploadPrescriptionButton/UploadPrescriptionButton";
 import styles from "./ProductsPage.module.css";
 
 export function ProductsPage() {
@@ -14,14 +12,6 @@ export function ProductsPage() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.searchRow}>
-        <SearchBar
-          onSearch={(q) => search({ ...filters, q })}
-          onSelectCategory={(category) => search({ ...filters, q: "", category })}
-        />
-        <UploadPrescriptionButton />
-      </div>
-
       <div className={styles.resultsHead}>
         <header className={styles.header}>
           <h1>Products</h1>

@@ -42,6 +42,21 @@ describe("OpenAPI docs", () => {
     expect(res.body.components.schemas).toHaveProperty("Suggestion");
   });
 
+  it("documents /products/{id} with its id param, responses and ProductDetail schema", async () => {
+    const res = await request(app).get("/openapi.json");
+    const op = res.body.paths["/products/{id}"].get;
+    expect(op.parameters).toEqual([
+      expect.objectContaining({ name: "id", in: "path", required: true }),
+    ]);
+    expect(Object.keys(op.responses)).toEqual(["200", "400", "404"]);
+    const detail = res.body.components.schemas.ProductDetail;
+    // ProductDetail extends Product, so the spec is Product plus an object of the extra fields.
+    expect(detail.allOf[0]).toEqual({ $ref: "#/components/schemas/Product" });
+    expect(detail.allOf[1].required).toEqual(
+      expect.arrayContaining(["sku", "pzn", "requiresPrescription", "stockQuantity"]),
+    );
+  });
+
   it("serves Swagger UI", async () => {
     const res = await request(app).get("/docs/");
     expect(res.status).toBe(200);

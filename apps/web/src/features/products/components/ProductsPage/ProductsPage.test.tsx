@@ -1,10 +1,11 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ProductsPage } from "./ProductsPage";
 import * as api from "../../api/searchProducts";
 import { EMPTY_FILTERS } from "../../types";
 import { ibuprofen, vitaminD } from "../../../../test/fixtures";
+import { renderWithRouter } from "../../../../test/renderWithRouter";
 
 vi.mock("../../api/searchProducts");
 vi.mock("../../api/fetchSuggestions");
@@ -19,7 +20,7 @@ describe("ProductsPage header", () => {
       pagination: { page: 1, pageSize: 10, total: 12, totalPages: 2 },
     });
 
-    render(<ProductsPage />);
+    renderWithRouter(<ProductsPage />);
 
     expect(await screen.findByText("Showing 1–10 of 12 results")).toBeInTheDocument();
   });
@@ -27,7 +28,7 @@ describe("ProductsPage header", () => {
   it("shows no range text while loading", () => {
     searchProducts.mockReturnValue(new Promise(() => {}));
 
-    render(<ProductsPage />);
+    renderWithRouter(<ProductsPage />);
 
     expect(screen.queryByText(/Showing/)).not.toBeInTheDocument();
   });
@@ -38,7 +39,7 @@ describe("ProductsPage header", () => {
       pagination: { page: 1, pageSize: 10, total: 0, totalPages: 0 },
     });
 
-    render(<ProductsPage />);
+    renderWithRouter(<ProductsPage />);
 
     await screen.findByRole("heading", { name: "Products", level: 1 });
     const header = screen.getByRole("banner");
@@ -55,9 +56,8 @@ describe("ProductsPage search and filters", () => {
   it("keeps the search term when a filter changes", async () => {
     searchProducts.mockResolvedValue(loaded);
     const user = userEvent.setup();
-    render(<ProductsPage />);
+    renderWithRouter(<ProductsPage />, "/?q=ibu");
 
-    await user.type(screen.getByRole("combobox", { name: "Search products" }), "ibu{Enter}");
     await user.selectOptions(screen.getByRole("combobox", { name: "Brand" }), "Nurofen");
 
     await waitFor(() =>
@@ -69,10 +69,17 @@ describe("ProductsPage search and filters", () => {
     );
   });
 
-  it("offers prescription upload next to search", () => {
-    searchProducts.mockReturnValue(new Promise(() => {}));
-    render(<ProductsPage />);
+  it("starts from the search in the URL and shows its filters", async () => {
+    searchProducts.mockResolvedValue(loaded);
+    renderWithRouter(<ProductsPage />, "/?q=ibu&brand=Nurofen");
 
-    expect(screen.getByRole("button", { name: "Upload prescription" })).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Brand" })).toHaveValue("Nurofen");
+    await waitFor(() =>
+      expect(searchProducts).toHaveBeenCalledWith(
+        { ...EMPTY_FILTERS, q: "ibu", brand: "Nurofen" },
+        1,
+        expect.any(AbortSignal),
+      ),
+    );
   });
 });

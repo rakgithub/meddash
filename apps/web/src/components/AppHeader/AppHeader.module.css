@@ -1,0 +1,67 @@
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 24px;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 18px 20px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+
+.mark {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.capsuleLeft {
+  fill: var(--accent);
+}
+
+.capsuleRight {
+  fill: var(--accent-soft);
+}
+
+.capsuleOutline {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+/* Fills the space between the logo and the upload button. */
+.search {
+  flex: 1;
+  min-width: 0;
+}
+
+/* On a phone the logo and upload button share the first row and the search gets its own. */
+@media (max-width: 720px) {
+  .inner {
+    padding-block: 14px;
+  }
+
+  .brand {
+    margin-right: auto;
+  }
+
+  .search {
+    order: 1;
+    flex-basis: 100%;
+  }
+}
