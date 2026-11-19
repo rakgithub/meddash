@@ -1,42 +1,64 @@
-import { useId, useState, type KeyboardEvent } from "react";
-import { useSuggestions, type SuggestStatus } from "../../hooks/useSuggestions";
-import type { Suggestion } from "../../types";
+import { useId, useState, type KeyboardEvent, type ReactNode } from "react";
+import { SUGGEST_MIN_LENGTH, useSuggestions, type SuggestStatus } from "../../hooks/useSuggestions";
+import type { SuggestOption } from "../../types";
+import { formatCategory } from "../../utils/formatCategory";
+import { matchCategories } from "../../utils/matchCategories";
 import styles from "./SearchSuggest.module.css";
 
 interface SearchSuggestProps {
-  id: string;
+  label: string;
   value: string;
   placeholder?: string;
   onChange: (value: string) => void;
-  onSelect: (suggestion: Suggestion) => void;
+  onSelect: (option: SuggestOption) => void;
 }
 
-/** Text input with an autocomplete listbox (WAI-ARIA 1.2 combobox, list autocomplete). */
-export function SearchSuggest({ id, value, placeholder, onChange, onSelect }: SearchSuggestProps) {
+const keyOf = (o: SuggestOption) =>
+  o.kind === "category" ? `category-${o.slug}` : `product-${o.product.id}`;
+
+/**
+ * Text input with a grouped autocomplete listbox (WAI-ARIA 1.2 combobox, list autocomplete):
+ * matching categories first, then products from the API.
+ */
+export function SearchSuggest({
+  label,
+  value,
+  placeholder,
+  onChange,
+  onSelect,
+}: SearchSuggestProps) {
   const listboxId = useId();
   const { suggestions, status } = useSuggestions(value);
   const [open, setOpen] = useState(false);
-  // Tracked by id, not index, so a list that changes under the user never highlights the wrong product.
-  const [activeId, setActiveId] = useState<string | null>(null);
+  // Tracked by key, not index, so a list that changes under the user never highlights the wrong option.
+  const [activeKey, setActiveKey] = useState<string | null>(null);
 
-  const activeIndex = suggestions.findIndex((s) => s.id === activeId);
-  const expanded = open && suggestions.length > 0;
-  const message = open ? statusMessage(status, suggestions.length) : "";
-  const optionId = (s: Suggestion) => `${listboxId}-${s.id}`;
+  const term = value.trim();
+  const categories: SuggestOption[] =
+    term.length >= SUGGEST_MIN_LENGTH
+      ? matchCategories(term).map((m) => ({ kind: "category", ...m }))
+      : [];
+  const products: SuggestOption[] = suggestions.map((product) => ({ kind: "product", product }));
+  const options = [...categories, ...products];
 
-  function select(s: Suggestion) {
+  const activeIndex = options.findIndex((o) => keyOf(o) === activeKey);
+  const expanded = open && options.length > 0;
+  const message = open && !options.length ? statusMessage(status) : "";
+  const optionId = (o: SuggestOption) => `${listboxId}-${keyOf(o)}`;
+
+  function select(o: SuggestOption) {
     setOpen(false);
-    setActiveId(null);
-    onSelect(s);
+    setActiveKey(null);
+    onSelect(o);
   }
 
   function move(step: 1 | -1) {
-    if (!suggestions.length) return;
+    if (!options.length) return;
     setOpen(true);
     // From "nothing active", Down goes to the first option and Up to the last.
     const from = activeIndex === -1 ? (step === 1 ? -1 : 0) : activeIndex;
-    const next = (from + step + suggestions.length) % suggestions.length;
-    setActiveId(suggestions[next].id);
+    const next = (from + step + options.length) % options.length;
+    setActiveKey(keyOf(options[next]));
   }
 
   function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
@@ -49,7 +71,7 @@ export function SearchSuggest({ id, value, placeholder, onChange, onSelect }: Se
       case "Enter":
         if (expanded && activeIndex !== -1) {
           e.preventDefault(); // pick the option instead of submitting the form
-          select(suggestions[activeIndex]);
+          select(options[activeIndex]);
           return;
         }
         setOpen(false); // let the form submit the typed text
@@ -58,37 +80,74 @@ export function SearchSuggest({ id, value, placeholder, onChange, onSelect }: Se
         if (!open) return; // let the browser clear a closed search field
         e.preventDefault();
         setOpen(false);
-        setActiveId(null);
+        setActiveKey(null);
         return;
     }
+  }
+
+  function renderOption(o: SuggestOption) {
+    const active = activeIndex !== -1 && keyOf(options[activeIndex]) === keyOf(o);
+    return (
+      <div
+        key={keyOf(o)}
+        id={optionId(o)}
+        role="option"
+        // Focusable only programmatically: focus stays in the input (aria-activedescendant).
+        tabIndex={-1}
+        aria-selected={active}
+        className={styles.option}
+        // Select on mousedown and cancel it, so the input never blurs (which would close the list
+        // first). Keyboard users never focus options: the input handles keys via aria-activedescendant.
+        onMouseDown={(e) => {
+          e.preventDefault();
+          select(o);
+        }}
+      >
+        {o.kind === "category" ? (
+          <>
+            <span className={styles.name}>
+              <HighlightPrefix text={formatCategory(o.slug)} prefix={term} />
+            </span>
+            {o.hint && <span className={styles.meta}>for {o.hint}</span>}
+          </>
+        ) : (
+          <>
+            <span className={styles.name}>
+              <HighlightPrefix text={o.product.name} prefix={term} />
+            </span>
+            <span className={styles.meta}>{o.product.brand}</span>
+          </>
+        )}
+      </div>
+    );
   }
 
   return (
     <div className={styles.root}>
       <input
-        id={id}
         type="search"
         role="combobox"
         autoComplete="off"
+        aria-label={label}
         placeholder={placeholder}
         aria-autocomplete="list"
         aria-expanded={expanded}
         aria-controls={listboxId}
         aria-activedescendant={
-          expanded && activeIndex !== -1 ? optionId(suggestions[activeIndex]) : undefined
+          expanded && activeIndex !== -1 ? optionId(options[activeIndex]) : undefined
         }
         value={value}
         onChange={(e) => {
           onChange(e.target.value);
           setOpen(true);
-          setActiveId(null);
+          setActiveKey(null);
         }}
         onKeyDown={handleKeyDown}
         onBlur={() => setOpen(false)}
       />
 
       {/* Always rendered so aria-controls points at a real element. */}
-      <ul
+      <div
         id={listboxId}
         role="listbox"
         aria-label="Suggestions"
@@ -96,27 +155,13 @@ export function SearchSuggest({ id, value, placeholder, onChange, onSelect }: Se
         className={styles.listbox}
         hidden={!expanded}
       >
-        {suggestions.map((s, i) => (
-          <li
-            key={s.id}
-            id={optionId(s)}
-            role="option"
-            aria-selected={i === activeIndex}
-            className={styles.option}
-            // Select on mousedown and cancel it, so the input never blurs (which would close the list
-            // first). Keyboard users never focus options: the input handles keys via aria-activedescendant.
-            onMouseDown={(e) => {
-              e.preventDefault();
-              select(s);
-            }}
-          >
-            <span className={styles.name}>
-              <HighlightPrefix text={s.name} prefix={value.trim()} />
-            </span>
-            <span className={styles.brand}>{s.brand}</span>
-          </li>
-        ))}
-      </ul>
+        <OptionGroup label="Categories" listboxId={listboxId}>
+          {categories.map(renderOption)}
+        </OptionGroup>
+        <OptionGroup label="Products" listboxId={listboxId}>
+          {products.map(renderOption)}
+        </OptionGroup>
+      </div>
 
       {message && (
         <p className={styles.message} aria-hidden="true">
@@ -126,16 +171,37 @@ export function SearchSuggest({ id, value, placeholder, onChange, onSelect }: Se
 
       <p role="status" className={styles.srOnly}>
         {expanded
-          ? `${suggestions.length} ${suggestions.length === 1 ? "suggestion" : "suggestions"} available. Use up and down arrows to choose.`
+          ? `${options.length} ${options.length === 1 ? "suggestion" : "suggestions"} available. Use up and down arrows to choose.`
           : message}
       </p>
     </div>
   );
 }
 
-function statusMessage(status: SuggestStatus, count: number) {
+function OptionGroup({
+  label,
+  listboxId,
+  children,
+}: {
+  label: string;
+  listboxId: string;
+  children: ReactNode[];
+}) {
+  if (!children.length) return null;
+  const labelId = `${listboxId}-${label}`;
+  return (
+    <div role="group" aria-labelledby={labelId} className={styles.group}>
+      <div id={labelId} role="presentation" className={styles.groupLabel}>
+        {label}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function statusMessage(status: SuggestStatus) {
   if (status === "error") return "Suggestions unavailable. Press Enter to search.";
-  if (status === "success" && count === 0) return "No matching products";
+  if (status === "success") return "No matching products";
   return "";
 }
 

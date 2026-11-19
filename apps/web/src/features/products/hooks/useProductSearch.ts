@@ -11,7 +11,6 @@ interface Query {
 
 /**
  * Calls the search API on mount and whenever `search` / `goToPage` is called.
- * Editing the filter form does not trigger a request - only an explicit search does.
  */
 export function useProductSearch() {
   const [query, setQuery] = useState<Query>({ filters: EMPTY_FILTERS, page: 1 });
@@ -41,5 +40,5 @@ export function useProductSearch() {
   const search = useCallback((filters: ProductFilters) => setQuery({ filters, page: 1 }), []);
   const goToPage = useCallback((page: number) => setQuery((q) => ({ ...q, page })), []);
 
-  return { products, pagination, status, search, goToPage };
+  return { products, pagination, status, filters: query.filters, search, goToPage };
 }

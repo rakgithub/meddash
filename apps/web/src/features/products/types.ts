@@ -1,3 +1,5 @@
+import type { Category } from "./filterOptions";
+
 export interface Product {
   id: string;
   name: string;
@@ -42,6 +44,9 @@ export interface Suggestion {
   name: string;
   brand: string;
 }
+
+export type SuggestOption =
+  { kind: "category"; slug: Category; hint?: string } | { kind: "product"; product: Suggestion };
 
 export interface SuggestResponse {
   items: Suggestion[];
