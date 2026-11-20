@@ -3,6 +3,7 @@ import type { ProductDetail } from "../../../products";
 import type { Recommendation } from "../../types";
 import type { DismissReason } from "../../utils/caseFile";
 import { ChatProductCard } from "../ChatProductCard/ChatProductCard";
+import { CompareDrawer } from "../CompareDrawer/CompareDrawer";
 import { PharmacistContact } from "../PharmacistContact/PharmacistContact";
 import styles from "./RecommendationStack.module.css";
 
@@ -19,6 +20,9 @@ interface RecommendationStackProps {
   onDismiss?: (product: ProductDetail, reason: DismissReason) => void;
 }
 
+/** The shortlist worth comparing is the top three; prescription-only products aren't options yet. */
+const COMPARE_MAX = 3;
+
 /** Matches the `leave` animation in the stylesheet. */
 const LEAVE_MS = 220;
 
@@ -32,6 +36,7 @@ export function RecommendationStack({
   onDismiss,
 }: RecommendationStackProps) {
   const [leavingId, setLeavingId] = useState<string | null>(null);
+  const [comparing, setComparing] = useState(false);
   const timerRef = useRef<number>();
 
   // Starting over while a card is leaving must not dismiss it in the fresh conversation.
@@ -64,6 +69,10 @@ export function RecommendationStack({
   const note =
     unavailable > 0 &&
     `${unavailable} ${unavailable === 1 ? "suggestion" : "suggestions"} unavailable`;
+  const comparable = items
+    .filter((item) => item.fit !== "locked")
+    .slice(0, COMPARE_MAX)
+    .map((item) => item.product);
   const allRuledOut = items.length === 0 && ruledOut > 0;
 
   return (
@@ -96,6 +105,12 @@ export function RecommendationStack({
           You’ve ruled out every suggestion here. A pharmacist can suggest others.
         </p>
       )}
+      {comparable.length >= 2 && (
+        <button className={styles.compare} type="button" onClick={() => setComparing(true)}>
+          Compare
+        </button>
+      )}
+      {comparing && <CompareDrawer products={comparable} onClose={() => setComparing(false)} />}
       {(items.length > 0 || allRuledOut) && <PharmacistContact />}
     </div>
   );

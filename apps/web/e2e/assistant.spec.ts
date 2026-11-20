@@ -70,6 +70,36 @@ test.describe("Symptom assistant", () => {
     await expect(page.getByRole("list", { name: "Avoiding" })).toContainText("Expensive options");
   });
 
+  test("compares the shortlist in a drawer, answers a question and closes on Escape", async ({
+    page,
+  }) => {
+    await page.goto("/assistant");
+
+    await page.getByRole("button", { name: "Sore throat and fever" }).click();
+    await page.getByRole("button", { name: "2–3 days" }).click();
+    await page.getByRole("button", { name: "Me", exact: true }).click();
+    const compare = page.getByRole("button", { name: "Compare" });
+    await expect(compare).toBeVisible({ timeout: 15_000 });
+
+    await compare.click();
+
+    const drawer = page.getByRole("dialog", { name: "Compare products" });
+    await expect(drawer.getByRole("columnheader", { name: /Ibuprofen 400mg/ })).toBeVisible();
+    await expect(drawer.getByRole("columnheader", { name: /Paracetamol 500mg/ })).toBeVisible();
+
+    await drawer.getByRole("button", { name: "Which is gentler on the stomach?" }).click();
+    await expect(drawer.getByRole("status")).toContainText("Ibuprofen 400mg has a stomach warning");
+    await expect(drawer.getByRole("row", { name: /Warnings/ })).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
+
+    await page.keyboard.press("Escape");
+
+    await expect(drawer).toHaveCount(0);
+    await expect(compare).toBeFocused();
+  });
+
   test("an urgent symptom gets a doctor alert instead of products", async ({ page }) => {
     await page.goto("/assistant");
 

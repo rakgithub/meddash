@@ -35,6 +35,26 @@ export const ibuprofenDetail: ProductDetail = {
   manufacturer: "Reckitt",
 };
 
+export const paracetamolDetail: ProductDetail = {
+  id: "2",
+  name: "Paracetamol 500mg",
+  description: "Gentle pain and fever relief",
+  category: "pain-relief",
+  brand: "ratiopharm",
+  price: 2.99,
+  imageUrl: null,
+  sku: "MD-0002",
+  pzn: "01126186",
+  packSize: "20 tablets",
+  dosageForm: "Tablet",
+  activeIngredients: ["Paracetamol 500 mg"],
+  usageInstructions: "1 to 2 tablets, up to 4 times a day.",
+  warnings: "Do not combine with other paracetamol-containing medicines.",
+  requiresPrescription: false,
+  stockQuantity: 3,
+  manufacturer: "ratiopharm",
+};
+
 export const coughSyrupDetail: ProductDetail = {
   id: "7",
   name: "Cough Syrup",
