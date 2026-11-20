@@ -1,10 +1,15 @@
+import express from "express";
 import { createApp } from "./createApp.js";
 import { config } from "./config/env.js";
 import { pool } from "./db/client.js";
 
-const server = createApp().listen(config.port, () => {
-  console.log(`Server listening on http://localhost:${config.port}`);
-});
+// Vercel only accepts an entrypoint that imports express itself, so the top-level app is created
+// here and the real app (shared with the supertest tests) is mounted into it.
+const server = express()
+  .use(createApp())
+  .listen(config.port, () => {
+    console.log(`Server listening on http://localhost:${config.port}`);
+  });
 
 function shutdown(signal: NodeJS.Signals) {
   console.log(`${signal} received, shutting down`);
