@@ -83,6 +83,8 @@ export const ana: User = {
   role: "customer",
 };
 
+export const emptyCart: Cart = { items: [], itemCount: 0, subtotal: 0 };
+
 export const cartWithIbuprofen: Cart = {
   items: [{ product: ibuprofen, quantity: 2, lineTotal: 12.98 }],
   itemCount: 2,
@@ -97,5 +99,3 @@ export const cartWithTwoLines: Cart = {
   itemCount: 3,
   subtotal: 21.93,
 };
-
-export const emptyCart: Cart = { items: [], itemCount: 0, subtotal: 0 };

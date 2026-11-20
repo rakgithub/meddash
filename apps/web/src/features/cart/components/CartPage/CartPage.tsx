@@ -1,55 +1,34 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ApiError } from "../../../../lib/apiClient";
 import { formatPrice } from "../../../products";
-import { getCart, removeCartItem, updateCartItem } from "../../api/cartApi";
-import type { Cart } from "../../types";
+import { useCart } from "../../hooks/useCart";
 import { CartLineItem, type LinePending } from "../CartLineItem/CartLineItem";
 import styles from "./CartPage.module.css";
-
-type LoadState = { status: "loading" } | { status: "error" } | { status: "ready"; cart: Cart };
 
 const errorMessage = (err: unknown) =>
   err instanceof ApiError ? err.message : "Could not reach the server. Try again.";
 
 const itemLabel = (count: number) => `${count} ${count === 1 ? "item" : "items"}`;
 
-/** The signed-in user's cart. Render under <RequireAuth>. */
+/** The signed-in user's cart, from <CartProvider>. Render under <RequireAuth>. */
 export function CartPage() {
-  const [state, setState] = useState<LoadState>({ status: "loading" });
-  const [attempt, setAttempt] = useState(0);
+  const { state, updateItem, removeItem } = useCart();
   // Every response is the whole cart, so mutations run one at a time: a slower earlier
   // response can't then overwrite a newer one.
   const [pending, setPending] = useState<{ productId: string; action: LinePending } | null>(null);
   const [lineError, setLineError] = useState<{ productId: string; message: string } | null>(null);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    getCart(controller.signal)
-      .then((cart) => setState({ status: "ready", cart }))
-      .catch((err: unknown) => {
-        if (err instanceof DOMException && err.name === "AbortError") return;
-        setState({ status: "error" });
-      });
-    return () => controller.abort();
-  }, [attempt]);
-
-  const mutate = async (productId: string, action: LinePending, request: () => Promise<Cart>) => {
+  const mutate = async (productId: string, action: LinePending, request: () => Promise<void>) => {
     setPending({ productId, action });
     setLineError(null);
     try {
-      const cart = await request();
-      setState({ status: "ready", cart });
+      await request();
     } catch (err) {
       setLineError({ productId, message: errorMessage(err) });
     } finally {
       setPending(null);
     }
-  };
-
-  const retry = () => {
-    setState({ status: "loading" });
-    setAttempt((n) => n + 1);
   };
 
   return (
@@ -59,15 +38,14 @@ export function CartPage() {
       </Link>
       <h1 className={styles.title}>Your cart</h1>
 
-      {state.status === "loading" && <p className={styles.message}>Loading your cart…</p>}
+      {(state.status === "loading" || state.status === "signed-out") && (
+        <p className={styles.message}>Loading your cart…</p>
+      )}
 
       {state.status === "error" && (
-        <div className={styles.message} role="alert">
-          <p>Your cart could not be loaded.</p>
-          <button type="button" className={styles.secondary} onClick={retry}>
-            Try again
-          </button>
-        </div>
+        <p className={`${styles.message} ${styles.error}`} role="alert">
+          Your cart could not be loaded. Reload the page to try again.
+        </p>
       )}
 
       {state.status === "ready" && state.cart.items.length === 0 && (
@@ -95,9 +73,9 @@ export function CartPage() {
                     locked={pending !== null && ownPending === null}
                     error={lineError?.productId === id ? lineError.message : null}
                     onQuantityChange={(quantity) =>
-                      mutate(id, "update", () => updateCartItem(id, quantity))
+                      mutate(id, "update", () => updateItem(id, quantity))
                     }
-                    onRemove={() => mutate(id, "remove", () => removeCartItem(id))}
+                    onRemove={() => mutate(id, "remove", () => removeItem(id))}
                   />
                 </li>
               );

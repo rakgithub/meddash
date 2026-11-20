@@ -1,22 +1,85 @@
 import { expect, test } from "@playwright/test";
 
-// The dev database keeps every account, so each run registers a new email and starts with an empty cart.
+// The dev database keeps every account, so each run registers a new email.
 const newEmail = () => `e2e-cart-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
+const password = "correct horse";
 
-test.describe("Cart", () => {
-  test("add to cart → change quantity → remove", async ({ page }) => {
-    // Registering signs this browser context in; the detail page's Add to cart lands in PR 3,
-    // so the product goes in through the API here.
+test.describe("Add to cart", () => {
+  test("a signed-in user adds two to the cart and sees the count and the cart", async ({
+    page,
+  }) => {
     await page.request.post("/api/auth/register", {
-      data: { email: newEmail(), password: "correct horse", name: "Ana" },
+      data: { email: newEmail(), password, name: "Ana Weber" },
     });
-    const added = await page.request.post("/api/cart/items", {
-      data: { productId: "1", quantity: 2 },
-    });
-    expect(added.status()).toBe(200);
 
-    await page.goto("/cart");
+    await page.goto("/products/1");
+    const banner = page.getByRole("banner");
+    await expect(banner.getByRole("link", { name: "Cart, 0 items" })).toBeVisible();
+
+    const buy = page.getByRole("region", { name: "Buy" });
+    await buy.getByRole("button", { name: "Increase quantity" }).click();
+    await expect(buy.getByRole("spinbutton", { name: "Quantity" })).toHaveValue("2");
+    await buy.getByRole("button", { name: "Add to cart" }).click();
+
+    await expect(buy.getByRole("status")).toContainText("Added 2 to cart");
+    await expect(banner.getByRole("link", { name: "Cart, 2 items" })).toBeVisible();
+
+    await buy.getByRole("link", { name: "View cart" }).click();
     await expect(page.getByRole("heading", { name: "Your cart", level: 1 })).toBeVisible();
+    await expect(page.getByRole("listitem")).toContainText("Ibuprofen 400mg");
+  });
+
+  test("a signed-out visitor is sent to log in and comes back to the product", async ({ page }) => {
+    const email = newEmail();
+    await page.request.post("/api/auth/register", { data: { email, password, name: "Ana" } });
+    await page.request.post("/api/auth/logout");
+
+    await page.goto("/products/1");
+    await page.getByRole("button", { name: "Add to cart" }).click();
+
+    await expect(page).toHaveURL(/\/login$/);
+    await page.getByLabel("Email").fill(email);
+    await page.getByLabel("Password").fill(password);
+    await page.getByRole("button", { name: "Log in" }).click();
+
+    await expect(page).toHaveURL(/\/products\/1$/);
+    await expect(page.getByRole("button", { name: "Add to cart" })).toBeEnabled();
+  });
+
+  test("the server's stock limit is shown and the quantity is kept", async ({ page }) => {
+    await page.request.post("/api/auth/register", {
+      data: { email: newEmail(), password, name: "Ana" },
+    });
+
+    // Product 4 has 3 in stock; adding 3 twice goes over it.
+    await page.goto("/products/4");
+    const buy = page.getByRole("region", { name: "Buy" });
+    const more = buy.getByRole("button", { name: "Increase quantity" });
+    await more.click();
+    await more.click();
+    await buy.getByRole("button", { name: "Add to cart" }).click();
+    await expect(buy.getByRole("status")).toContainText("Added 3 to cart");
+
+    await buy.getByRole("button", { name: "Add to cart" }).click();
+
+    await expect(buy.getByRole("alert")).toBeVisible();
+    await expect(buy.getByRole("spinbutton", { name: "Quantity" })).toHaveValue("3");
+  });
+});
+
+test.describe("Cart page", () => {
+  test("change quantity → reload keeps it → remove → empty", async ({ page }) => {
+    await page.request.post("/api/auth/register", {
+      data: { email: newEmail(), password, name: "Ana" },
+    });
+
+    await page.goto("/products/1");
+    const buy = page.getByRole("region", { name: "Buy" });
+    await buy.getByRole("button", { name: "Increase quantity" }).click();
+    await buy.getByRole("button", { name: "Add to cart" }).click();
+    await buy.getByRole("link", { name: "View cart" }).click();
+
+    const banner = page.getByRole("banner");
     const line = page.getByRole("article", { name: "Ibuprofen 400mg" });
     const summary = page.getByRole("region", { name: "Order summary" });
     await expect(line.getByRole("spinbutton")).toHaveValue("2");
@@ -25,6 +88,8 @@ test.describe("Cart", () => {
     await line.getByRole("button", { name: "Increase quantity" }).click();
     await expect(line.getByRole("spinbutton")).toHaveValue("3");
     await expect(summary).toContainText("3 items");
+    // The header count follows the cart page.
+    await expect(banner.getByRole("link", { name: "Cart, 3 items" })).toBeVisible();
 
     // The quantity is stored on the server, not just in the page.
     await page.reload();
@@ -32,12 +97,8 @@ test.describe("Cart", () => {
 
     await line.getByRole("button", { name: "Remove" }).click();
     await expect(page.getByText("Your cart is empty")).toBeVisible();
+    await expect(banner.getByRole("link", { name: "Cart, 0 items" })).toBeVisible();
     await page.getByRole("link", { name: "Browse products" }).click();
     await expect(page).toHaveURL(/\/$/);
-  });
-
-  test("a signed-out visitor is asked to log in", async ({ page }) => {
-    await page.goto("/cart");
-    await expect(page).toHaveURL(/\/login$/);
   });
 });

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { addToCart, getCart, removeCartItem, updateCartItem } from "./cartApi";
 import { cartWithIbuprofen } from "../../../test/fixtures";
-import { getCart, removeCartItem, updateCartItem } from "./cartApi";
 
 function mockFetch(response: Partial<Response>) {
   const fn = vi.fn().mockResolvedValue(response);
@@ -12,55 +12,53 @@ const ok = { ok: true, json: async () => cartWithIbuprofen };
 
 afterEach(() => vi.unstubAllGlobals());
 
-describe("getCart", () => {
-  it("calls /api/cart with the signal and returns the cart", async () => {
+describe("cartApi", () => {
+  it("gets the cart with an abort signal", async () => {
     const fetchMock = mockFetch(ok);
     const { signal } = new AbortController();
 
     await expect(getCart(signal)).resolves.toEqual(cartWithIbuprofen);
     expect(fetchMock).toHaveBeenCalledWith("/api/cart", { signal });
   });
-});
 
-describe("updateCartItem", () => {
-  it("patches the quantity of one product", async () => {
+  it("adds an item", async () => {
     const fetchMock = mockFetch(ok);
 
-    await expect(updateCartItem("1", 3)).resolves.toEqual(cartWithIbuprofen);
+    await expect(addToCart("1", 2)).resolves.toEqual(cartWithIbuprofen);
     expect(fetchMock).toHaveBeenCalledWith(
-      "/api/cart/items/1",
-      expect.objectContaining({ method: "PATCH", body: '{"quantity":3}' }),
+      "/api/cart/items",
+      expect.objectContaining({ method: "POST", body: '{"productId":"1","quantity":2}' }),
     );
   });
 
-  it("encodes the product id so it cannot change the path", async () => {
+  it("updates a line's quantity", async () => {
     const fetchMock = mockFetch(ok);
 
-    await updateCartItem("1/../x", 1);
-
-    expect(fetchMock.mock.calls[0]![0]).toBe("/api/cart/items/1%2F..%2Fx");
+    await updateCartItem("1", 4);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/cart/items/1",
+      expect.objectContaining({ method: "PATCH", body: '{"quantity":4}' }),
+    );
   });
 
-  it("rejects with the server message", async () => {
+  it("removes a line, encoding the id so it cannot change the path", async () => {
+    const fetchMock = mockFetch(ok);
+
+    await removeCartItem("1/../x");
+    expect(fetchMock).toHaveBeenCalledWith("/api/cart/items/1%2F..%2Fx", { method: "DELETE" });
+  });
+
+  it("rejects with the server's message", async () => {
     mockFetch({
       ok: false,
       status: 409,
       statusText: "Conflict",
-      json: async () => ({ error: { message: "Only 3 in stock" } }),
+      json: async () => ({ error: { message: "Only 3 left in stock" } }),
     });
 
-    await expect(updateCartItem("4", 5)).rejects.toMatchObject({
+    await expect(addToCart("4", 5)).rejects.toMatchObject({
       status: 409,
-      message: "Only 3 in stock",
+      message: "Only 3 left in stock",
     });
-  });
-});
-
-describe("removeCartItem", () => {
-  it("deletes one product from the cart", async () => {
-    const fetchMock = mockFetch(ok);
-
-    await expect(removeCartItem("1")).resolves.toEqual(cartWithIbuprofen);
-    expect(fetchMock).toHaveBeenCalledWith("/api/cart/items/1", { method: "DELETE" });
   });
 });

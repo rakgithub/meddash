@@ -132,21 +132,8 @@
   cursor: not-allowed;
 }
 
-.secondary {
-  height: 40px;
-  padding: 0 20px;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-control);
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.secondary:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+.error {
+  color: var(--danger);
 }
 
 .note {

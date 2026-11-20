@@ -1,0 +1,148 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.add {
+  flex: 1;
+  min-width: 140px;
+  height: 44px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--accent);
+  color: var(--on-accent);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-in-out);
+}
+
+.add:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.add:disabled {
+  background: var(--border);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.reason {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--danger);
+}
+
+/*
+ * Empty until something is added: out of the flow so it costs no gap, but still rendered so
+ * screen readers already know the live region when the confirmation arrives.
+ */
+.outcome:empty {
+  position: absolute;
+}
+
+/* The one moment of motion on the page: it answers the click. */
+.added {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: var(--accent-soft);
+  color: var(--text);
+  font-size: 14px;
+  animation: arrive var(--duration-base) var(--ease-out);
+}
+
+.added svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.view {
+  margin-left: auto;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.error {
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 14px;
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+/* Only phones get the bar; on desktop the buy box is sticky instead. */
+.bar {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .bar {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    box-shadow: 0 -8px 24px rgb(27 34 48 / 10%);
+    animation: rise var(--duration-base) var(--ease-out);
+  }
+
+  .barText {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .barName {
+    overflow: hidden;
+    font-size: 13px;
+    color: var(--text-muted);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .barPrice {
+    font-size: 18px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .bar .add {
+    flex: 0 0 auto;
+    margin-left: auto;
+  }
+}
+
+@keyframes rise {
+  from {
+    transform: translateY(100%);
+  }
+}

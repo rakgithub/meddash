@@ -23,6 +23,7 @@ beforeEach(() => {
   });
   vi.mocked(detailApi.fetchProduct).mockResolvedValue(ibuprofenDetail);
   vi.mocked(authApi.fetchCurrentUser).mockResolvedValue(null);
+  vi.mocked(cartApi.getCart).mockResolvedValue(cartWithIbuprofen);
 });
 
 describe("App routes", () => {
@@ -61,20 +62,6 @@ describe("App routes", () => {
     expect(screen.getByRole("heading", { name: "Ibuprofen 400mg", level: 1 })).toBeInTheDocument();
   });
 
-  it("sends a signed-out visitor from /cart to log in", async () => {
-    renderWithRouter(<App />, "/cart");
-    expect(await screen.findByRole("heading", { name: "Log in", level: 1 })).toBeInTheDocument();
-    expect(cartApi.getCart).not.toHaveBeenCalled();
-  });
-
-  it("shows the cart at /cart when signed in", async () => {
-    vi.mocked(authApi.fetchCurrentUser).mockResolvedValue(ana);
-    vi.mocked(cartApi.getCart).mockResolvedValue(cartWithIbuprofen);
-    renderWithRouter(<App />, "/cart");
-    expect(await screen.findByRole("heading", { name: "Your cart", level: 1 })).toBeInTheDocument();
-    expect(await screen.findByRole("heading", { name: "Ibuprofen 400mg" })).toBeInTheDocument();
-  });
-
   it("sends a signed-out visitor from /profile to log in", async () => {
     renderWithRouter(<App />, "/profile");
     expect(await screen.findByRole("heading", { name: "Log in", level: 1 })).toBeInTheDocument();
@@ -99,6 +86,18 @@ describe("App routes", () => {
 
     expect(await screen.findByRole("heading", { name: "Products", level: 1 })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Log in" })).toBeInTheDocument();
+  });
+
+  it("sends a signed-out visitor from /cart to log in", async () => {
+    renderWithRouter(<App />, "/cart");
+    expect(await screen.findByRole("heading", { name: "Log in", level: 1 })).toBeInTheDocument();
+  });
+
+  it("shows the cart at /cart when signed in", async () => {
+    vi.mocked(authApi.fetchCurrentUser).mockResolvedValue(ana);
+    renderWithRouter(<App />, "/cart");
+    expect(await screen.findByRole("heading", { name: "Your cart", level: 1 })).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: "Ibuprofen 400mg" })).toBeInTheDocument();
   });
 
   it("shows a not-found page for an unknown route", () => {

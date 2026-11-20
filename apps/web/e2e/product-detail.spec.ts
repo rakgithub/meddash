@@ -19,6 +19,9 @@ test.describe("Product detail", () => {
     await expect(page.getByText("Ibuprofen 400 mg")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Usage instructions" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Warnings" })).toBeVisible();
+    // Product details start closed; opening the section shows the facts.
+    await expect(page.getByText("04875159")).toBeHidden();
+    await page.getByRole("heading", { name: "Product details" }).click();
     await expect(page.getByText("04875159")).toBeVisible();
     await expect(page.getByRole("note")).toBeHidden();
 

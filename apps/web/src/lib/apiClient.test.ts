@@ -111,16 +111,16 @@ describe("apiPostNoContent", () => {
 
 describe("apiPatch", () => {
   it("sends a JSON body with PATCH and returns parsed JSON", async () => {
-    const fetchMock = mockFetch({ ok: true, json: async () => ({ ok: 1 }) });
+    const fetchMock = mockFetch({ ok: true, json: async () => ({ itemCount: 3 }) });
 
-    const result = await apiPatch("/cart/items/1", { quantity: 2 });
+    const result = await apiPatch("/cart/items/1", { quantity: 3 });
 
     expect(fetchMock).toHaveBeenCalledWith("/api/cart/items/1", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: '{"quantity":2}',
+      body: '{"quantity":3}',
     });
-    expect(result).toEqual({ ok: 1 });
+    expect(result).toEqual({ itemCount: 3 });
   });
 
   it("throws an ApiError with the server message", async () => {
@@ -131,17 +131,18 @@ describe("apiPatch", () => {
       json: async () => ({ error: { message: "Only 3 in stock" } }),
     });
 
-    const error = await apiPatch("/cart/items/1", { quantity: 9 }).catch((e: unknown) => e);
-
-    expect(error).toMatchObject({ status: 409, message: "Only 3 in stock" });
+    await expect(apiPatch("/cart/items/1", { quantity: 9 })).rejects.toMatchObject({
+      status: 409,
+      message: "Only 3 in stock",
+    });
   });
 });
 
 describe("apiDelete", () => {
   it("sends DELETE and returns parsed JSON", async () => {
-    const fetchMock = mockFetch({ ok: true, json: async () => ({ ok: 1 }) });
+    const fetchMock = mockFetch({ ok: true, json: async () => ({ itemCount: 0 }) });
 
-    await expect(apiDelete("/cart/items/1")).resolves.toEqual({ ok: 1 });
+    await expect(apiDelete("/cart/items/1")).resolves.toEqual({ itemCount: 0 });
     expect(fetchMock).toHaveBeenCalledWith("/api/cart/items/1", { method: "DELETE" });
   });
 

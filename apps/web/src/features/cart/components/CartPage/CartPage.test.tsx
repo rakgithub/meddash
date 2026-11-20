@@ -2,14 +2,31 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "../../../../lib/apiClient";
-import { cartWithIbuprofen, cartWithTwoLines, emptyCart } from "../../../../test/fixtures";
+import { AuthProvider } from "../../../auth";
+import * as authApi from "../../../auth/api/authApi";
+import { ana, cartWithIbuprofen, cartWithTwoLines, emptyCart } from "../../../../test/fixtures";
 import { renderWithRouter } from "../../../../test/renderWithRouter";
 import * as cartApi from "../../api/cartApi";
+import { CartProvider } from "../CartProvider/CartProvider";
 import { CartPage } from "./CartPage";
 
+vi.mock("../../../auth/api/authApi");
 vi.mock("../../api/cartApi");
 
-beforeEach(() => vi.resetAllMocks());
+beforeEach(() => {
+  vi.resetAllMocks();
+  vi.mocked(authApi.fetchCurrentUser).mockResolvedValue(ana);
+});
+
+const renderPage = () =>
+  renderWithRouter(
+    <AuthProvider>
+      <CartProvider>
+        <CartPage />
+      </CartProvider>
+    </AuthProvider>,
+    "/cart",
+  );
 
 const line = (name: string) => within(screen.getByRole("article", { name }));
 const summary = () => within(screen.getByRole("region", { name: "Order summary" }));
@@ -28,7 +45,7 @@ function deferred<T>() {
 describe("CartPage", () => {
   it("shows loading, then the lines and summary", async () => {
     vi.mocked(cartApi.getCart).mockResolvedValue(cartWithTwoLines);
-    renderWithRouter(<CartPage />, "/cart");
+    renderPage();
 
     expect(screen.getByText("Loading your cart…")).toBeVisible();
     expect(await screen.findByRole("heading", { name: "Ibuprofen 400mg" })).toBeVisible();
@@ -44,13 +61,13 @@ describe("CartPage", () => {
       items: [{ ...cartWithIbuprofen.items[0]!, quantity: 1 }],
       itemCount: 1,
     });
-    renderWithRouter(<CartPage />, "/cart");
+    renderPage();
     expect(await screen.findByText("1 item")).toBeVisible();
   });
 
   it("shows the empty state with a way back to products", async () => {
     vi.mocked(cartApi.getCart).mockResolvedValue(emptyCart);
-    renderWithRouter(<CartPage />, "/cart");
+    renderPage();
 
     const empty = await screen.findByRole("region", { name: "Empty cart" });
     expect(empty).toHaveTextContent("Your cart is empty");
@@ -60,24 +77,18 @@ describe("CartPage", () => {
     );
   });
 
-  it("shows an error and loads again on retry", async () => {
-    vi.mocked(cartApi.getCart)
-      .mockRejectedValueOnce(new ApiError(500, "Internal Server Error"))
-      .mockResolvedValueOnce(cartWithIbuprofen);
-    renderWithRouter(<CartPage />, "/cart");
+  it("shows an error when the cart can't be loaded", async () => {
+    vi.mocked(cartApi.getCart).mockRejectedValue(new ApiError(500, "Internal Server Error"));
+    renderPage();
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Your cart could not be loaded.");
-    await userEvent.click(screen.getByRole("button", { name: "Try again" }));
-
-    expect(await screen.findByRole("heading", { name: "Ibuprofen 400mg" })).toBeVisible();
-    expect(cartApi.getCart).toHaveBeenCalledTimes(2);
   });
 
   it("updates a quantity and shows the cart from the response", async () => {
     vi.mocked(cartApi.getCart).mockResolvedValue(cartWithTwoLines);
     const request = deferred<typeof cartWithTwoLines>();
     vi.mocked(cartApi.updateCartItem).mockReturnValue(request.promise);
-    renderWithRouter(<CartPage />, "/cart");
+    renderPage();
 
     await screen.findByRole("heading", { name: "Ibuprofen 400mg" });
     await userEvent.click(
@@ -107,7 +118,7 @@ describe("CartPage", () => {
   it("shows the server's error on the line and keeps the quantity", async () => {
     vi.mocked(cartApi.getCart).mockResolvedValue(cartWithTwoLines);
     vi.mocked(cartApi.updateCartItem).mockRejectedValue(new ApiError(409, "Only 2 in stock"));
-    renderWithRouter(<CartPage />, "/cart");
+    renderPage();
 
     await screen.findByRole("heading", { name: "Ibuprofen 400mg" });
     await userEvent.click(
@@ -122,7 +133,7 @@ describe("CartPage", () => {
   it("shows a generic error when the server can't be reached", async () => {
     vi.mocked(cartApi.getCart).mockResolvedValue(cartWithIbuprofen);
     vi.mocked(cartApi.removeCartItem).mockRejectedValue(new TypeError("Failed to fetch"));
-    renderWithRouter(<CartPage />, "/cart");
+    renderPage();
 
     await userEvent.click(await screen.findByRole("button", { name: "Remove" }));
 
@@ -139,7 +150,7 @@ describe("CartPage", () => {
         subtotal: 8.95,
       })
       .mockResolvedValueOnce(emptyCart);
-    renderWithRouter(<CartPage />, "/cart");
+    renderPage();
 
     await screen.findByRole("heading", { name: "Ibuprofen 400mg" });
     await userEvent.click(line("Ibuprofen 400mg").getByRole("button", { name: "Remove" }));
@@ -159,7 +170,7 @@ describe("CartPage", () => {
     vi.mocked(cartApi.updateCartItem)
       .mockRejectedValueOnce(new ApiError(409, "Only 2 in stock"))
       .mockResolvedValueOnce(cartWithIbuprofen);
-    renderWithRouter(<CartPage />, "/cart");
+    renderPage();
 
     await userEvent.click(await screen.findByRole("button", { name: "Increase quantity" }));
     expect(await screen.findByRole("alert")).toBeVisible();
