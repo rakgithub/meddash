@@ -19,6 +19,26 @@ test.describe("Symptom assistant", () => {
     await expect(page.getByRole("button", { name: "Since today" })).toBeVisible();
   });
 
+  test("starts from the body map: tap throat, pick a symptom, see suggestions", async ({
+    page,
+  }) => {
+    await page.goto("/assistant");
+
+    await page.getByRole("button", { name: "Nose and throat" }).click();
+    await page.getByRole("button", { name: "Sore throat" }).click();
+    await expect(page.getByRole("complementary", { name: "Case file" })).toContainText(
+      "Sore throat",
+    );
+    await page.getByRole("button", { name: "2–3 days" }).click();
+    await page.getByRole("button", { name: "Me", exact: true }).click();
+
+    await expect(
+      page.getByRole("list", { name: "Suggested products" }).getByRole("article", {
+        name: "Ibuprofen 400mg",
+      }),
+    ).toBeVisible({ timeout: 15_000 });
+  });
+
   test("asks two questions, then suggests real products that open their page", async ({ page }) => {
     await page.goto("/assistant");
 

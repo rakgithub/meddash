@@ -1,5 +1,7 @@
 import { useSearchParams } from "react-router-dom";
 import { useConsultation } from "../../hooks/useConsultation";
+import { regionMessage } from "../../utils/bodyRegions";
+import { BodyMap } from "../BodyMap/BodyMap";
 import { CaseFilePanel } from "../CaseFilePanel/CaseFilePanel";
 import { Composer } from "../Composer/Composer";
 import { MessageList } from "../MessageList/MessageList";
@@ -65,6 +67,7 @@ export function AssistantPage() {
                     </li>
                   ))}
                 </ul>
+                <BodyMap onSelect={(region) => send(regionMessage(region))} />
               </section>
             ) : (
               <MessageList

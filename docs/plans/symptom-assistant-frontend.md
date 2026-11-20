@@ -1,6 +1,6 @@
 # Symptom assistant plan — frontend first
 
-Status: S1–S5 done 2026-11-20. Roadmap entry: [`docs/PLAN.md`](../PLAN.md#track--symptom-assistant-ai-chat).
+Status: S1–S6 done 2026-11-20. Roadmap entry: [`docs/PLAN.md`](../PLAN.md#track--symptom-assistant-ai-chat).
 
 A chat where a customer describes symptoms and gets suggested over-the-counter products from the catalogue,
 shown as product cards inside the chat. It should feel like a pharmacist at the counter: a short guided
@@ -233,13 +233,31 @@ Notes from the build (2026-11-20):
 
 The goal is a visual way to start for users who don't know the words for their symptoms.
 
-- [ ] Optional first screen alongside the starter prompts: a simple front-facing body outline (inline SVG) with
+- [x] Optional first screen alongside the starter prompts: a simple front-facing body outline (inline SVG) with
       about 8 tappable regions (head, eyes, nose/throat, chest, stomach, skin, joints, sleep/mind).
-- [ ] Choosing a region sends it as the first message and shows that region's common symptoms as chips to pick
+- [x] Choosing a region sends it as the first message and shows that region's common symptoms as chips to pick
       from.
-- [ ] Each region is a real `<button>` with a label. The outline is decorative only and has a list fallback on
+- [x] Each region is a real `<button>` with a label. The outline is decorative only and has a list fallback on
       small screens.
-- [ ] Tests: region selection seeds the case file. e2e: tap throat → pick symptoms → see cards.
+- [x] Tests: region selection seeds the case file. e2e: tap throat → pick symptoms → see cards.
+
+Notes from the build (2026-11-20):
+
+- `utils/bodyRegions.ts` holds the eight regions with their symptoms, plus `regionMessage` ("My nose and
+  throat") and `regionFromMessage`. Only that exact message is read as a region, never typed text.
+- The mock answers a region message with a short line and one quick reply, `field: "symptoms"`, whose options
+  are the region's symptoms. The chips are single-pick, like every quick reply. A pick is echoed as the user's
+  message and `applyAnswer` adds it to the case file at once, so it shows in the case file panel before the
+  reply, then the usual duration and who-it-is-for questions follow. More symptoms can be added in the panel.
+- The region itself is not stored in the case file: it has no field of its own, and the symptom is what the
+  recommendation uses.
+- Region symptoms use the mock's own symptom names, so a pick is not stored twice. "Chest pain" is offered
+  under Chest on purpose: it is a red flag and gets the urgent alert. "Joint pain" is now its own symptom
+  (it was part of "Muscle pain").
+- Skin and "Feeling stressed" have no scripted flow, so they get the "tell me a bit more" fallback. The
+  catalogue has nothing for them yet.
+- `BodyMap` is a fixed 240×460 box: an SVG outline and a list of buttons, each a dot on the body with its
+  label beside it. Under 640px the outline is hidden and the buttons become a wrapped list like the starters.
 
 ## Phase S7 — Polish and integrations
 

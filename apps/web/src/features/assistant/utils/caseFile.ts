@@ -20,6 +20,8 @@ export function mergeUnique(current: string[], added: string[]): string[] {
 
 /** Stores a quick-reply answer. An unknown "who is it for" value is ignored rather than stored. */
 export function applyAnswer(caseFile: CaseFile, field: CaseField, value: string): CaseFile {
+  if (field === "symptoms")
+    return { ...caseFile, symptoms: mergeUnique(caseFile.symptoms, [value]) };
   if (field === "duration") return { ...caseFile, duration: value };
   return isForWhom(value) ? { ...caseFile, forWhom: value } : caseFile;
 }

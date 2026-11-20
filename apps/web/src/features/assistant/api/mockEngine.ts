@@ -1,5 +1,6 @@
 import { formatPrice, type ProductDetail } from "../../products";
 import type { AssistantEngine, Message, MessagePart, Recommendation } from "../types";
+import { regionFromMessage } from "../utils/bodyRegions";
 import { DURATION_OPTIONS, FOR_WHOM_OPTIONS, mergeUnique } from "../utils/caseFile";
 import { ingredientName } from "../utils/ingredientName";
 import { rankRecommendations } from "../utils/rankRecommendations";
@@ -36,7 +37,8 @@ const SYMPTOMS: { label: string; match: RegExp; flow: FlowId }[] = [
   { label: "Blocked nose", match: /blocked nose|stuffy|congest/i, flow: "cold" },
   { label: "Cold", match: /\bcold\b|\bflu\b/i, flow: "cold" },
   { label: "Headache", match: /headache|migraine/i, flow: "pain" },
-  { label: "Muscle pain", match: /muscle|back pain|sprain|joint/i, flow: "pain" },
+  { label: "Muscle pain", match: /muscle|back pain|sprain/i, flow: "pain" },
+  { label: "Joint pain", match: /joint/i, flow: "pain" },
   { label: "Trouble sleeping", match: /sleep|insomnia|awake/i, flow: "sleep" },
   { label: "Upset stomach", match: /stomach|bloat/i, flow: "stomach" },
   { label: "Nausea", match: /nause/i, flow: "stomach" },
@@ -283,6 +285,19 @@ export function createMockEngine({ delayMs = 1, load }: MockEngineOptions = {}):
     const asked = ASK_ABOUT.exec(userText.trim());
     if (asked) {
       yield* aboutIngredient(asked[1], history, signal);
+      return;
+    }
+
+    // A body map tap: no symptoms yet, so offer the region's common ones to pick from.
+    const region = regionFromMessage(userText);
+    if (region) {
+      yield* stream("Thanks. Pick what fits best; you can add more afterwards.", signal);
+      yield {
+        kind: "quickReplies",
+        question: `What’s going on with your ${region.label.toLowerCase()}?`,
+        field: "symptoms",
+        options: region.symptoms.map((symptom) => ({ label: symptom, value: symptom })),
+      };
       return;
     }
 

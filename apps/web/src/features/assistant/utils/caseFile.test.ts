@@ -17,6 +17,12 @@ describe("mergeUnique", () => {
 });
 
 describe("applyAnswer", () => {
+  it("adds a picked symptom to the case file without repeating one", () => {
+    const once = applyAnswer(emptyCaseFile, "symptoms", "Sore throat");
+    expect(once.symptoms).toEqual(["Sore throat"]);
+    expect(applyAnswer(once, "symptoms", "sore throat").symptoms).toEqual(["Sore throat"]);
+  });
+
   it("stores the duration", () => {
     expect(applyAnswer(emptyCaseFile, "duration", "2–3 days").duration).toBe("2–3 days");
   });

@@ -48,6 +48,44 @@ describe("AssistantPage", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("starts from the body map: the region is sent, then a picked symptom seeds the case file", async () => {
+    engine
+      .mockImplementationOnce(async function* () {
+        yield {
+          kind: "quickReplies",
+          question: "What’s going on with your nose and throat?",
+          field: "symptoms",
+          options: [
+            { label: "Sore throat", value: "Sore throat" },
+            { label: "Cough", value: "Cough" },
+          ],
+        };
+      })
+      .mockImplementationOnce(async function* () {
+        yield { kind: "symptoms", symptoms: ["Sore throat"] };
+      });
+    const user = userEvent.setup();
+    renderWithRouter(<AssistantPage />, "/assistant");
+
+    await user.click(screen.getByRole("button", { name: "Nose and throat" }));
+
+    expect(engine).toHaveBeenLastCalledWith(
+      expect.objectContaining({ userText: "My nose and throat" }),
+    );
+    expect(screen.queryByRole("region", { name: /show me where/i })).not.toBeInTheDocument();
+
+    await user.click(await screen.findByRole("button", { name: "Sore throat" }));
+
+    expect(engine).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        userText: "Sore throat",
+        caseFile: expect.objectContaining({ symptoms: ["Sore throat"] }),
+      }),
+    );
+    const panel = await screen.findByRole("complementary", { name: "Case file" });
+    expect(within(panel).getByRole("list", { name: "Symptoms" })).toHaveTextContent("Sore throat");
+  });
+
   it("pre-fills the message box from the link", () => {
     renderWithRouter(<AssistantPage />, "/assistant?q=ibuprofen");
 
