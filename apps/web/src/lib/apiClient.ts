@@ -52,6 +52,21 @@ export async function apiPost<T>(path: string, body: unknown, init?: RequestInit
   return res.json() as Promise<T>;
 }
 
+export async function apiPatch<T>(path: string, body: unknown, init?: RequestInit): Promise<T> {
+  const res = await send(path, {
+    ...init,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  return res.json() as Promise<T>;
+}
+
+export async function apiDelete<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await send(path, { ...init, method: "DELETE" });
+  return res.json() as Promise<T>;
+}
+
 /** For endpoints that answer 204 No Content. */
 export async function apiPostNoContent(path: string, init?: RequestInit): Promise<void> {
   await send(path, { ...init, method: "POST" });

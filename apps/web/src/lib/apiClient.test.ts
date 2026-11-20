@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ApiError, apiGet, apiPost, apiPostNoContent } from "./apiClient";
+import { ApiError, apiDelete, apiGet, apiPatch, apiPost, apiPostNoContent } from "./apiClient";
 
 function mockFetch(response: Partial<Response>) {
   const fn = vi.fn().mockResolvedValue(response);
@@ -106,5 +106,48 @@ describe("apiPostNoContent", () => {
     mockFetch({ ok: false, status: 500, statusText: "Internal Server Error" });
 
     await expect(apiPostNoContent("/auth/logout")).rejects.toBeInstanceOf(ApiError);
+  });
+});
+
+describe("apiPatch", () => {
+  it("sends a JSON body with PATCH and returns parsed JSON", async () => {
+    const fetchMock = mockFetch({ ok: true, json: async () => ({ ok: 1 }) });
+
+    const result = await apiPatch("/cart/items/1", { quantity: 2 });
+
+    expect(fetchMock).toHaveBeenCalledWith("/api/cart/items/1", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: '{"quantity":2}',
+    });
+    expect(result).toEqual({ ok: 1 });
+  });
+
+  it("throws an ApiError with the server message", async () => {
+    mockFetch({
+      ok: false,
+      status: 409,
+      statusText: "Conflict",
+      json: async () => ({ error: { message: "Only 3 in stock" } }),
+    });
+
+    const error = await apiPatch("/cart/items/1", { quantity: 9 }).catch((e: unknown) => e);
+
+    expect(error).toMatchObject({ status: 409, message: "Only 3 in stock" });
+  });
+});
+
+describe("apiDelete", () => {
+  it("sends DELETE and returns parsed JSON", async () => {
+    const fetchMock = mockFetch({ ok: true, json: async () => ({ ok: 1 }) });
+
+    await expect(apiDelete("/cart/items/1")).resolves.toEqual({ ok: 1 });
+    expect(fetchMock).toHaveBeenCalledWith("/api/cart/items/1", { method: "DELETE" });
+  });
+
+  it("throws on failure", async () => {
+    mockFetch({ ok: false, status: 404, statusText: "Not Found" });
+
+    await expect(apiDelete("/cart/items/1")).rejects.toBeInstanceOf(ApiError);
   });
 });

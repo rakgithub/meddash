@@ -2,9 +2,10 @@ import { screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 import * as authApi from "./features/auth/api/authApi";
+import * as cartApi from "./features/cart/api/cartApi";
 import * as detailApi from "./features/products/api/fetchProduct";
 import * as searchApi from "./features/products/api/searchProducts";
-import { ana, ibuprofen, ibuprofenDetail } from "./test/fixtures";
+import { ana, cartWithIbuprofen, ibuprofen, ibuprofenDetail } from "./test/fixtures";
 import { renderWithRouter } from "./test/renderWithRouter";
 import userEvent from "@testing-library/user-event";
 
@@ -12,6 +13,7 @@ vi.mock("./features/products/api/searchProducts");
 vi.mock("./features/products/api/fetchSuggestions");
 vi.mock("./features/products/api/fetchProduct");
 vi.mock("./features/auth/api/authApi");
+vi.mock("./features/cart/api/cartApi");
 
 beforeEach(() => {
   vi.resetAllMocks();
@@ -57,6 +59,20 @@ describe("App routes", () => {
     expect(await screen.findByRole("button", { name: "Account menu" })).toHaveTextContent("AW");
     // Back on the page the user came from.
     expect(screen.getByRole("heading", { name: "Ibuprofen 400mg", level: 1 })).toBeInTheDocument();
+  });
+
+  it("sends a signed-out visitor from /cart to log in", async () => {
+    renderWithRouter(<App />, "/cart");
+    expect(await screen.findByRole("heading", { name: "Log in", level: 1 })).toBeInTheDocument();
+    expect(cartApi.getCart).not.toHaveBeenCalled();
+  });
+
+  it("shows the cart at /cart when signed in", async () => {
+    vi.mocked(authApi.fetchCurrentUser).mockResolvedValue(ana);
+    vi.mocked(cartApi.getCart).mockResolvedValue(cartWithIbuprofen);
+    renderWithRouter(<App />, "/cart");
+    expect(await screen.findByRole("heading", { name: "Your cart", level: 1 })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Ibuprofen 400mg" })).toBeInTheDocument();
   });
 
   it("sends a signed-out visitor from /profile to log in", async () => {

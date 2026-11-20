@@ -1,5 +1,6 @@
 import type { Product, ProductDetail } from "../features/products/types";
 import type { User } from "../features/auth/types";
+import type { Cart } from "../features/cart/types";
 
 export const ibuprofen: Product = {
   id: "1",
@@ -81,3 +82,20 @@ export const ana: User = {
   name: "Ana Weber",
   role: "customer",
 };
+
+export const cartWithIbuprofen: Cart = {
+  items: [{ product: ibuprofen, quantity: 2, lineTotal: 12.98 }],
+  itemCount: 2,
+  subtotal: 12.98,
+};
+
+export const cartWithTwoLines: Cart = {
+  items: [
+    { product: ibuprofen, quantity: 2, lineTotal: 12.98 },
+    { product: vitaminD, quantity: 1, lineTotal: 8.95 },
+  ],
+  itemCount: 3,
+  subtotal: 21.93,
+};
+
+export const emptyCart: Cart = { items: [], itemCount: 0, subtotal: 0 };

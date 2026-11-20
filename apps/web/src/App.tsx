@@ -1,6 +1,7 @@
 import { Link, Route, Routes } from "react-router-dom";
 import { AppHeader } from "./components/AppHeader/AppHeader";
 import { AssistantPage } from "./features/assistant";
+import { CartPage } from "./features/cart";
 import { AuthProvider, LoginPage, ProfilePage, RegisterPage, RequireAuth } from "./features/auth";
 import { ProductDetailPage, ProductsPage } from "./features/products";
 
@@ -20,6 +21,14 @@ export default function App() {
             element={
               <RequireAuth>
                 <ProfilePage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/cart"
+            element={
+              <RequireAuth>
+                <CartPage />
               </RequireAuth>
             }
           />
