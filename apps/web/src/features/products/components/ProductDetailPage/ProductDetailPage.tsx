@@ -6,7 +6,7 @@ import type { ProductDetail } from "../../types";
 import { formatCategory } from "../../utils/formatCategory";
 import { formatPrice } from "../../utils/formatPrice";
 import { formatStock } from "../../utils/formatStock";
-import { FilterBar } from "../FilterBar/FilterBar";
+import { CategoryAisles } from "../CategoryAisles/CategoryAisles";
 import styles from "./ProductDetailPage.module.css";
 
 const BackLink = () => (
@@ -24,7 +24,10 @@ export function ProductDetailPage() {
 
   return (
     <div className={styles.page}>
-      <FilterBar filters={filters} onChange={search} />
+      <CategoryAisles
+        value={filters.category}
+        onChange={(category) => search({ ...filters, category })}
+      />
       <BackLink />
       {state.status === "loading" && <p className={styles.message}>Loading product...</p>}
       {state.status === "error" && (

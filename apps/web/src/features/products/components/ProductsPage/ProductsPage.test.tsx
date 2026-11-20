@@ -58,11 +58,12 @@ describe("ProductsPage search and filters", () => {
     const user = userEvent.setup();
     renderWithRouter(<ProductsPage />, "/?q=ibu");
 
-    await user.selectOptions(screen.getByRole("combobox", { name: "Brand" }), "Nurofen");
+    await user.click(screen.getByRole("radio", { name: "Nurofen" }));
+    await user.click(screen.getByRole("button", { name: /^Pain relief/ }));
 
     await waitFor(() =>
       expect(searchProducts).toHaveBeenLastCalledWith(
-        { ...EMPTY_FILTERS, q: "ibu", brand: "Nurofen" },
+        { ...EMPTY_FILTERS, q: "ibu", brand: "Nurofen", category: "pain-relief" },
         1,
         expect.any(AbortSignal),
       ),
@@ -73,7 +74,8 @@ describe("ProductsPage search and filters", () => {
     searchProducts.mockResolvedValue(loaded);
     renderWithRouter(<ProductsPage />, "/?q=ibu&brand=Nurofen");
 
-    expect(screen.getByRole("combobox", { name: "Brand" })).toHaveValue("Nurofen");
+    expect(screen.getByRole("radio", { name: "Nurofen" })).toBeChecked();
+    expect(screen.getByRole("button", { name: "Remove Nurofen" })).toBeVisible();
     await waitFor(() =>
       expect(searchProducts).toHaveBeenCalledWith(
         { ...EMPTY_FILTERS, q: "ibu", brand: "Nurofen" },
@@ -81,6 +83,40 @@ describe("ProductsPage search and filters", () => {
         expect.any(AbortSignal),
       ),
     );
+  });
+});
+
+describe("ProductsPage refine panel", () => {
+  // Braces matter: a returned function would run as teardown and await the never-ending promise.
+  beforeEach(() => {
+    searchProducts.mockReturnValue(new Promise(() => {}));
+  });
+
+  it("sits beside the results on wide screens, with no Refine button", () => {
+    renderWithRouter(<ProductsPage />);
+
+    expect(screen.getByRole("complementary", { name: "Refine" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: /^Refine/ })).not.toBeInTheDocument();
+  });
+
+  it("on narrow screens opens as a sheet from Refine, which counts what it holds", async () => {
+    const setup = window.matchMedia;
+    window.matchMedia = (media) => ({ ...setup(media), matches: true });
+    const user = userEvent.setup();
+    renderWithRouter(<ProductsPage />, "/?category=vitamins&brand=Abtei&maxPrice=5");
+
+    expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
+    const refine = screen.getByRole("button", { name: "Refine, 2 applied" });
+    expect(refine).toHaveAttribute("aria-expanded", "false");
+
+    await user.click(refine);
+    expect(refine).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("dialog", { name: "Refine" })).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "Show results" }));
+    expect(refine).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(refine).toHaveFocus();
   });
 });
 

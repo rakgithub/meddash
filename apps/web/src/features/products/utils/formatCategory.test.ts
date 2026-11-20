@@ -5,6 +5,9 @@ describe("formatCategory", () => {
   it("turns a slug into a readable label", () => {
     expect(formatCategory("pain-relief")).toBe("Pain relief");
     expect(formatCategory("vitamins")).toBe("Vitamins");
-    expect(formatCategory("cold-flu")).toBe("Cold flu");
+  });
+
+  it("uses a written-out label where the slug reads badly", () => {
+    expect(formatCategory("cold-flu")).toBe("Cold and flu");
   });
 });
