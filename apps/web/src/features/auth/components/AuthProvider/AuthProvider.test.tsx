@@ -2,7 +2,9 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "../../../../lib/apiClient";
+import { useLocation } from "react-router-dom";
 import { ana } from "../../../../test/fixtures";
+import { renderWithRouter } from "../../../../test/renderWithRouter";
 import * as authApi from "../../api/authApi";
 import { useAuth } from "../../hooks/useAuth";
 import { AuthProvider } from "./AuthProvider";
@@ -13,8 +15,10 @@ beforeEach(() => vi.resetAllMocks());
 
 function Probe() {
   const { state, signIn, signOut } = useAuth();
+  const { pathname } = useLocation();
   return (
     <>
+      <p>At {pathname}</p>
       <p>{state.status === "signed-in" ? `Signed in as ${state.user.name}` : state.status}</p>
       <button onClick={() => signIn(ana)}>Sign in</button>
       <button onClick={() => signOut().catch(() => {})}>Sign out</button>
@@ -23,10 +27,11 @@ function Probe() {
 }
 
 const renderProbe = () =>
-  render(
+  renderWithRouter(
     <AuthProvider>
       <Probe />
     </AuthProvider>,
+    "/profile",
   );
 
 describe("AuthProvider", () => {
@@ -62,7 +67,7 @@ describe("AuthProvider", () => {
     expect(await screen.findByText("Signed in as Ana Weber")).toBeInTheDocument();
   });
 
-  it("signs out through the API", async () => {
+  it("signs out through the API and goes home", async () => {
     vi.mocked(authApi.fetchCurrentUser).mockResolvedValue(ana);
     vi.mocked(authApi.logout).mockResolvedValue();
     const user = userEvent.setup();
@@ -73,6 +78,7 @@ describe("AuthProvider", () => {
 
     expect(await screen.findByText("signed-out")).toBeInTheDocument();
     expect(authApi.logout).toHaveBeenCalled();
+    expect(screen.getByText("At /")).toBeInTheDocument();
   });
 
   it("stays signed in when logout fails", async () => {
@@ -85,6 +91,7 @@ describe("AuthProvider", () => {
     await user.click(screen.getByRole("button", { name: "Sign out" }));
 
     expect(screen.getByText("Signed in as Ana Weber")).toBeInTheDocument();
+    expect(screen.getByText("At /profile")).toBeInTheDocument();
   });
 
   it("useAuth throws outside the provider", () => {

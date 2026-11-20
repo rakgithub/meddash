@@ -7,17 +7,7 @@
   min-height: 36px;
 }
 
-.name {
-  max-width: 160px;
-  overflow: hidden;
-  font-size: 14px;
-  font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.login,
-.logout {
+.login {
   display: inline-flex;
   align-items: center;
   height: 36px;
@@ -33,10 +23,114 @@
   cursor: pointer;
 }
 
-.login:hover,
-.logout:hover {
+.login:hover {
   border-color: var(--accent);
   color: var(--accent-hover);
+}
+
+/* Same 36px circle as the theme toggle, filled so it reads as "you". */
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-control);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease-in-out),
+    background var(--duration-fast) var(--ease-in-out);
+}
+
+.avatar:hover,
+.avatar[aria-expanded="true"] {
+  border-color: var(--accent);
+  background: var(--accent-soft-hover);
+}
+
+/* Above the search suggestions, which can be open under it. */
+.panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  width: 240px;
+  max-width: calc(100vw - 32px);
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-hover);
+  animation: drop-in var(--duration-fast) var(--ease-out);
+}
+
+.who {
+  padding: 10px 12px 12px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.name,
+.email {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.email {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.item:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+@keyframes drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation: none;
+  }
 }
 
 /* Floats under the menu like the prescription note, so it never moves the header. */
@@ -59,10 +153,4 @@
   padding: 0;
   border: 0;
   box-shadow: none;
-}
-
-@media (max-width: 720px) {
-  .name {
-    max-width: 96px;
-  }
 }

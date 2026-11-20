@@ -50,6 +50,11 @@
   min-width: 0;
 }
 
+/* Brand left, theme toggle right, with no search between them. */
+.slim {
+  justify-content: space-between;
+}
+
 /* On a phone the logo, upload button and user menu share the first row and the search gets its own. */
 @media (max-width: 720px) {
   /* Actions that don't fit beside the logo wrap to the right, under the upload button. */
