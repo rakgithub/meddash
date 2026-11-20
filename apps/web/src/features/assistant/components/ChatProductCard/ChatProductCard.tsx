@@ -2,6 +2,7 @@ import { useState, type ReactElement } from "react";
 import { Link } from "react-router-dom";
 import { formatPrice, formatStock, UploadPrescriptionButton } from "../../../products";
 import type { Recommendation } from "../../types";
+import { DISMISS_REASONS, type DismissReason } from "../../utils/caseFile";
 import { dosageFormKind, type DosageFormKind } from "../../utils/dosageFormKind";
 import { ingredientName } from "../../utils/ingredientName";
 import styles from "./ChatProductCard.module.css";
@@ -10,6 +11,8 @@ interface ChatProductCardProps {
   recommendation: Recommendation;
   /** Asks the assistant about an ingredient; leave it out to show the ingredients as plain text. */
   onAskIngredient?: (ingredient: string) => void;
+  /** "Not for me" with a reason; leave it out to hide the button, e.g. on an older, read-only reply. */
+  onDismiss?: (reason: DismissReason) => void;
 }
 
 const ICONS: Record<DosageFormKind, ReactElement> = {
@@ -43,9 +46,14 @@ function stockTone(quantity: number) {
   return quantity <= 5 ? styles.low : styles.inStock;
 }
 
-export function ChatProductCard({ recommendation, onAskIngredient }: ChatProductCardProps) {
+export function ChatProductCard({
+  recommendation,
+  onAskIngredient,
+  onDismiss,
+}: ChatProductCardProps) {
   const { product, reason, fit, caution } = recommendation;
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
+  const [choosing, setChoosing] = useState(false);
   const showImage = product.imageUrl !== null && product.imageUrl !== failedUrl;
   const kind = dosageFormKind(product.dosageForm);
   const locked = fit === "locked";
@@ -156,6 +164,34 @@ export function ChatProductCard({ recommendation, onAskIngredient }: ChatProduct
         {locked && (
           <div className={styles.upload}>
             <UploadPrescriptionButton />
+          </div>
+        )}
+
+        {onDismiss && (
+          <div className={styles.dismiss}>
+            <button
+              className={styles.dismissToggle}
+              type="button"
+              aria-expanded={choosing}
+              onClick={() => setChoosing(!choosing)}
+            >
+              Not for me
+            </button>
+            {choosing && (
+              <ul className={styles.reasons} aria-label="Why not?">
+                {DISMISS_REASONS.map((reason) => (
+                  <li key={reason}>
+                    <button
+                      className={styles.reason}
+                      type="button"
+                      onClick={() => onDismiss(reason)}
+                    >
+                      {reason}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
       </div>

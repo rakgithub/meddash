@@ -260,6 +260,56 @@ button.pill:hover {
   margin-top: 4px;
 }
 
+.dismiss {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.dismissToggle {
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.dismissToggle:hover {
+  color: var(--text);
+}
+
+.reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reason {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.reason:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
 /* Prescription-only: still readable and linked, but visibly not on offer. */
 .locked {
   border-style: dashed;

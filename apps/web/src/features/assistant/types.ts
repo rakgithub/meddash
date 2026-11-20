@@ -18,7 +18,7 @@ export interface CaseFile {
   symptoms: string[];
   duration: string | null;
   forWhom: ForWhom | null;
-  /** E.g. "tablets", "drowsiness". Filled from S4 on. */
+  /** What the user wants to steer away from, e.g. "Tablets". Set by "Not for me" and the case file panel. */
   avoid: string[];
 }
 
@@ -59,6 +59,8 @@ export type MessagePart =
       loading?: number;
       /** Suggestions that could not be loaded and were left out. */
       unavailable?: number;
+      /** Suggestions left out because the user ruled them out. Set by the reducer. */
+      ruledOut?: number;
     }
   /** `urgent` = this needs a doctor now; the conversation stops recommending until it starts over. */
   | { kind: "alert"; level: "urgent" | "caution"; title: string; body: string };

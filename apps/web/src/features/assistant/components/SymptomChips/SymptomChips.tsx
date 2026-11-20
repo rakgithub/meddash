@@ -1,15 +1,17 @@
 import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
-import { mergeSymptoms } from "../../utils/caseFile";
+import { mergeUnique } from "../../utils/caseFile";
 import styles from "./SymptomChips.module.css";
 
 interface SymptomChipsProps {
   symptoms: string[];
+  /** The group's heading; the case file panel calls it "Symptoms". */
+  label?: string;
   /** Without it the chips are read-only, e.g. on an older message or while a reply streams. */
   onChange?: (symptoms: string[]) => void;
 }
 
 /** The symptoms the assistant noted. The user can remove one (×) or add their own. */
-export function SymptomChips({ symptoms, onChange }: SymptomChipsProps) {
+export function SymptomChips({ symptoms, label = "What I noted", onChange }: SymptomChipsProps) {
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState("");
   const addRef = useRef<HTMLButtonElement>(null);
@@ -34,7 +36,7 @@ export function SymptomChips({ symptoms, onChange }: SymptomChipsProps) {
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    if (draft.trim()) onChange?.(mergeSymptoms(symptoms, [draft]));
+    if (draft.trim()) onChange?.(mergeUnique(symptoms, [draft]));
     close();
   }
 
@@ -45,7 +47,7 @@ export function SymptomChips({ symptoms, onChange }: SymptomChipsProps) {
   return (
     <div className={styles.root}>
       <p className={styles.label} id={labelId}>
-        What I noted
+        {label}
       </p>
       <ul className={styles.chips} aria-labelledby={labelId}>
         {symptoms.map((symptom) => (

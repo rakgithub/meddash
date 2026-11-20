@@ -1,6 +1,6 @@
 import { formatPrice, type ProductDetail } from "../../products";
-import type { AssistantEngine, Message, MessagePart, QuickReply, Recommendation } from "../types";
-import { mergeSymptoms } from "../utils/caseFile";
+import type { AssistantEngine, Message, MessagePart, Recommendation } from "../types";
+import { DURATION_OPTIONS, FOR_WHOM_OPTIONS, mergeUnique } from "../utils/caseFile";
 import { ingredientName } from "../utils/ingredientName";
 import { rankRecommendations } from "../utils/rankRecommendations";
 import { redFlagAlert } from "../utils/redFlags";
@@ -132,20 +132,6 @@ const INGREDIENTS: { name: string; about: string; productIds: string[] }[] = [
     about: "Magnesium supports muscles and nerves; too much can loosen the stools.",
     productIds: ["5"],
   },
-];
-
-const DURATIONS: QuickReply[] = [
-  { label: "Since today", value: "today" },
-  { label: "2–3 days", value: "2-3 days" },
-  { label: "About a week", value: "a week" },
-  { label: "Longer", value: "longer" },
-];
-
-const FOR_WHOM_OPTIONS: QuickReply[] = [
-  { label: "Me", value: "me" },
-  { label: "A child", value: "child" },
-  { label: "Someone pregnant", value: "pregnant" },
-  { label: "Someone over 65", value: "senior" },
 ];
 
 const FALLBACK =
@@ -302,7 +288,7 @@ export function createMockEngine({ delayMs = 1, load }: MockEngineOptions = {}):
 
     const found = symptomsIn(userText);
     // Newly described symptoms lead, so a new complaint later in the chat gets its own answer.
-    const flow = flowFor(mergeSymptoms(found, caseFile.symptoms));
+    const flow = flowFor(mergeUnique(found, caseFile.symptoms));
 
     if (!flow) {
       yield* think([CHECKS[0]], signal);
@@ -324,7 +310,7 @@ export function createMockEngine({ delayMs = 1, load }: MockEngineOptions = {}):
         kind: "quickReplies",
         question: "How long has it been going on?",
         field: "duration",
-        options: DURATIONS,
+        options: DURATION_OPTIONS,
       };
       return;
     }
