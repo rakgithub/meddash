@@ -76,7 +76,7 @@ Run from the repo root.
 
 ## Deployment (Vercel)
 
-A merge to `main` deploys to production and PRs get preview deployments, via Vercel's GitHub integration. [`vercel.json`](vercel.json) builds both apps and serves the web build as static files; [`api/index.mjs`](api/index.mjs) runs the Express app as one serverless function behind `/api/*`, so the web app and API share an origin.
+A merge to `main` deploys to production and PRs get preview deployments, via Vercel's GitHub integration. [`vercel.json`](vercel.json) defines two Vercel services in one project: `web` (`apps/web`, Vite) serves the site, and `server` (`apps/server`, Express) receives `/api/*`. They share one domain, so the web app's `/api` base and the session cookie work unchanged. Vercel forwards the original path (`/api/products`) and the server strips the `/api` prefix, as the Vite dev proxy does.
 
 One-time setup:
 

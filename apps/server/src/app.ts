@@ -7,6 +7,13 @@ import { errorHandler, notFound } from "./middleware/errorHandler.js";
 export function createApp() {
   const app = express();
 
+  // Vercel forwards the original path (/api/products) to this service, while the routes live at
+  // the root, as with the Vite dev proxy. Strip the prefix so both setups hit the same routes.
+  app.use((req, _res, next) => {
+    req.url = req.url.replace(/^\/api(?=[/?]|$)/, "") || "/";
+    next();
+  });
+
   app.use(cors());
   app.use(express.json());
   app.use(cookieParser());
