@@ -36,7 +36,10 @@ export function ProductCard({ product }: ProductCardProps) {
         )}
       </div>
       <div className={styles.top}>
-        <span className={styles.category}>{formatCategory(product.category)}</span>
+        <span className={styles.category}>
+          <span className={styles.capsule} data-category={product.category} aria-hidden="true" />
+          {formatCategory(product.category)}
+        </span>
         <span className={styles.brand}>{product.brand}</span>
       </div>
       <h3 className={styles.name}>
