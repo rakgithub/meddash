@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ApiError } from "../../../../lib/apiClient";
 import { formatPrice } from "../../../products";
 import { useCart } from "../../hooks/useCart";
@@ -13,7 +13,10 @@ const itemLabel = (count: number) => `${count} ${count === 1 ? "item" : "items"}
 
 /** The signed-in user's cart, from <CartProvider>. Render under <RequireAuth>. */
 export function CartPage() {
-  const { state, updateItem, removeItem } = useCart();
+  const { state, updateItem, removeItem, placeOrder } = useCart();
+  const navigate = useNavigate();
+  const [placing, setPlacing] = useState(false);
+  const [orderError, setOrderError] = useState<string | null>(null);
   // Every response is the whole cart, so mutations run one at a time: a slower earlier
   // response can't then overwrite a newer one.
   const [pending, setPending] = useState<{ productId: string; action: LinePending } | null>(null);
@@ -28,6 +31,17 @@ export function CartPage() {
       setLineError({ productId, message: errorMessage(err) });
     } finally {
       setPending(null);
+    }
+  };
+
+  const handlePlaceOrder = async () => {
+    setPlacing(true);
+    setOrderError(null);
+    try {
+      navigate(`/orders/${await placeOrder()}`);
+    } catch (err) {
+      setOrderError(errorMessage(err));
+      setPlacing(false);
     }
   };
 
@@ -96,18 +110,19 @@ export function CartPage() {
                 <dd>{formatPrice(state.cart.subtotal)}</dd>
               </div>
             </dl>
-            {/* Orders arrive in the next change (PR 5); until then the button explains itself. */}
             <button
               type="button"
               className={styles.primary}
-              disabled
-              aria-describedby="place-order-note"
+              disabled={placing || pending !== null}
+              onClick={handlePlaceOrder}
             >
-              Place order
+              {placing ? "Placing order…" : "Place order"}
             </button>
-            <p id="place-order-note" className={styles.note}>
-              Ordering opens soon. Your cart is saved to your account.
-            </p>
+            {orderError && (
+              <p className={`${styles.note} ${styles.error}`} role="alert">
+                {orderError}
+              </p>
+            )}
           </section>
         </div>
       )}

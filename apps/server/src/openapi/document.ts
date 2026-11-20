@@ -6,6 +6,7 @@ import {
   cartSchema,
   updateCartItemBodySchema,
 } from "../schemas/cart.schema.js";
+import { orderListSchema, orderParamsSchema, orderSchema } from "../schemas/orders.schema.js";
 import { loginBodySchema, registerBodySchema, userSchema } from "../schemas/auth.schema.js";
 import {
   productDetailSchema,
@@ -146,6 +147,59 @@ registry.registerPath({
   responses: {
     ...cartResponses,
     400: { description: "Invalid product id", ...json(errorResponseSchema) },
+  },
+});
+
+const unauthorized = {
+  description: "Not signed in or session expired",
+  ...json(errorResponseSchema),
+};
+
+registry.registerPath({
+  method: "post",
+  path: "/orders",
+  summary: "Place an order from the cart",
+  description:
+    "In one transaction: re-checks stock and current prices, creates the order as `pending_payment` with the lines and prices copied from the cart, and empties the cart. Nothing changes if any check fails.",
+  tags: ["Orders"],
+  security: cartAuth,
+  responses: {
+    201: { description: "The new order", ...json(orderSchema) },
+    401: unauthorized,
+    409: {
+      description: "Empty cart, or a line is prescription-only or no longer in stock",
+      ...json(errorResponseSchema),
+    },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/orders",
+  summary: "The signed-in user's orders, newest first",
+  tags: ["Orders"],
+  security: cartAuth,
+  responses: {
+    200: { description: "The orders", ...json(orderListSchema) },
+    401: unauthorized,
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/orders/{id}",
+  summary: "One order with its items",
+  tags: ["Orders"],
+  security: cartAuth,
+  request: { params: orderParamsSchema },
+  responses: {
+    200: { description: "The order", ...json(orderSchema) },
+    400: { description: "Invalid order id", ...json(errorResponseSchema) },
+    401: unauthorized,
+    404: {
+      description: "No such order, or it belongs to another user",
+      ...json(errorResponseSchema),
+    },
   },
 });
 

@@ -194,3 +194,7 @@
     padding: 0 16px;
   }
 }
+
+.note.error {
+  color: var(--danger);
+}

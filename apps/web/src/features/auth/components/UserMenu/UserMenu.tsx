@@ -93,6 +93,9 @@ export function UserMenu() {
           <Link className={styles.item} to="/profile" onClick={close}>
             Profile
           </Link>
+          <Link className={styles.item} to="/orders" onClick={close}>
+            Orders
+          </Link>
           <button type="button" className={styles.item} onClick={handleLogout}>
             Log out
           </button>

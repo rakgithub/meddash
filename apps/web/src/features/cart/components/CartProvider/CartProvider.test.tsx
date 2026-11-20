@@ -6,15 +6,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CartProvider } from "./CartProvider";
 import { AuthProvider } from "../../../auth";
 import * as authApi from "../../../auth/api/authApi";
+import * as ordersApi from "../../../orders/api/ordersApi";
 import * as cartApi from "../../api/cartApi";
 import { useCart } from "../../hooks/useCart";
-import { ana, cartWithIbuprofen, emptyCart } from "../../../../test/fixtures";
+import { ana, cartWithIbuprofen, emptyCart, order } from "../../../../test/fixtures";
 
 vi.mock("../../../auth/api/authApi");
 vi.mock("../../api/cartApi");
+vi.mock("../../../orders/api/ordersApi");
 
 function Probe() {
-  const { state, addItem, updateItem, removeItem } = useCart();
+  const { state, addItem, updateItem, removeItem, placeOrder } = useCart();
   const [failed, setFailed] = useState(false);
   return (
     <>
@@ -31,6 +33,9 @@ function Probe() {
       </button>
       <button type="button" onClick={() => removeItem("1")}>
         Remove
+      </button>
+      <button type="button" onClick={() => placeOrder().catch(() => setFailed(true))}>
+        Order
       </button>
     </>
   );
@@ -113,6 +118,45 @@ describe("CartProvider", () => {
     await user.click(screen.getByRole("button", { name: "Remove" }));
     expect(await screen.findByText("ready 0")).toBeInTheDocument();
     expect(cartApi.removeCartItem).toHaveBeenCalledWith("1");
+  });
+
+  it("empties the cart after placing an order", async () => {
+    vi.mocked(authApi.fetchCurrentUser).mockResolvedValue(ana);
+    vi.mocked(cartApi.getCart).mockResolvedValue(cartWithIbuprofen);
+    vi.mocked(ordersApi.createOrder).mockResolvedValue(order);
+    const user = userEvent.setup();
+    renderProvider();
+    await screen.findByText("ready 2");
+
+    await user.click(screen.getByRole("button", { name: "Order" }));
+
+    expect(await screen.findByText("ready 0")).toBeInTheDocument();
+  });
+
+  it("keeps the cart when the order is rejected", async () => {
+    vi.mocked(authApi.fetchCurrentUser).mockResolvedValue(ana);
+    vi.mocked(cartApi.getCart).mockResolvedValue(cartWithIbuprofen);
+    vi.mocked(ordersApi.createOrder).mockRejectedValue(new Error("nope"));
+    const user = userEvent.setup();
+    renderProvider();
+    await screen.findByText("ready 2");
+
+    await user.click(screen.getByRole("button", { name: "Order" }));
+
+    expect(await screen.findByText("Add failed")).toBeInTheDocument();
+    expect(screen.getByText("ready 2")).toBeInTheDocument();
+  });
+
+  it("refuses to order when signed out", async () => {
+    vi.mocked(authApi.fetchCurrentUser).mockResolvedValue(null);
+    const user = userEvent.setup();
+    renderProvider();
+    await screen.findByText("signed-out");
+
+    await user.click(screen.getByRole("button", { name: "Order" }));
+
+    expect(await screen.findByText("Add failed")).toBeInTheDocument();
+    expect(ordersApi.createOrder).not.toHaveBeenCalled();
   });
 
   it("refuses to add when signed out", async () => {

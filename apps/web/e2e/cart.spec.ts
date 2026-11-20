@@ -102,3 +102,34 @@ test.describe("Cart page", () => {
     await expect(page).toHaveURL(/\/$/);
   });
 });
+
+test.describe("Orders", () => {
+  test("cart → place order → order page → listed in My orders", async ({ page }) => {
+    await page.request.post("/api/auth/register", {
+      data: { email: newEmail(), password, name: "Ana" },
+    });
+
+    await page.goto("/products/1");
+    const buy = page.getByRole("region", { name: "Buy" });
+    await buy.getByRole("button", { name: "Increase quantity" }).click();
+    await buy.getByRole("button", { name: "Add to cart" }).click();
+    await buy.getByRole("link", { name: "View cart" }).click();
+
+    await page.getByRole("button", { name: "Place order" }).click();
+
+    await expect(page).toHaveURL(/\/orders\/\d+$/);
+    await expect(page.getByRole("heading", { name: /^Order #\d+$/ })).toBeVisible();
+    await expect(page.getByRole("list", { name: "Items" })).toContainText("Ibuprofen 400mg");
+    await expect(page.getByText("Awaiting payment")).toBeVisible();
+    // The cart was emptied.
+    await expect(
+      page.getByRole("banner").getByRole("link", { name: "Cart, 0 items" }),
+    ).toBeVisible();
+
+    await page.getByRole("button", { name: "Account menu" }).click();
+    await page.getByRole("link", { name: "Orders", exact: true }).click();
+    const orders = page.getByRole("list", { name: "Orders" });
+    await expect(orders.getByRole("link")).toHaveCount(1);
+    await expect(orders).toContainText("2 items");
+  });
+});

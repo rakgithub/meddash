@@ -15,6 +15,8 @@ export interface CartContextValue {
   updateItem: (productId: string, quantity: number) => Promise<void>;
   /** Removes a line; rejects with the server's error. */
   removeItem: (productId: string) => Promise<void>;
+  /** Orders the whole cart and empties it; resolves with the new order's id, rejects with the server's error. */
+  placeOrder: () => Promise<number>;
 }
 
 export const CartContext = createContext<CartContextValue | null>(null);
