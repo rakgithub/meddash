@@ -1,6 +1,6 @@
 # Symptom assistant plan — frontend first
 
-Status: S1, S2 and S3 done 2026-11-20. Roadmap entry: [`docs/PLAN.md`](../PLAN.md#track--symptom-assistant-ai-chat).
+Status: S1–S4 done 2026-11-20. Roadmap entry: [`docs/PLAN.md`](../PLAN.md#track--symptom-assistant-ai-chat).
 
 A chat where a customer describes symptoms and gets suggested over-the-counter products from the catalogue,
 shown as product cards inside the chat. It should feel like a pharmacist at the counter: a short guided
@@ -174,13 +174,32 @@ Notes from the build (2026-11-20):
 
 The goal is that the user can see and steer what the assistant understood.
 
-- [ ] `CaseFilePanel`: a right-hand panel on desktop, a collapsible chip bar under the header on mobile. It shows
+- [x] `CaseFilePanel`: a right-hand panel on desktop, a collapsible chip bar under the header on mobile. It shows
       symptoms, duration, who it is for and what to avoid. Each item can be edited inline, and an edit triggers a
       fresh recommendation.
-- [ ] "Not for me" on each card, with a reason (`Too expensive`, `I don't swallow tablets`, `Already tried`,
+- [x] "Not for me" on each card, with a reason (`Too expensive`, `I don't swallow tablets`, `Already tried`,
       `Other`). The card animates out, the reason is added to `caseFile.avoid`, and the stack re-ranks.
-- [ ] "Start over" clears the conversation, after a confirmation if the user has answered anything.
-- [ ] Tests: editing the case file re-runs the engine with the new input, and dismissed products don't come back.
+- [x] "Start over" clears the conversation, after a confirmation if the user has answered anything.
+- [x] Tests: editing the case file re-runs the engine with the new input, and dismissed products don't come back.
+
+Notes from the build (2026-11-20):
+
+- `CaseFilePanel` sits beside the chat on desktop (sticky) and becomes a collapsed bar above it on a phone, with
+  a one-line summary. Duration and who it is for are `<select>`s; symptoms reuse `SymptomChips`.
+- A panel edit is sent through the engine as a user message (`Changed duration to Longer`, `Added symptom: X`,
+  `Removed a symptom`, `Updated what to avoid`), with the new case file in the same `send` action. So an added
+  symptom goes through red-flag screening like typed text. A removed symptom is not named, so the mock can't read
+  it as a new one. The panel is read-only while a reply streams and after an urgent alert.
+- The chips inside a reply are now read-only and follow the case file. The panel is the one place to edit, so
+  every edit re-runs the engine. The `setSymptoms` action is gone.
+- "Not for me" does not call the engine. `dismiss` adds the product id to `state.dismissed` and the reason to
+  `caseFile.avoid` (`Expensive options`, `Tablets`, `Already tried <name>`, `Not <name>`), then `ruleOut` drops
+  dismissed products from every stack, now and when later replies arrive. If the best fit goes, the first good
+  fit without a caution becomes the best fit. Products parts get `ruledOut`, the count left out.
+- Only `Tablets` filters other products (tablets, capsules and caplets; lozenges stay). The other avoid entries
+  are recorded for the backend and shown in the panel. Removing an avoid entry affects later replies only.
+- "Start over" asks first ("Clear this conversation and your case file?"), also after an urgent alert. It sits
+  at the bottom of the panel, and in that state in place of the message box.
 
 ## Phase S5 — Compare mode
 

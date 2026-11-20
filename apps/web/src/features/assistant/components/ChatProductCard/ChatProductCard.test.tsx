@@ -96,4 +96,32 @@ describe("ChatProductCard", () => {
       "/products/7",
     );
   });
+
+  describe("Not for me", () => {
+    const recommendation = {
+      product: ibuprofenDetail,
+      reason: "Brings fever down",
+      fit: "good" as const,
+    };
+
+    it("is not offered on a read-only card", () => {
+      renderWithRouter(<ChatProductCard recommendation={recommendation} />);
+
+      expect(screen.queryByRole("button", { name: "Not for me" })).not.toBeInTheDocument();
+    });
+
+    it("asks why, then reports the reason", async () => {
+      const onDismiss = vi.fn();
+      renderWithRouter(<ChatProductCard recommendation={recommendation} onDismiss={onDismiss} />);
+      const toggle = screen.getByRole("button", { name: "Not for me" });
+      expect(toggle).toHaveAttribute("aria-expanded", "false");
+
+      await userEvent.click(toggle);
+
+      const reasons = screen.getByRole("list", { name: "Why not?" });
+      expect(reasons.textContent).toBe("Too expensiveI don’t swallow tabletsAlready triedOther");
+      await userEvent.click(screen.getByRole("button", { name: "Too expensive" }));
+      expect(onDismiss).toHaveBeenCalledWith("Too expensive");
+    });
+  });
 });

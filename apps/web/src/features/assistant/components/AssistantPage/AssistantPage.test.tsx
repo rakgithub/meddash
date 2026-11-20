@@ -1,9 +1,10 @@
-import { screen } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as engineModule from "../../api/mockEngine";
 import { ibuprofenDetail } from "../../../../test/fixtures";
 import { renderWithRouter } from "../../../../test/renderWithRouter";
+import type { MessagePart } from "../../types";
 import { AssistantPage } from "./AssistantPage";
 
 vi.mock("../../api/mockEngine");
@@ -36,7 +37,9 @@ describe("AssistantPage", () => {
 
     // The finished reply is announced, and shown under the question.
     expect(await screen.findByRole("status")).toHaveTextContent("Try an antihistamine.");
-    const [question, reply] = screen.getAllByRole("listitem");
+    const [question, reply] = within(
+      screen.getByRole("list", { name: "Conversation" }),
+    ).getAllByRole("listitem");
     expect(question).toHaveTextContent("Hay fever");
     expect(reply).toHaveTextContent("Try an antihistamine.");
     expect(screen.getByRole("button", { name: "3 matches 1 step" })).toBeInTheDocument();
@@ -125,8 +128,104 @@ describe("AssistantPage", () => {
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Start over" }));
+    await user.click(screen.getByRole("button", { name: "Yes, clear it" }));
 
     expect(screen.getByRole("heading", { name: "What’s bothering you?" })).toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "Describe your symptoms" })).toBeInTheDocument();
+  });
+
+  describe("case file", () => {
+    const products = async function* (): AsyncGenerator<MessagePart> {
+      yield { kind: "symptoms", symptoms: ["Sore throat"] };
+      yield {
+        kind: "products",
+        items: [{ product: ibuprofenDetail, reason: "Brings fever down", fit: "best" }],
+      };
+    };
+
+    it("is hidden until the conversation starts", async () => {
+      renderWithRouter(<AssistantPage />, "/assistant");
+      expect(screen.queryByRole("complementary", { name: "Case file" })).not.toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole("button", { name: "Hay fever" }));
+
+      expect(await screen.findByRole("complementary", { name: "Case file" })).toBeInTheDocument();
+    });
+
+    it("re-runs the engine with the edited case file", async () => {
+      engine.mockImplementation(products);
+      renderWithRouter(<AssistantPage />, "/assistant");
+      await userEvent.click(screen.getByRole("button", { name: "Hay fever" }));
+      await screen.findByRole("article", { name: "Ibuprofen 400mg" });
+
+      await userEvent.selectOptions(
+        screen.getByRole("combobox", { name: "Who it’s for" }),
+        "A child",
+      );
+
+      expect(engine).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          userText: "Changed who it’s for to A child",
+          caseFile: expect.objectContaining({ forWhom: "child", symptoms: ["Sore throat"] }),
+        }),
+      );
+      expect(await screen.findAllByRole("article", { name: "Ibuprofen 400mg" })).toHaveLength(2);
+    });
+
+    it("drops a card the user says is not for them and does not bring it back", async () => {
+      engine.mockImplementation(products);
+      renderWithRouter(<AssistantPage />, "/assistant");
+      await userEvent.click(screen.getByRole("button", { name: "Hay fever" }));
+      const card = await screen.findByRole("article", { name: "Ibuprofen 400mg" });
+
+      await userEvent.click(within(card).getByRole("button", { name: "Not for me" }));
+      await userEvent.click(within(card).getByRole("button", { name: "Too expensive" }));
+
+      await waitFor(() => expect(screen.queryByRole("article")).not.toBeInTheDocument());
+      expect(screen.getByRole("list", { name: "Avoiding" })).toHaveTextContent("Expensive options");
+      expect(engine).toHaveBeenCalledTimes(1);
+
+      // The same engine answer again: the dismissed product is left out.
+      await userEvent.selectOptions(screen.getByRole("combobox", { name: "How long" }), "Longer");
+      await waitFor(() => expect(engine).toHaveBeenCalledTimes(2));
+      await waitFor(() => expect(screen.getByRole("status")).toBeEmptyDOMElement());
+      expect(screen.queryByRole("article")).not.toBeInTheDocument();
+    });
+
+    it("asks before clearing a conversation, then returns to the greeting", async () => {
+      renderWithRouter(<AssistantPage />, "/assistant");
+      await userEvent.click(screen.getByRole("button", { name: "Hay fever" }));
+      await screen.findByRole("status");
+
+      await userEvent.click(screen.getByRole("button", { name: "Start over" }));
+      await userEvent.click(screen.getByRole("button", { name: "Keep chatting" }));
+      expect(
+        screen.queryByRole("heading", { name: "What’s bothering you?" }),
+      ).not.toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole("button", { name: "Start over" }));
+      await userEvent.click(screen.getByRole("button", { name: "Yes, clear it" }));
+
+      expect(screen.getByRole("heading", { name: "What’s bothering you?" })).toBeInTheDocument();
+      expect(screen.queryByRole("complementary", { name: "Case file" })).not.toBeInTheDocument();
+    });
+
+    it("is read-only after an urgent alert", async () => {
+      engine.mockImplementationOnce(async function* () {
+        yield { kind: "symptoms", symptoms: ["Chest pain"] };
+        yield {
+          kind: "alert",
+          level: "urgent",
+          title: "This needs a doctor now",
+          body: "Call 112.",
+        };
+      });
+      renderWithRouter(<AssistantPage />, "/assistant");
+      await userEvent.click(screen.getByRole("button", { name: "Hay fever" }));
+      await screen.findByRole("alert", { name: /doctor now/ });
+
+      expect(screen.getByRole("combobox", { name: "How long" })).toBeDisabled();
+      expect(screen.queryByRole("button", { name: "Remove Chest pain" })).not.toBeInTheDocument();
+    });
   });
 });

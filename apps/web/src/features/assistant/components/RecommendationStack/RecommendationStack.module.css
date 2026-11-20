@@ -41,6 +41,19 @@
   }
 }
 
+/* "Not for me": the card fades and slips aside before it is removed. */
+.leaving {
+  animation: leave 0.22s ease-in forwards;
+  pointer-events: none;
+}
+
+@keyframes leave {
+  to {
+    opacity: 0;
+    transform: translateX(-16px) scale(0.97);
+  }
+}
+
 .note {
   font-size: 13px;
   color: var(--text-muted);
@@ -112,6 +125,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .item,
+  .leaving,
   .skeletonMedia,
   .skeletonLine {
     animation: none;

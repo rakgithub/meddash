@@ -1,5 +1,6 @@
-import { screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
 import { coughSyrupDetail, ibuprofenDetail } from "../../../../test/fixtures";
 import { renderWithRouter } from "../../../../test/renderWithRouter";
 import { RecommendationStack } from "./RecommendationStack";
@@ -45,5 +46,36 @@ describe("RecommendationStack", () => {
 
     expect(screen.queryByRole("list")).not.toBeInTheDocument();
     expect(screen.getByText("2 suggestions unavailable")).toBeInTheDocument();
+  });
+
+  it("slides a card out, then reports which product was ruled out and why", async () => {
+    const onDismiss = vi.fn();
+    renderWithRouter(<RecommendationStack items={items} onDismiss={onDismiss} />);
+    const card = screen.getByRole("article", { name: "Ibuprofen 400mg" });
+
+    await userEvent.click(within(card).getByRole("button", { name: "Not for me" }));
+    await userEvent.click(within(card).getByRole("button", { name: "Already tried" }));
+
+    expect(card.closest("li")?.className).toContain("leaving");
+    await waitFor(() => expect(onDismiss).toHaveBeenCalledWith(ibuprofenDetail, "Already tried"));
+  });
+
+  it("removes the card at once when the user prefers reduced motion", async () => {
+    vi.spyOn(window, "matchMedia").mockReturnValue({ matches: true } as MediaQueryList);
+    const onDismiss = vi.fn();
+    renderWithRouter(<RecommendationStack items={items} onDismiss={onDismiss} />);
+    const card = screen.getByRole("article", { name: "Ibuprofen 400mg" });
+
+    await userEvent.click(within(card).getByRole("button", { name: "Not for me" }));
+    await userEvent.click(within(card).getByRole("button", { name: "Too expensive" }));
+
+    expect(onDismiss).toHaveBeenCalledWith(ibuprofenDetail, "Too expensive");
+  });
+
+  it("says so when every suggestion was ruled out, and still offers a pharmacist", () => {
+    renderWithRouter(<RecommendationStack items={[]} ruledOut={2} />);
+
+    expect(screen.getByText(/ruled out every suggestion/)).toBeInTheDocument();
+    expect(screen.getByText("Talk to a pharmacist")).toBeInTheDocument();
   });
 });

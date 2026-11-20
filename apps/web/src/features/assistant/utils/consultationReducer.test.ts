@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { coughSyrupDetail, ibuprofenDetail } from "../../../test/fixtures";
-import type { Message, MessagePart } from "../types";
+import type { Message, MessagePart, Recommendation } from "../types";
 import {
   consultationReducer,
   initialConsultation,
@@ -141,26 +141,98 @@ describe("consultationReducer case file", () => {
     expect(reply(state).parts).toEqual([{ kind: "products", items: [], unavailable: 2 }]);
   });
 
-  it("stores a quick-reply answer sent with the message", () => {
+  it("stores the case file sent with the message", () => {
     const state = consultationReducer(initialConsultation, {
       type: "send",
       userId: "u1",
       assistantId: "a1",
       text: "A child",
-      answer: { field: "forWhom", value: "child" },
+      caseFile: { ...initialConsultation.caseFile, forWhom: "child" },
     });
 
     expect(state.caseFile.forWhom).toBe("child");
     expect(state.messages[0].parts).toEqual([{ kind: "text", text: "A child" }]);
   });
 
-  it("replaces the symptoms when the user edits the chips", () => {
-    const state = consultationReducer(sent, {
-      type: "setSymptoms",
-      symptoms: ["Cough", " cough ", "Headache"],
+  describe("ruling products out", () => {
+    const products = (items: Recommendation[]): MessagePart => ({ kind: "products", items });
+    const best: Recommendation = { product: ibuprofenDetail, reason: "", fit: "best" };
+    const other: Recommendation = {
+      product: { ...ibuprofenDetail, id: "2", name: "Paracetamol", dosageForm: "Syrup" },
+      reason: "",
+      fit: "good",
+    };
+    const shown = consultationReducer(sent, {
+      type: "part",
+      id: "a1",
+      part: products([best, other]),
+    });
+    const items = (state: ConsultationState) => {
+      const part = reply(state).parts[0];
+      return part.kind === "products" ? part.items : [];
+    };
+
+    it("drops a dismissed product, promotes the next good fit and records the reason", () => {
+      const state = consultationReducer(shown, {
+        type: "dismiss",
+        productId: "1",
+        avoid: "Not Ibuprofen 400mg",
+      });
+
+      expect(items(state).map((i) => [i.product.name, i.fit])).toEqual([["Paracetamol", "best"]]);
+      expect(reply(state).parts[0]).toMatchObject({ ruledOut: 1 });
+      expect(state.dismissed).toEqual(["1"]);
+      expect(state.caseFile.avoid).toEqual(["Not Ibuprofen 400mg"]);
     });
 
-    expect(state.caseFile.symptoms).toEqual(["Cough", "Headache"]);
+    it("keeps a dismissed product out of later suggestions", () => {
+      const dismissed = consultationReducer(shown, { type: "dismiss", productId: "1", avoid: "x" });
+      const next = consultationReducer(
+        {
+          ...dismissed,
+          messages: [
+            ...dismissed.messages,
+            { ...reply(dismissed), id: "a2", parts: [], status: "streaming" },
+          ],
+        },
+        { type: "part", id: "a2", part: products([best, other]) },
+      );
+
+      expect(items(next).map((i) => i.product.id)).toEqual(["2"]);
+    });
+
+    it("hides tablets everywhere once the user avoids them", () => {
+      const state = consultationReducer(shown, {
+        type: "dismiss",
+        productId: "9",
+        avoid: "Tablets",
+      });
+
+      expect(items(state).map((i) => i.product.name)).toEqual(["Paracetamol"]);
+    });
+
+    it("does not promote a fit with a caution", () => {
+      const cautioned = { ...other, caution: "Not for children." };
+      const state = consultationReducer(
+        consultationReducer(sent, { type: "part", id: "a1", part: products([best, cautioned]) }),
+        { type: "dismiss", productId: "1", avoid: "x" },
+      );
+
+      expect(items(state).map((i) => i.fit)).toEqual(["good"]);
+    });
+
+    it("counts what was ruled out when nothing is left", () => {
+      const state = consultationReducer(shown, { type: "dismiss", productId: "1", avoid: "a" });
+      const empty = consultationReducer(state, { type: "dismiss", productId: "2", avoid: "b" });
+
+      expect(reply(empty).parts[0]).toMatchObject({ items: [], ruledOut: 2 });
+    });
+
+    it("forgets everything on reset", () => {
+      const state = consultationReducer(shown, { type: "dismiss", productId: "1", avoid: "a" });
+
+      expect(consultationReducer(state, { type: "reset" })).toEqual(initialConsultation);
+    });
   });
 
   describe("safety rules", () => {

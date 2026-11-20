@@ -41,6 +41,35 @@ test.describe("Symptom assistant", () => {
     await expect(page.getByRole("heading", { name: "Ibuprofen 400mg" })).toBeVisible();
   });
 
+  test("refines the suggestions from the case file and rules a product out", async ({ page }) => {
+    await page.goto("/assistant");
+
+    await page.getByRole("button", { name: "Sore throat and fever" }).click();
+    await page.getByRole("button", { name: "2–3 days" }).click();
+    await page.getByRole("button", { name: "Me", exact: true }).click();
+    const ibuprofen = page.getByRole("article", { name: "Ibuprofen 400mg" });
+    await expect(ibuprofen).toBeVisible({ timeout: 15_000 });
+
+    // Who it is for changes, so the assistant answers again.
+    await page.getByRole("combobox", { name: "Who it’s for" }).selectOption("A child");
+    await expect(page.getByRole("list", { name: "Conversation" })).toContainText(
+      "Changed who it’s for to A child",
+    );
+    await expect(page.getByRole("article", { name: "Ibuprofen 400mg" })).toHaveCount(2, {
+      timeout: 15_000,
+    });
+
+    // "Not for me" drops the card and notes the reason in the case file.
+    await page
+      .getByRole("article", { name: "Ibuprofen 400mg" })
+      .last()
+      .getByRole("button", { name: "Not for me" })
+      .click();
+    await page.getByRole("button", { name: "Too expensive" }).click();
+    await expect(page.getByRole("article", { name: "Ibuprofen 400mg" })).toHaveCount(0);
+    await expect(page.getByRole("list", { name: "Avoiding" })).toContainText("Expensive options");
+  });
+
   test("an urgent symptom gets a doctor alert instead of products", async ({ page }) => {
     await page.goto("/assistant");
 
@@ -55,6 +84,7 @@ test.describe("Symptom assistant", () => {
     await expect(box).toHaveCount(0);
 
     await page.getByRole("button", { name: "Start over" }).click();
+    await page.getByRole("button", { name: "Yes, clear it" }).click();
 
     await expect(page.getByRole("heading", { name: "What’s bothering you?" })).toBeVisible();
   });

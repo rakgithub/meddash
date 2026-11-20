@@ -1,7 +1,8 @@
 import { useEffect, useReducer, useRef } from "react";
 import { mockEngine } from "../api/mockEngine";
+import type { ProductDetail } from "../../products";
 import type { CaseField, CaseFile, Message, QuickReply } from "../types";
-import { applyAnswer } from "../utils/caseFile";
+import { applyAnswer, avoidFor, type DismissReason } from "../utils/caseFile";
 import {
   consultationReducer,
   initialConsultation,
@@ -66,14 +67,19 @@ export function useConsultation() {
   const isStreaming = messages.at(-1)?.status === "streaming";
   const paused = isPaused(messages);
 
-  function start(text: string, answer?: { field: CaseField; value: string }) {
+  /** Sends a user message, optionally together with a changed case file that the engine sees at once. */
+  function start(text: string, nextCaseFile?: CaseFile) {
     const trimmed = text.trim();
     if (!trimmed || isStreaming || paused) return;
     const assistantId = crypto.randomUUID();
-    dispatch({ type: "send", userId: crypto.randomUUID(), assistantId, text: trimmed, answer });
-    // The reducer applies the same answer; the engine needs it now, before the next render.
-    const nextCaseFile = answer ? applyAnswer(caseFile, answer.field, answer.value) : caseFile;
-    void run(assistantId, messages, trimmed, nextCaseFile);
+    dispatch({
+      type: "send",
+      userId: crypto.randomUUID(),
+      assistantId,
+      text: trimmed,
+      caseFile: nextCaseFile,
+    });
+    void run(assistantId, messages, trimmed, nextCaseFile ?? caseFile);
   }
 
   function send(text: string) {
@@ -82,11 +88,20 @@ export function useConsultation() {
 
   /** A tapped quick reply: echoed as the user's message and stored in the case file. */
   function answer(field: CaseField, option: QuickReply) {
-    start(option.label, { field, value: option.value });
+    start(option.label, applyAnswer(caseFile, field, option.value));
   }
 
-  function setSymptoms(symptoms: string[]) {
-    dispatch({ type: "setSymptoms", symptoms });
+  /**
+   * An edit in the case file panel. `text` describes it and is echoed as the user's message; it goes
+   * through the engine like any message, so a symptom the user adds is screened for red flags too.
+   */
+  function refine(nextCaseFile: CaseFile, text: string) {
+    start(text, nextCaseFile);
+  }
+
+  /** "Not for me": no new reply, the suggestions are re-ranked without the product. */
+  function dismiss(product: ProductDetail, reason: DismissReason) {
+    dispatch({ type: "dismiss", productId: product.id, avoid: avoidFor(reason, product) });
   }
 
   function stop() {
@@ -119,7 +134,8 @@ export function useConsultation() {
     paused,
     send,
     answer,
-    setSymptoms,
+    refine,
+    dismiss,
     stop,
     retry,
     startOver,

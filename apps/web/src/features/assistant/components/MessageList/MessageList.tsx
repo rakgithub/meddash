@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
+import type { ProductDetail } from "../../../products";
 import type { CaseField, Message, MessagePart, QuickReply } from "../../types";
+import type { DismissReason } from "../../utils/caseFile";
 import { messageText } from "../../utils/consultationReducer";
 import { QuickReplies } from "../QuickReplies/QuickReplies";
 import { RecommendationStack } from "../RecommendationStack/RecommendationStack";
@@ -12,9 +14,9 @@ import styles from "./MessageList.module.css";
 interface PartActions {
   /** The case file's current symptoms, shown on the latest symptoms part. */
   symptoms?: string[];
-  onSymptomsChange?: (symptoms: string[]) => void;
   onAnswer?: (field: CaseField, option: QuickReply) => void;
   onAskIngredient?: (ingredient: string) => void;
+  onDismiss?: (product: ProductDetail, reason: DismissReason) => void;
   /** The option the user picked for this reply's question, i.e. their next message. */
   selected?: string;
 }
@@ -45,12 +47,7 @@ function Part({
     case "thinking":
       return <ThinkingSteps steps={part.steps} active={active} />;
     case "symptoms":
-      return (
-        <SymptomChips
-          symptoms={actions.symptoms ?? part.symptoms}
-          onChange={actions.onSymptomsChange}
-        />
-      );
+      return <SymptomChips symptoms={actions.symptoms ?? part.symptoms} />;
     case "quickReplies": {
       const { onAnswer } = actions;
       return (
@@ -68,7 +65,9 @@ function Part({
           items={part.items}
           loading={part.loading}
           unavailable={part.unavailable}
+          ruledOut={part.ruledOut}
           onAskIngredient={actions.onAskIngredient}
+          onDismiss={actions.onDismiss}
         />
       );
     case "alert":
@@ -121,9 +120,9 @@ export function MessageList({
   messages,
   onRetry,
   symptoms,
-  onSymptomsChange,
   onAnswer,
   onAskIngredient,
+  onDismiss,
 }: MessageListProps) {
   // A ref, not state: following the conversation never needs a re-render of its own.
   const stickRef = useRef(true);
@@ -148,7 +147,7 @@ export function MessageList({
 
   const last = messages.at(-1);
   const idle = last?.status !== "streaming";
-  // Only the most recent list of symptoms is the live, editable case file; older ones are a record.
+  // Only the most recent list of symptoms follows the case file; older ones are a record.
   const latestSymptoms = [...messages]
     .reverse()
     .find((m) => m.parts.some((p) => p.kind === "symptoms"));
@@ -158,10 +157,10 @@ export function MessageList({
     const isLatestSymptoms = message === latestSymptoms;
     return {
       symptoms: isLatestSymptoms ? symptoms : undefined,
-      onSymptomsChange: isLatestSymptoms && idle ? onSymptomsChange : undefined,
       // A question can be answered only while it is the last thing said and the reply has finished.
       onAnswer: message === last && message.status === "done" ? onAnswer : undefined,
       onAskIngredient: idle ? onAskIngredient : undefined,
+      onDismiss: idle ? onDismiss : undefined,
       selected: next?.role === "user" ? messageText(next) : undefined,
     };
   }
@@ -171,7 +170,7 @@ export function MessageList({
 
   return (
     <>
-      <ol className={styles.list}>
+      <ol className={styles.list} aria-label="Conversation">
         {messages.map((message, index) => (
           <li key={message.id} className={message.role === "user" ? styles.fromUser : undefined}>
             <span className="visually-hidden">

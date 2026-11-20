@@ -1,4 +1,5 @@
-import { FOR_WHOM, type CaseField, type CaseFile, type ForWhom } from "../types";
+import type { ProductDetail } from "../../products";
+import { FOR_WHOM, type CaseField, type CaseFile, type ForWhom, type QuickReply } from "../types";
 
 export const emptyCaseFile: CaseFile = { symptoms: [], duration: null, forWhom: null, avoid: [] };
 
@@ -7,7 +8,7 @@ function isForWhom(value: string): value is ForWhom {
 }
 
 /** Adds symptoms that aren't there yet (ignoring case and surrounding spaces), keeping the order. */
-export function mergeSymptoms(current: string[], added: string[]): string[] {
+export function mergeUnique(current: string[], added: string[]): string[] {
   const result = [...current];
   for (const raw of added) {
     const symptom = raw.trim();
@@ -21,4 +22,43 @@ export function mergeSymptoms(current: string[], added: string[]): string[] {
 export function applyAnswer(caseFile: CaseFile, field: CaseField, value: string): CaseFile {
   if (field === "duration") return { ...caseFile, duration: value };
   return isForWhom(value) ? { ...caseFile, forWhom: value } : caseFile;
+}
+
+export const DURATION_OPTIONS: QuickReply[] = [
+  { label: "Since today", value: "today" },
+  { label: "2–3 days", value: "2-3 days" },
+  { label: "About a week", value: "a week" },
+  { label: "Longer", value: "longer" },
+];
+
+export const FOR_WHOM_OPTIONS: QuickReply[] = [
+  { label: "Me", value: "me" },
+  { label: "A child", value: "child" },
+  { label: "Someone pregnant", value: "pregnant" },
+  { label: "Someone over 65", value: "senior" },
+];
+
+/** The "avoid" entry that hides tablets and capsules from every suggestion. */
+export const AVOID_TABLETS = "Tablets";
+
+export const DISMISS_REASONS = [
+  "Too expensive",
+  "I don’t swallow tablets",
+  "Already tried",
+  "Other",
+] as const;
+export type DismissReason = (typeof DISMISS_REASONS)[number];
+
+/** What "Not for me" adds to the case file's `avoid` list for a product and the reason given. */
+export function avoidFor(reason: DismissReason, product: ProductDetail): string {
+  switch (reason) {
+    case "Too expensive":
+      return "Expensive options";
+    case "I don’t swallow tablets":
+      return AVOID_TABLETS;
+    case "Already tried":
+      return `Already tried ${product.name}`;
+    case "Other":
+      return `Not ${product.name}`;
+  }
 }

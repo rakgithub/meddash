@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ibuprofenDetail } from "../../../../test/fixtures";
@@ -142,8 +142,7 @@ describe("MessageList", () => {
       ],
     };
 
-    it("shows the case file's symptoms on the latest symptom list, editable", async () => {
-      const onSymptomsChange = vi.fn();
+    it("shows the case file's symptoms on the latest symptom list, read-only", () => {
       render(
         <MessageList
           messages={[
@@ -153,7 +152,6 @@ describe("MessageList", () => {
             reply("a2", [{ kind: "symptoms", symptoms: ["Cough"] }]),
           ]}
           symptoms={["Sneezing", "Cough"]}
-          onSymptomsChange={onSymptomsChange}
           onRetry={() => {}}
         />,
       );
@@ -161,25 +159,41 @@ describe("MessageList", () => {
       const [older, latest] = screen.getAllByRole("list", { name: "What I noted" });
       expect(older).toHaveTextContent("Old");
       expect(latest).toHaveTextContent("SneezingCough");
-      await userEvent.click(screen.getByRole("button", { name: "Remove Sneezing" }));
-      expect(onSymptomsChange).toHaveBeenCalledWith(["Cough"]);
-      expect(screen.queryByRole("button", { name: "Remove Old" })).not.toBeInTheDocument();
+      // Edits happen in the case file panel, which asks for a fresh recommendation.
+      expect(screen.queryByRole("button", { name: /^Remove/ })).not.toBeInTheDocument();
     });
 
-    it("keeps the symptoms read-only while a reply streams", () => {
-      render(
+    const products: MessagePart = {
+      kind: "products",
+      items: [{ product: ibuprofenDetail, reason: "Brings fever down", fit: "best" }],
+    };
+
+    it("lets the user rule out a suggestion once the reply has finished", async () => {
+      const onDismiss = vi.fn();
+      renderWithRouter(
         <MessageList
-          messages={[
-            question,
-            reply("a1", [{ kind: "symptoms", symptoms: ["Cough"] }], "streaming"),
-          ]}
-          symptoms={["Cough"]}
-          onSymptomsChange={() => {}}
+          messages={[question, reply("a1", [products])]}
+          onDismiss={onDismiss}
           onRetry={() => {}}
         />,
       );
 
-      expect(screen.queryByRole("button", { name: "Remove Cough" })).not.toBeInTheDocument();
+      await userEvent.click(screen.getByRole("button", { name: "Not for me" }));
+      await userEvent.click(screen.getByRole("button", { name: "Already tried" }));
+
+      await waitFor(() => expect(onDismiss).toHaveBeenCalledWith(ibuprofenDetail, "Already tried"));
+    });
+
+    it("keeps suggestions read-only while a reply streams", () => {
+      renderWithRouter(
+        <MessageList
+          messages={[question, reply("a1", [products], "streaming")]}
+          onDismiss={() => {}}
+          onRetry={() => {}}
+        />,
+      );
+
+      expect(screen.queryByRole("button", { name: "Not for me" })).not.toBeInTheDocument();
     });
 
     it("lets the user answer the last question", async () => {

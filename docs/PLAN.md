@@ -105,7 +105,7 @@ Runs alongside the phases above. Frontend first with a mock engine; backend late
 - [x] S1 — Chat shell and streaming
 - [ ] S2 — Structured replies and product cards
 - [x] S3 — Safety layer (red flags, prescription rule, contextual warnings)
-- [ ] S4 — Case file and refine
+- [x] S4 — Case file and refine
 - [ ] S5 — Compare mode
 - [ ] S6 — Body map entry
 - [ ] S7 — Polish and integrations (add to cart needs Phase 5)

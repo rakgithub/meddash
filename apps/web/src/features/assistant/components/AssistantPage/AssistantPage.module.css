@@ -19,9 +19,39 @@
   flex: 1;
   flex-direction: column;
   width: 100%;
-  max-width: 760px;
+  max-width: 1080px;
   margin: 0 auto;
   padding: 0 20px;
+}
+
+/* Before the first message the chat is centred alone; after it the case file sits beside it. */
+.layout {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  grid-template-areas: "main side";
+  gap: 32px;
+  width: 100%;
+  max-width: 1080px;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.layout .main {
+  grid-area: main;
+  margin: 0;
+}
+
+.side {
+  grid-area: side;
+  padding-top: 40px;
 }
 
 /* The page scrolls as a whole, so the message box sticks to the bottom of the window. */
@@ -132,6 +162,19 @@
   font-size: 12px;
   text-align: center;
   color: var(--text-muted);
+}
+
+/* Narrow screens: the case file becomes a bar above the chat. */
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "side" "main";
+    gap: 0;
+  }
+
+  .side {
+    padding-top: 16px;
+  }
 }
 
 @media (max-width: 720px) {
