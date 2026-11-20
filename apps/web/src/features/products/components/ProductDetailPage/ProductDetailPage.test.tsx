@@ -4,12 +4,18 @@ import { Route, Routes, useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ProductDetailPage } from "./ProductDetailPage";
 import * as api from "../../api/fetchProduct";
+import { AuthProvider } from "../../../auth";
+import * as authApi from "../../../auth/api/authApi";
+import { CartProvider } from "../../../cart";
+import * as cartApi from "../../../cart/api/cartApi";
 import { ApiError } from "../../../../lib/apiClient";
 import { coughSyrupDetail, ibuprofenDetail } from "../../../../test/fixtures";
 import { renderWithRouter } from "../../../../test/renderWithRouter";
 
 vi.mock("../../api/fetchProduct");
 vi.mock("../../api/fetchSuggestions");
+vi.mock("../../../auth/api/authApi");
+vi.mock("../../../cart/api/cartApi");
 const fetchProduct = vi.mocked(api.fetchProduct);
 
 // Stands in for the products page, so tests can see where a search lands.
@@ -20,14 +26,22 @@ function ResultsUrl() {
 
 const renderPage = (id: string) =>
   renderWithRouter(
-    <Routes>
-      <Route path="/" element={<ResultsUrl />} />
-      <Route path="/products/:id" element={<ProductDetailPage />} />
-    </Routes>,
+    <AuthProvider>
+      <CartProvider>
+        <Routes>
+          <Route path="/" element={<ResultsUrl />} />
+          <Route path="/products/:id" element={<ProductDetailPage />} />
+        </Routes>
+      </CartProvider>
+    </AuthProvider>,
     `/products/${id}`,
   );
 
-beforeEach(() => vi.resetAllMocks());
+beforeEach(() => {
+  vi.resetAllMocks();
+  vi.mocked(authApi.fetchCurrentUser).mockResolvedValue(null);
+  vi.mocked(cartApi.getCart).mockReturnValue(new Promise(() => {}));
+});
 
 describe("ProductDetailPage states", () => {
   it("shows a loading message while fetching", () => {
@@ -98,11 +112,16 @@ describe("ProductDetailPage content", () => {
     expect(screen.getByText("1 tablet with water, up to 3 times a day.")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Warnings" })).toBeInTheDocument();
     expect(screen.getByText("Do not use with stomach ulcers.")).toBeInTheDocument();
-    expect(screen.getByText("Reckitt")).toBeInTheDocument();
-    expect(screen.getByText("Film-coated tablet")).toBeInTheDocument();
-    expect(screen.getByText("20 tablets")).toBeInTheDocument();
-    expect(screen.getByText("04875159")).toBeInTheDocument();
-    expect(screen.getByText("MD-0001")).toBeInTheDocument();
+    const details = screen.getByRole("heading", { name: "Product details" }).closest("details");
+    expect(details).toHaveTextContent("Reckitt");
+    expect(details).toHaveTextContent("Film-coated tablet");
+    expect(details).toHaveTextContent("20 tablets");
+    expect(details).toHaveTextContent("04875159");
+    expect(details).toHaveTextContent("MD-0001");
+    // The pack size is also in the buy box, next to the price.
+    expect(
+      within(screen.getByRole("region", { name: "Buy" })).getByText("20 tablets"),
+    ).toBeVisible();
   });
 
   it("leaves out sections and facts the product has no data for", async () => {
@@ -139,12 +158,26 @@ describe("ProductDetailPage content", () => {
     expect(await screen.findByText("Out of stock")).toBeInTheDocument();
   });
 
-  it("does not show the prescription notice for an over-the-counter product", async () => {
+  it("offers Add to cart with a quantity for an over-the-counter product", async () => {
     fetchProduct.mockResolvedValue(ibuprofenDetail);
     renderPage("1");
-    await screen.findByRole("heading", { name: "Ibuprofen 400mg", level: 1 });
+
+    const buy = within(await screen.findByRole("region", { name: "Buy" }));
     expect(screen.queryByRole("note")).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Add to cart" })).not.toBeInTheDocument();
+    expect(buy.getByRole("spinbutton", { name: "Quantity" })).toHaveValue(1);
+    await vi.waitFor(() => expect(buy.getByRole("button", { name: "Add to cart" })).toBeEnabled());
+  });
+
+  it("opens the ingredients and warnings, and keeps the other sections closed", async () => {
+    fetchProduct.mockResolvedValue(ibuprofenDetail);
+    renderPage("1");
+
+    const section = async (name: string) =>
+      (await screen.findByRole("heading", { name })).closest("details");
+    expect(await section("Active ingredients")).toHaveAttribute("open");
+    expect(await section("Warnings")).toHaveAttribute("open");
+    expect(await section("Usage instructions")).not.toHaveAttribute("open");
+    expect(await section("Product details")).not.toHaveAttribute("open");
   });
 
   it("blocks and explains a prescription-only product", async () => {
@@ -155,6 +188,7 @@ describe("ProductDetailPage content", () => {
     expect(note).toHaveTextContent("Prescription only");
     expect(note).toHaveTextContent(/valid prescription/);
     expect(screen.getByRole("button", { name: "Add to cart" })).toBeDisabled();
+    expect(screen.getByText("Needs a prescription")).toBeInTheDocument();
   });
 });
 

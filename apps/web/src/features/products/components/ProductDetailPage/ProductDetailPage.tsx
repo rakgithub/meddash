@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { AddToCart } from "../../../cart";
 import { useProduct } from "../../hooks/useProduct";
 import { useSearchQuery } from "../../hooks/useSearchQuery";
 import type { ProductDetail } from "../../types";
@@ -74,7 +75,7 @@ function ProductDetails({ product }: { product: ProductDetail }) {
         )}
       </div>
 
-      <div className={styles.summary}>
+      <div className={styles.aside}>
         <div className={styles.top}>
           <span className={styles.category}>
             <span className={styles.capsule} data-category={product.category} aria-hidden="true" />
@@ -84,51 +85,70 @@ function ProductDetails({ product }: { product: ProductDetail }) {
         </div>
         <h1 className={styles.name}>{product.name}</h1>
         <p className={styles.description}>{product.description}</p>
-        <p className={styles.price}>{formatPrice(product.price)}</p>
-        <p className={inStock ? styles.stock : `${styles.stock} ${styles.outOfStock}`}>
-          {formatStock(product.stockQuantity)}
-        </p>
 
-        {product.requiresPrescription && (
-          <div className={styles.rx} role="note">
-            <strong>Prescription only</strong>
-            <p>
-              This medicine can only be supplied with a valid prescription. Prescription upload is
-              coming soon, so it cannot be added to your cart yet.
+        <section className={styles.buyBox} aria-label="Buy">
+          <div className={styles.priceRow}>
+            <p className={styles.price}>{formatPrice(product.price)}</p>
+            <p className={inStock ? styles.stock : `${styles.stock} ${styles.outOfStock}`}>
+              {formatStock(product.stockQuantity)}
             </p>
-            <button type="button" disabled>
-              Add to cart
-            </button>
           </div>
-        )}
+          {product.packSize && <p className={styles.pack}>{product.packSize}</p>}
+
+          {product.requiresPrescription && (
+            <div className={styles.rx} role="note">
+              <strong>Prescription only</strong>
+              <p>
+                This medicine can only be supplied with a valid prescription. Prescription upload is
+                coming soon, so it cannot be added to your cart yet.
+              </p>
+            </div>
+          )}
+
+          {/* Keyed so quantity and messages start fresh on another product. */}
+          <AddToCart key={product.id} product={product} />
+
+          <ul className={styles.service}>
+            <li>Delivered in 1 to 3 working days</li>
+            <li>Unopened packs can be returned within 14 days</li>
+          </ul>
+        </section>
       </div>
 
       <div className={styles.info}>
         {product.activeIngredients.length > 0 && (
-          <section>
-            <h2>Active ingredients</h2>
+          <details className={styles.section} open>
+            <summary>
+              <h2>Active ingredients</h2>
+            </summary>
             <ul>
               {product.activeIngredients.map((ingredient) => (
                 <li key={ingredient}>{ingredient}</li>
               ))}
             </ul>
-          </section>
-        )}
-        {product.usageInstructions && (
-          <section>
-            <h2>Usage instructions</h2>
-            <p>{product.usageInstructions}</p>
-          </section>
+          </details>
         )}
         {product.warnings && (
-          <section>
-            <h2>Warnings</h2>
+          <details className={`${styles.section} ${styles.warnings}`} open>
+            <summary>
+              <h2>Warnings</h2>
+            </summary>
             <p>{product.warnings}</p>
-          </section>
+          </details>
+        )}
+        {product.usageInstructions && (
+          <details className={styles.section}>
+            <summary>
+              <h2>Usage instructions</h2>
+            </summary>
+            <p>{product.usageInstructions}</p>
+          </details>
         )}
         {facts.length > 0 && (
-          <section>
-            <h2>Product details</h2>
+          <details className={styles.section}>
+            <summary>
+              <h2>Product details</h2>
+            </summary>
             <dl className={styles.facts}>
               {facts.map(([label, value]) => (
                 <div key={label}>
@@ -137,7 +157,7 @@ function ProductDetails({ product }: { product: ProductDetail }) {
                 </div>
               ))}
             </dl>
-          </section>
+          </details>
         )}
       </div>
     </article>

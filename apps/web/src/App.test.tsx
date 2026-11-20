@@ -2,9 +2,10 @@ import { screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 import * as authApi from "./features/auth/api/authApi";
+import * as cartApi from "./features/cart/api/cartApi";
 import * as detailApi from "./features/products/api/fetchProduct";
 import * as searchApi from "./features/products/api/searchProducts";
-import { ana, ibuprofen, ibuprofenDetail } from "./test/fixtures";
+import { ana, cartWithIbuprofen, ibuprofen, ibuprofenDetail } from "./test/fixtures";
 import { renderWithRouter } from "./test/renderWithRouter";
 import userEvent from "@testing-library/user-event";
 
@@ -12,6 +13,7 @@ vi.mock("./features/products/api/searchProducts");
 vi.mock("./features/products/api/fetchSuggestions");
 vi.mock("./features/products/api/fetchProduct");
 vi.mock("./features/auth/api/authApi");
+vi.mock("./features/cart/api/cartApi");
 
 beforeEach(() => {
   vi.resetAllMocks();
@@ -21,6 +23,7 @@ beforeEach(() => {
   });
   vi.mocked(detailApi.fetchProduct).mockResolvedValue(ibuprofenDetail);
   vi.mocked(authApi.fetchCurrentUser).mockResolvedValue(null);
+  vi.mocked(cartApi.getCart).mockResolvedValue(cartWithIbuprofen);
 });
 
 describe("App routes", () => {
@@ -83,6 +86,18 @@ describe("App routes", () => {
 
     expect(await screen.findByRole("heading", { name: "Products", level: 1 })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Log in" })).toBeInTheDocument();
+  });
+
+  it("sends a signed-out visitor from /cart to log in", async () => {
+    renderWithRouter(<App />, "/cart");
+    expect(await screen.findByRole("heading", { name: "Log in", level: 1 })).toBeInTheDocument();
+  });
+
+  it("shows the cart at /cart when signed in", async () => {
+    vi.mocked(authApi.fetchCurrentUser).mockResolvedValue(ana);
+    renderWithRouter(<App />, "/cart");
+    expect(await screen.findByRole("heading", { name: "Your cart", level: 1 })).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: "Ibuprofen 400mg" })).toBeInTheDocument();
   });
 
   it("shows a not-found page for an unknown route", () => {

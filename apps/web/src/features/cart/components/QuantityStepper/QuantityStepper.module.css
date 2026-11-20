@@ -1,0 +1,75 @@
+/* One pill holding all three parts, like the other controls' 999px radius. */
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  height: 44px;
+  padding: 3px;
+  border: 1.5px solid var(--input-border);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+}
+
+.stepper:focus-within {
+  border-color: var(--accent);
+}
+
+.step {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-in-out);
+}
+
+.step:hover:not(:disabled) {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.step:disabled {
+  color: var(--border-strong);
+  cursor: not-allowed;
+}
+
+.step svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.input {
+  width: 3ch;
+  min-width: 36px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  appearance: textfield;
+}
+
+.input:focus-visible {
+  outline: none;
+}
+
+.input::-webkit-inner-spin-button,
+.input::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
+.input:disabled {
+  color: var(--text-muted);
+}
