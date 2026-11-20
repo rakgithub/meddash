@@ -64,7 +64,7 @@ New dependencies need approval (repo rule). Proposed, simplest option first:
 ## Phase 5 — Cart
 
 Plan (with the detail page redesign, account menu and the orders part of Phase 6):
-[`docs/plans/product-detail-cart-orders.md`](plans/product-detail-cart-orders.md).
+[`docs/plans/cart-orders/`](plans/cart-orders/README.md).
 
 - [ ] Drizzle schema + migration: `carts`, `cart_items` (per user; one open cart)
 - [ ] `GET /api/cart`, `POST /api/cart/items`, `PATCH /api/cart/items/:productId`, `DELETE /api/cart/items/:productId` (auth required)
@@ -103,7 +103,7 @@ Plan (with the detail page redesign, account menu and the orders part of Phase 6
 ## Track — Symptom assistant (AI chat)
 
 Runs alongside the phases above. Frontend first with a mock engine; backend later. Plan:
-[`docs/plans/symptom-assistant-frontend.md`](plans/symptom-assistant-frontend.md).
+[`docs/plans/symptom-assistant/`](plans/symptom-assistant/README.md).
 
 - [x] S1 — Chat shell and streaming
 - [ ] S2 — Structured replies and product cards

@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { UserMenu } from "../../features/auth";
 import { SearchBar, UploadPrescriptionButton, useSearchQuery } from "../../features/products";
 import { ThemeToggle } from "../ThemeToggle/ThemeToggle";
@@ -7,10 +7,13 @@ import styles from "./AppHeader.module.css";
 export function AppHeader() {
   // Searching from any page opens the results on `/`.
   const { filters, search } = useSearchQuery();
+  const { pathname } = useLocation();
+  // The auth pages keep the header quiet: no search or account controls next to the form.
+  const slim = pathname === "/login" || pathname === "/register";
 
   return (
     <header className={styles.header}>
-      <div className={styles.inner}>
+      <div className={slim ? `${styles.inner} ${styles.slim}` : styles.inner}>
         <Link className={styles.brand} to="/">
           {/* A capsule on the diagonal: the filled half is the "dash", the outline is the medicine. */}
           <svg className={styles.mark} viewBox="0 0 32 32" aria-hidden="true">
@@ -29,16 +32,18 @@ export function AppHeader() {
           </svg>
           MedDash
         </Link>
-        <div className={styles.search}>
-          <SearchBar
-            query={filters.q}
-            onSearch={(q) => search({ ...filters, q })}
-            onSelectCategory={(category) => search({ ...filters, q: "", category })}
-          />
-        </div>
-        <UploadPrescriptionButton />
+        {!slim && (
+          <div className={styles.search}>
+            <SearchBar
+              query={filters.q}
+              onSearch={(q) => search({ ...filters, q })}
+              onSelectCategory={(category) => search({ ...filters, q: "", category })}
+            />
+          </div>
+        )}
+        {!slim && <UploadPrescriptionButton />}
         <ThemeToggle />
-        <UserMenu />
+        {!slim && <UserMenu />}
       </div>
     </header>
   );

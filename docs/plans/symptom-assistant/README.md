@@ -1,6 +1,6 @@
 # Symptom assistant plan — frontend first
 
-Status: S1–S6 done 2026-11-20. S7 done except add to cart, which waits for Phase 5 (Cart). Roadmap entry: [`docs/PLAN.md`](../PLAN.md#track--symptom-assistant-ai-chat).
+Status: S1–S6 done 2026-11-20. S7 done except add to cart, which waits for Phase 5 (Cart). Roadmap entry: [`docs/PLAN.md`](../../PLAN.md#track--symptom-assistant-ai-chat).
 
 A chat where a customer describes symptoms and gets suggested over-the-counter products from the catalogue,
 shown as product cards inside the chat. It should feel like a pharmacist at the counter: a short guided

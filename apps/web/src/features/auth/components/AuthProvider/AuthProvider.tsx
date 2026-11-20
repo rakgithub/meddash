@@ -1,4 +1,5 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { startTransition, useEffect, useState, type ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import { fetchCurrentUser, logout } from "../../api/authApi";
 import { AuthContext, type AuthState } from "../../authContext";
 import type { User } from "../../types";
@@ -6,6 +7,7 @@ import type { User } from "../../types";
 /** Holds who is signed in, loaded once from GET /auth/me; shared by the header and auth pages. */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({ status: "loading" });
+  const navigate = useNavigate();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -25,7 +27,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = (user: User) => setState({ status: "signed-in", user });
   const signOut = async () => {
     await logout();
-    setState({ status: "signed-out" });
+    // Go home in the same transition the router uses for navigation, so both land in one render:
+    // otherwise a signed-in-only page would see "signed-out" first and redirect to /login.
+    startTransition(() => {
+      setState({ status: "signed-out" });
+      navigate("/");
+    });
   };
 
   return <AuthContext.Provider value={{ state, signIn, signOut }}>{children}</AuthContext.Provider>;

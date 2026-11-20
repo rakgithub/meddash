@@ -111,7 +111,7 @@ your symptoms, or tap where it hurts on the body map, and it suggests real produ
 | ![Body map](docs/screenshots/body-map/body-map-desktop.png) | ![Compare](docs/screenshots/compare-mode/compare-drawer-desktop.png) |
 
 > The assistant runs on a scripted mock engine in the browser for now. The real AI backend plugs in later by
-> replacing one file. Plan: [`docs/plans/symptom-assistant-frontend.md`](docs/plans/symptom-assistant-frontend.md).
+> replacing one file. Plan: [`docs/plans/symptom-assistant/README.md`](docs/plans/symptom-assistant/README.md).
 
 ### 4. Become a regular
 
@@ -188,7 +188,7 @@ Run everything from the repo root.
 | 🔜     | Admin roles and security hardening                                             |
 
 The full roadmap is in [`docs/PLAN.md`](docs/PLAN.md). The next one up is
-[`docs/plans/product-detail-cart-orders.md`](docs/plans/product-detail-cart-orders.md).
+[`docs/plans/cart-orders/README.md`](docs/plans/cart-orders/README.md).
 
 ---
 
@@ -221,7 +221,7 @@ apps/
             zod schemas in schemas/, OpenAPI in openapi/
 docs/
   PLAN.md   the roadmap
-  plans/    one plan per bigger piece of work
+  plans/    one folder per bigger piece of work; index in plans/README.md
 ```
 
 The zod schemas in `apps/server/src/schemas` are the single source of truth for request and response shapes. The

@@ -54,9 +54,35 @@ describe("App routes", () => {
     await user.type(screen.getByLabelText("Password"), "secret123");
     await user.click(screen.getByRole("button", { name: "Log in" }));
 
-    expect(await screen.findByText("Ana Weber")).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Account menu" })).toHaveTextContent("AW");
     // Back on the page the user came from.
     expect(screen.getByRole("heading", { name: "Ibuprofen 400mg", level: 1 })).toBeInTheDocument();
+  });
+
+  it("sends a signed-out visitor from /profile to log in", async () => {
+    renderWithRouter(<App />, "/profile");
+    expect(await screen.findByRole("heading", { name: "Log in", level: 1 })).toBeInTheDocument();
+  });
+
+  it("shows the profile at /profile when signed in", async () => {
+    vi.mocked(authApi.fetchCurrentUser).mockResolvedValue(ana);
+    renderWithRouter(<App />, "/profile");
+    expect(
+      await screen.findByRole("heading", { name: "Your profile", level: 1 }),
+    ).toBeInTheDocument();
+  });
+
+  it("logs out from the profile to the product search, not the login page", async () => {
+    vi.mocked(authApi.fetchCurrentUser).mockResolvedValue(ana);
+    vi.mocked(authApi.logout).mockResolvedValue();
+    const user = userEvent.setup();
+    renderWithRouter(<App />, "/profile");
+
+    await user.click(await screen.findByRole("button", { name: "Account menu" }));
+    await user.click(screen.getByRole("button", { name: "Log out" }));
+
+    expect(await screen.findByRole("heading", { name: "Products", level: 1 })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Log in" })).toBeInTheDocument();
   });
 
   it("shows a not-found page for an unknown route", () => {

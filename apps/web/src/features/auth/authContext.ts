@@ -8,7 +8,7 @@ export interface AuthContextValue {
   state: AuthState;
   /** Call after a successful login or registration. */
   signIn: (user: User) => void;
-  /** Ends the session on the server; rejects if that fails, so the user stays signed in. */
+  /** Ends the session on the server and goes home; rejects if that fails, so the user stays signed in. */
   signOut: () => Promise<void>;
 }
 

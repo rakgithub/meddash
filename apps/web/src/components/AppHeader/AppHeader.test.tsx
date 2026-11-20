@@ -58,6 +58,18 @@ describe("AppHeader", () => {
     expect(await screen.findByRole("link", { name: "Log in" })).toBeInTheDocument();
   });
 
+  it.each(["/login", "/register"])("shows only the brand and theme toggle on %s", async (route) => {
+    renderHeader(route);
+
+    expect(screen.getByRole("link", { name: "MedDash" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Dark mode" })).toBeInTheDocument();
+    expect(screen.queryByRole("search")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Upload prescription" })).not.toBeInTheDocument();
+    // Let the session check settle, then make sure no account control appeared.
+    await vi.waitFor(() => expect(authApi.fetchCurrentUser).toHaveBeenCalled());
+    expect(screen.queryByRole("link", { name: "Log in" })).not.toBeInTheDocument();
+  });
+
   it("opens the results for a search made on another page", async () => {
     const user = userEvent.setup();
     renderHeader("/products/1");

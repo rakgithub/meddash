@@ -1,8 +1,8 @@
 # Plan — Product detail redesign, cart, orders, account menu
 
 Status: draft 2026-11-20, awaiting approval of the decisions below.
-Roadmap entries: [Phase 5 — Cart](../PLAN.md#phase-5--cart) and the orders part of
-[Phase 6 — Checkout and orders](../PLAN.md#phase-6--checkout-and-orders). Payment (Phase 7) stays out of scope.
+Roadmap entries: [Phase 5 — Cart](../../PLAN.md#phase-5--cart) and the orders part of
+[Phase 6 — Checkout and orders](../../PLAN.md#phase-6--checkout-and-orders). Payment (Phase 7) stays out of scope.
 
 ## Goal
 
@@ -35,6 +35,8 @@ Roadmap entries: [Phase 5 — Cart](../PLAN.md#phase-5--cart) and the orders par
 Each step leaves the app working. Split into PRs at the marked points.
 
 ### PR 1 — Header and account menu (web only)
+
+Detailed plan: [pr-1-header-account-menu.md](pr-1-header-account-menu.md).
 
 1. **Slim header on auth routes.** `AppHeader` reads `useLocation()`; on `/login` and `/register` it
    renders only the brand and `ThemeToggle`.

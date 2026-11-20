@@ -1,6 +1,6 @@
 # Phase 1 plan — Postgres in Docker, products from the DB
 
-Status: approved 2026-11-19 (all four decisions as proposed); implemented. Deviation: Postgres is published on host port 5433, not 5432, to avoid clashing with a local Postgres. Roadmap entry: [`docs/PLAN.md`](../PLAN.md#phase-1--postgres-in-docker-products-from-the-db).
+Status: approved 2026-11-19 (all four decisions as proposed); implemented. Deviation: Postgres is published on host port 5433, not 5432, to avoid clashing with a local Postgres. Roadmap entry: [`docs/PLAN.md`](../../PLAN.md#phase-1--postgres-in-docker-products-from-the-db).
 
 One PR, ordered so the app keeps working after each step. Done when `pnpm verify` passes locally with the DB running.
 

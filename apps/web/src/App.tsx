@@ -1,7 +1,7 @@
 import { Link, Route, Routes } from "react-router-dom";
 import { AppHeader } from "./components/AppHeader/AppHeader";
 import { AssistantPage } from "./features/assistant";
-import { AuthProvider, LoginPage, RegisterPage } from "./features/auth";
+import { AuthProvider, LoginPage, ProfilePage, RegisterPage, RequireAuth } from "./features/auth";
 import { ProductDetailPage, ProductsPage } from "./features/products";
 
 export default function App() {
@@ -15,6 +15,14 @@ export default function App() {
           <Route path="/assistant" element={<AssistantPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route
+            path="/profile"
+            element={
+              <RequireAuth>
+                <ProfilePage />
+              </RequireAuth>
+            }
+          />
           <Route
             path="*"
             element={
