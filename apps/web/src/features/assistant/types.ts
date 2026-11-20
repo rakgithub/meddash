@@ -23,7 +23,7 @@ export interface CaseFile {
 }
 
 /** The case-file fields a quick reply can answer. */
-export type CaseField = "duration" | "forWhom";
+export type CaseField = "symptoms" | "duration" | "forWhom";
 
 export interface QuickReply {
   /** Shown on the button and echoed as the user's message. */

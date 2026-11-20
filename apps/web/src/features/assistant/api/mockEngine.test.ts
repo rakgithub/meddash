@@ -129,6 +129,42 @@ describe("mockEngine", () => {
     expect(partOf(parts, "symptoms")).toEqual([]);
   });
 
+  it("offers a body region's common symptoms to pick from", async () => {
+    const parts = await collect("My nose and throat");
+
+    expect(partOf(parts, "quickReplies")).toEqual([
+      {
+        kind: "quickReplies",
+        question: "What’s going on with your nose and throat?",
+        field: "symptoms",
+        options: [
+          { label: "Sore throat", value: "Sore throat" },
+          { label: "Blocked nose", value: "Blocked nose" },
+          { label: "Sneezing", value: "Sneezing" },
+          { label: "Cough", value: "Cough" },
+        ],
+      },
+    ]);
+    expect(partOf(parts, "products")).toEqual([]);
+  });
+
+  it("carries on with the usual questions once a region symptom is picked", async () => {
+    const parts = await collect("Sore throat", {
+      caseFile: { ...emptyCaseFile, symptoms: ["Sore throat"] },
+    });
+
+    expect(partOf(parts, "quickReplies")[0]).toMatchObject({ field: "duration" });
+  });
+
+  it("answers the chest region's chest pain with the urgent alert", async () => {
+    const parts = await collect("Chest pain", {
+      caseFile: { ...emptyCaseFile, symptoms: ["Chest pain"] },
+    });
+
+    expect(partOf(parts, "alert")[0]).toMatchObject({ level: "urgent" });
+    expect(partOf(parts, "products")).toEqual([]);
+  });
+
   it("asks for more detail when it doesn't recognise the symptoms", async () => {
     expect(textOf(await collect("hmm"))).toMatch(/^Tell me a bit more/);
   });
