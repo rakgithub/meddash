@@ -5,6 +5,7 @@ import type { CaseField, CaseFile, Message, QuickReply } from "../types";
 import { applyAnswer, avoidFor, type DismissReason } from "../utils/caseFile";
 import {
   consultationReducer,
+  type ConsultationState,
   initialConsultation,
   isPaused,
   messageText,
@@ -113,6 +114,11 @@ export function useConsultation() {
     dispatch({ type: "reset" });
   }
 
+  function restore(saved: ConsultationState) {
+    controllerRef.current?.abort();
+    dispatch({ type: "restore", state: saved });
+  }
+
   /** Asks again for the last user message; the conversation before it is kept. */
   function retry() {
     const lastUserIndex = messages.map((m) => m.role).lastIndexOf("user");
@@ -128,6 +134,8 @@ export function useConsultation() {
   }
 
   return {
+    /** The whole state, e.g. to save it. */
+    snapshot: state,
     messages,
     caseFile,
     isStreaming,
@@ -139,5 +147,6 @@ export function useConsultation() {
     stop,
     retry,
     startOver,
+    restore,
   };
 }

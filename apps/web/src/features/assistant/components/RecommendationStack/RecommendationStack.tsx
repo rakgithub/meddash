@@ -23,7 +23,7 @@ interface RecommendationStackProps {
 /** The shortlist worth comparing is the top three; prescription-only products aren't options yet. */
 const COMPARE_MAX = 3;
 
-/** Matches the `leave` animation in the stylesheet. */
+/** Matches the `leave` animation in the stylesheet, i.e. --duration-base. */
 const LEAVE_MS = 220;
 
 /** The suggested products under a reply: a grid on desktop, a swipeable row on mobile. */

@@ -147,7 +147,8 @@ test.describe("Symptom assistant", () => {
     await box.press("Enter");
     await page.getByRole("button", { name: "Stop" }).click();
 
-    await expect(page.getByText("Stopped")).toBeVisible();
+    // Exact: the live region also says "Reply stopped." for screen readers.
+    await expect(page.getByText("Stopped", { exact: true })).toBeVisible();
     await expect(box).toBeEditable();
   });
 });

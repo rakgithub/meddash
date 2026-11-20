@@ -1,0 +1,41 @@
+.save {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.button {
+  height: 36px;
+  padding: 0 14px;
+  border: 1.5px solid var(--accent);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-in-out);
+}
+
+.button:hover {
+  background: var(--accent-soft);
+}
+
+.note,
+.error {
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.note {
+  color: var(--text-muted);
+}
+
+.note:empty {
+  display: none;
+}
+
+.error {
+  color: var(--danger);
+}

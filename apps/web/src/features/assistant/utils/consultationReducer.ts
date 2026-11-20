@@ -22,7 +22,9 @@ export type ConsultationAction =
   /** "Not for me": the product is dropped everywhere and `avoid` is added to the case file. */
   | { type: "dismiss"; productId: string; avoid: string }
   /** Clears the conversation, e.g. to start over after an urgent alert. */
-  | { type: "reset" };
+  | { type: "reset" }
+  /** Reopens a saved consultation in place of the current one. */
+  | { type: "restore"; state: ConsultationState };
 
 export const initialConsultation: ConsultationState = {
   messages: [],
@@ -157,6 +159,14 @@ export function consultationReducer(
     }
     case "reset":
       return initialConsultation;
+    case "restore":
+      // Nothing is streaming any more, so a reply saved mid-stream reads as stopped, not stuck.
+      return {
+        ...action.state,
+        messages: action.state.messages.map((m) =>
+          m.status === "streaming" ? { ...m, status: "stopped" } : m,
+        ),
+      };
   }
 }
 

@@ -1,6 +1,6 @@
 # Symptom assistant plan — frontend first
 
-Status: S1–S6 done 2026-11-20. Roadmap entry: [`docs/PLAN.md`](../PLAN.md#track--symptom-assistant-ai-chat).
+Status: S1–S6 done 2026-11-20. S7 done except add to cart, which waits for Phase 5 (Cart). Roadmap entry: [`docs/PLAN.md`](../PLAN.md#track--symptom-assistant-ai-chat).
 
 A chat where a customer describes symptoms and gets suggested over-the-counter products from the catalogue,
 shown as product cards inside the chat. It should feel like a pharmacist at the counter: a short guided
@@ -262,12 +262,38 @@ Notes from the build (2026-11-20):
 ## Phase S7 — Polish and integrations
 
 - [ ] Add to cart from a card, with a cart pill in the chat header that pulses on add. **Depends on Phase 5
-      (Cart).**
-- [ ] Save consultation: when signed in, a summary card ("Sore throat, 2 days → 3 suggestions") the user can
+      (Cart)**, which isn't built yet (no cart endpoints or UI), so this item is still open.
+- [x] Save consultation: when signed in, a summary card ("Sore throat, 2 days → 3 suggestions") the user can
       reopen. Needs a backend endpoint, so it is stored only in the browser until the backend plan.
-- [ ] Motion pass: one consistent easing scale, every animation disabled under `prefers-reduced-motion`.
-- [ ] Accessibility pass: screen-reader announcements for streamed messages, visible focus on every chip and card,
+- [x] Motion pass: one consistent easing scale, every animation disabled under `prefers-reduced-motion`.
+- [x] Accessibility pass: screen-reader announcements for streamed messages, visible focus on every chip and card,
       contrast in both themes.
+
+Notes from the build (2026-11-20):
+
+- `utils/savedConsultations.ts` stores up to 10 consultations per user in `localStorage`
+  (`meddash-consultations-<userId>`), newest first. An entry is the whole reducer state plus a title and
+  suggestion count. The id is the first message's id, so saving the same consultation again replaces it.
+  Entries are checked on load and unreadable ones are dropped. Prices and stock in a reopened consultation
+  are as they were when saved. Nothing is cleared on sign-out. Health data stays on that device until the
+  server endpoint replaces this.
+- "Save consultation" sits in the case file panel once there are suggestions, signed in only. "Your
+  consultations" is on the start screen with Reopen and Remove. Reopen dispatches `restore`, which marks a
+  reply saved mid-stream as stopped.
+- Motion tokens in `global.css`: `--ease-out` (arrivals), `--ease-in` (exits), `--ease-in-out` (hover, state,
+  loops), `--duration-fast/base/slow` (150/220/420ms). Every assistant animation uses them, except the
+  spinner (linear) and the caret blink (steps). A global `prefers-reduced-motion` rule shortens every
+  animation and transition to 1ms, so `animationend` still fires. The per-component rules stay.
+- The live region now says "Assistant is replying…" while a reply streams. When the reply finishes it reads
+  the text, the question with its options, and the suggestions by name (prescription-only products are
+  left out). A stopped reply ends with "Reply stopped". Alerts and errors are left out because they are
+  `role="alert"` already.
+- Focus: every control in a finished consultation shows the global `:focus-visible` ring, including the
+  cards in the mobile scroll strip, and none is clipped. I checked this in the browser. The composer uses
+  its own `:focus-within` ring.
+- Contrast: every text token pair passes 4.5:1 in both themes once light `--accent-soft-hover` is
+  `#d8eee9` (it was 4.42:1). `--border-strong` is about 1.6:1. That's fine for buttons with a text label,
+  but it is not a 3:1 edge.
 
 ---
 

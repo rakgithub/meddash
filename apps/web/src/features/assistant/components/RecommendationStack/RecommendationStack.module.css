@@ -19,7 +19,7 @@
 
 /* The one entrance in the chat: the shortlist rises out of the reply, one card after another. */
 .item {
-  animation: rise 0.42s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation: rise var(--duration-slow) var(--ease-out) both;
 }
 
 .item:nth-child(2) {
@@ -43,7 +43,7 @@
 
 /* "Not for me": the card fades and slips aside before it is removed. */
 .leaving {
-  animation: leave 0.22s ease-in forwards;
+  animation: leave var(--duration-base) var(--ease-in) forwards;
   pointer-events: none;
 }
 
@@ -72,7 +72,7 @@
 .skeletonMedia,
 .skeletonLine {
   background: var(--accent-soft);
-  animation: pulse 1.2s ease-in-out infinite;
+  animation: pulse 1.2s var(--ease-in-out) infinite;
 }
 
 .skeletonMedia {

@@ -1,10 +1,13 @@
 import { useSearchParams } from "react-router-dom";
+import { useAuth } from "../../../auth";
 import { useConsultation } from "../../hooks/useConsultation";
 import { regionMessage } from "../../utils/bodyRegions";
 import { BodyMap } from "../BodyMap/BodyMap";
 import { CaseFilePanel } from "../CaseFilePanel/CaseFilePanel";
 import { Composer } from "../Composer/Composer";
 import { MessageList } from "../MessageList/MessageList";
+import { SaveConsultation } from "../SaveConsultation/SaveConsultation";
+import { SavedConsultations } from "../SavedConsultations/SavedConsultations";
 import { StartOver } from "../StartOver/StartOver";
 import styles from "./AssistantPage.module.css";
 
@@ -13,7 +16,10 @@ const STARTERS = ["Sore throat and fever", "Can't sleep", "Hay fever", "Upset st
 /** `/assistant?q=…` pre-fills the message box, e.g. with the search text from the products page. */
 export function AssistantPage() {
   const [searchParams] = useSearchParams();
+  const { state: auth } = useAuth();
+  const userId = auth.status === "signed-in" ? auth.user.id : null;
   const {
+    snapshot,
     messages,
     caseFile,
     isStreaming,
@@ -25,6 +31,7 @@ export function AssistantPage() {
     stop,
     retry,
     startOver,
+    restore,
   } = useConsultation();
 
   const started = messages.length > 0;
@@ -40,7 +47,16 @@ export function AssistantPage() {
               caseFile={caseFile}
               // Edits wait for the reply to finish, and stop for good after an urgent alert.
               onRefine={isStreaming || paused ? undefined : refine}
-              footer={paused ? undefined : <StartOver confirm onStartOver={startOver} />}
+              footer={
+                paused ? undefined : (
+                  <>
+                    {userId && !isStreaming && (
+                      <SaveConsultation key={userId} userId={userId} consultation={snapshot} />
+                    )}
+                    <StartOver confirm onStartOver={startOver} />
+                  </>
+                )
+              }
             />
           </div>
         )}
@@ -67,6 +83,8 @@ export function AssistantPage() {
                     </li>
                   ))}
                 </ul>
+                {/* Keyed by user, so signing in as someone else shows their list, not the last one. */}
+                {userId && <SavedConsultations key={userId} userId={userId} onReopen={restore} />}
                 <BodyMap onSelect={(region) => send(regionMessage(region))} />
               </section>
             ) : (
