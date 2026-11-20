@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { useMediaQuery } from "../../../../lib/useMediaQuery";
+import { AssistantLauncher } from "../../../assistant";
 import { useFacets } from "../../hooks/useFacets";
 import { useProductSearch } from "../../hooks/useProductSearch";
 import { formatResultRange } from "../../utils/formatResultRange";
@@ -10,7 +11,6 @@ import { Pagination } from "../Pagination/Pagination";
 import { ProductList } from "../ProductList/ProductList";
 import { RefinePanel } from "../RefinePanel/RefinePanel";
 import { SymptomNudge } from "../SymptomNudge/SymptomNudge";
-import { SymptomStarters } from "../SymptomStarters/SymptomStarters";
 import styles from "./ProductsPage.module.css";
 
 const REFINE_ID = "refine-panel";
@@ -59,7 +59,6 @@ export function ProductsPage() {
         />
       </div>
 
-      {!query && <SymptomStarters />}
       {nudgeReason && <SymptomNudge query={query} reason={nudgeReason} />}
 
       <div className={styles.body}>
@@ -105,6 +104,8 @@ export function ProductsPage() {
           </section>
         </div>
       </div>
+
+      <AssistantLauncher />
     </div>
   );
 }
