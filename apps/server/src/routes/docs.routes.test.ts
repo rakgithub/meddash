@@ -90,6 +90,38 @@ describe("OpenAPI docs", () => {
     ]);
   });
 
+  it("documents the cart endpoints behind the session cookie, with their responses", async () => {
+    const res = await request(app).get("/openapi.json");
+    const { paths, components } = res.body;
+    const cart = paths["/cart"].get;
+    const add = paths["/cart/items"].post;
+    const update = paths["/cart/items/{productId}"].patch;
+    const remove = paths["/cart/items/{productId}"].delete;
+
+    expect(Object.keys(cart.responses)).toEqual(["200", "401"]);
+    expect(Object.keys(add.responses)).toEqual(["200", "400", "401", "404", "409"]);
+    expect(Object.keys(update.responses)).toEqual(["200", "400", "401", "404", "409"]);
+    expect(Object.keys(remove.responses)).toEqual(["200", "400", "401"]);
+    for (const op of [cart, add, update, remove]) {
+      expect(op.security).toEqual([{ cookieAuth: [] }]);
+    }
+    for (const op of [update, remove]) {
+      expect(op.parameters).toEqual([
+        expect.objectContaining({ name: "productId", in: "path", required: true }),
+      ]);
+    }
+    expect(Object.keys(components.schemas.Cart.properties)).toEqual([
+      "items",
+      "itemCount",
+      "subtotal",
+    ]);
+    expect(Object.keys(components.schemas.CartLine.properties)).toEqual([
+      "product",
+      "quantity",
+      "lineTotal",
+    ]);
+  });
+
   it("serves Swagger UI", async () => {
     const res = await request(app).get("/docs/");
     expect(res.status).toBe(200);

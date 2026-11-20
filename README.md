@@ -124,17 +124,21 @@ Light or dark? Your choice, and the shop remembers it.
 
 Interactive docs live at **<http://localhost:3001/docs>** (raw spec: `/openapi.json`).
 
-| Ask                   | And you get                                                                                   |
-| --------------------- | --------------------------------------------------------------------------------------------- |
-| `GET /products`       | Every product in the catalogue                                                                |
-| `GET /products/:id`   | One product with all its details (404 if unknown, 400 for a malformed id)                     |
-| `GET /search`         | Search with `q`, `category`, `brand`, `minPrice`, `maxPrice`, `sort`, `page`                  |
-| `GET /search/facets`  | Counts per category and brand plus the price spread (each filter ignores its own choice)      |
-| `GET /search/suggest` | Up to 5 products whose name or brand starts with `q` (names first)                            |
-| `POST /auth/register` | Create an account (`email`, `password` min 8, `name`) and sign in; 409 if the email is taken  |
-| `POST /auth/login`    | Sign in; a wrong email and a wrong password both get the same 401 `Invalid email or password` |
-| `POST /auth/logout`   | Clear the session cookie (204)                                                                |
-| `GET /auth/me`        | Who is signed in; 401 without a valid session                                                 |
+| Ask                             | And you get                                                                                                                              |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /products`                 | Every product in the catalogue                                                                                                           |
+| `GET /products/:id`             | One product with all its details (404 if unknown, 400 for a malformed id)                                                                |
+| `GET /search`                   | Search with `q`, `category`, `brand`, `minPrice`, `maxPrice`, `sort`, `page`                                                             |
+| `GET /search/facets`            | Counts per category and brand plus the price spread (each filter ignores its own choice)                                                 |
+| `GET /search/suggest`           | Up to 5 products whose name or brand starts with `q` (names first)                                                                       |
+| `POST /auth/register`           | Create an account (`email`, `password` min 8, `name`) and sign in; 409 if the email is taken                                             |
+| `POST /auth/login`              | Sign in; a wrong email and a wrong password both get the same 401 `Invalid email or password`                                            |
+| `POST /auth/logout`             | Clear the session cookie (204)                                                                                                           |
+| `GET /auth/me`                  | Who is signed in; 401 without a valid session                                                                                            |
+| `GET /cart`                     | The signed-in user's cart: lines with current prices, `itemCount`, `subtotal` (401 when signed out)                                      |
+| `POST /cart/items`              | Add `{ productId, quantity }` to the cart (adds to what is there); 409 for prescription-only, out of stock, or more than the stock or 10 |
+| `PATCH /cart/items/:productId`  | Set a line's `quantity` (1–10, not above stock); 404 if the product is not in the cart                                                   |
+| `DELETE /cart/items/:productId` | Remove a line; succeeds if it was not in the cart                                                                                        |
 
 Bad input gets a `400` with `{ error: { message, details } }`.
 
