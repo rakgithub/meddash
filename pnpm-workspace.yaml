@@ -1,6 +1,10 @@
 packages:
   - apps/*
 
+# Real package folders instead of symlinks into a root store, so Vercel can bundle the server
+# function's dependencies (with the default layout it shipped without express).
+nodeLinker: hoisted
+
 allowBuilds:
   '@scarf/scarf': false
   esbuild: true
