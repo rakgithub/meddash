@@ -10,5 +10,6 @@ PRs that need their own detail, each gets a `pr-<n>-<kebab-name>.md` next to it.
 | [Symptom assistant (frontend)](symptom-assistant/)                          | Symptom assistant track | S1–S6 done; S7 waits on cart |
 | [Product detail, cart, orders](cart-orders/)                                | Phase 5, Phase 6        | Draft                        |
 | ↳ [PR 1 — Header and account menu](cart-orders/pr-1-header-account-menu.md) |                         | Draft                        |
+| [Symptom assistant backend (LLM)](symptom-assistant-backend/)               | Symptom assistant track | Draft                        |
 
 Keep the status here in step with the `Status:` line at the top of each plan.

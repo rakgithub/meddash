@@ -178,11 +178,14 @@ describe("ProductsPage assistant entry points", () => {
     pagination: { page: 1, pageSize: 10, total: 1, totalPages: 1 },
   };
 
-  it("offers symptom starters when there is no search", () => {
+  it("offers the floating assistant launcher", () => {
     searchProducts.mockReturnValue(new Promise(() => {}));
     renderWithRouter(<ProductsPage />);
 
-    expect(screen.getByRole("region", { name: /Start with how you feel/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Ask MedDash assistant" })).toHaveAttribute(
+      "href",
+      "/assistant",
+    );
     expect(screen.queryByRole("link", { name: "Ask the assistant" })).not.toBeInTheDocument();
   });
 
@@ -194,9 +197,6 @@ describe("ProductsPage assistant entry points", () => {
       "href",
       "/assistant?q=sore+throat",
     );
-    expect(
-      screen.queryByRole("region", { name: /Start with how you feel/ }),
-    ).not.toBeInTheDocument();
   });
 
   it("points a search that found nothing to the assistant", async () => {
@@ -212,8 +212,5 @@ describe("ProductsPage assistant entry points", () => {
 
     await screen.findByText("Showing 1 of 1 result");
     expect(screen.queryByRole("link", { name: "Ask the assistant" })).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("region", { name: /Start with how you feel/ }),
-    ).not.toBeInTheDocument();
   });
 });
