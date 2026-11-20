@@ -63,6 +63,9 @@ New dependencies need approval (repo rule). Proposed, simplest option first:
 
 ## Phase 5 — Cart
 
+Plan (with the detail page redesign, account menu and the orders part of Phase 6):
+[`docs/plans/product-detail-cart-orders.md`](plans/product-detail-cart-orders.md).
+
 - [ ] Drizzle schema + migration: `carts`, `cart_items` (per user; one open cart)
 - [ ] `GET /api/cart`, `POST /api/cart/items`, `PATCH /api/cart/items/:productId`, `DELETE /api/cart/items/:productId` (auth required)
 - [ ] Server is the source of truth for prices and stock; quantity limits validated
