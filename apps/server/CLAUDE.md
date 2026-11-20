@@ -18,7 +18,7 @@ Fix the cause; do not weaken thresholds, skip tests, or add `eslint-disable` wit
 ## Conventions
 
 - ESM with NodeNext: relative imports MUST end in `.js` (e.g. `../services/search.service.js`).
-- No `console.log` (lint warns); only `src/index.ts` may log startup.
+- No `console.log` (lint warns); only `src/index.mts` may log startup.
 - Validate all external input (query, params, body) with zod via middleware; services receive already-parsed, typed values.
 - Prefer small pure functions that take their data source as a parameter so tests can inject fixtures.
 - Response shape changes are API contract changes: update the zod schema, OpenAPI doc, and the web types (`apps/web/src/features/*/types.ts`) together, and say so in the PR.
