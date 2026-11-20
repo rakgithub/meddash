@@ -61,7 +61,7 @@
   border: 0;
   border-radius: 8px;
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font: inherit;
   font-size: 14px;
   font-weight: 600;
@@ -87,7 +87,7 @@
 }
 
 .pill:hover {
-  border-color: #c9cfca;
+  border-color: var(--border-strong);
 }
 
 .active {

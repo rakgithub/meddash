@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { UserMenu } from "../../features/auth";
 import { SearchBar, UploadPrescriptionButton, useSearchQuery } from "../../features/products";
+import { ThemeToggle } from "../ThemeToggle/ThemeToggle";
 import styles from "./AppHeader.module.css";
 
 export function AppHeader() {
@@ -36,6 +37,7 @@ export function AppHeader() {
           />
         </div>
         <UploadPrescriptionButton />
+        <ThemeToggle />
         <UserMenu />
       </div>
     </header>

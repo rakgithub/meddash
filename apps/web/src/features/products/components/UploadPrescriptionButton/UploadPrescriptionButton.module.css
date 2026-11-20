@@ -21,7 +21,7 @@
 }
 
 .button:hover {
-  background: #d4ece7;
+  background: var(--accent-soft-hover);
 }
 
 .icon {

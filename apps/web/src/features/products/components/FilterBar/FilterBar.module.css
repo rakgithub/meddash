@@ -21,7 +21,7 @@
 }
 
 .pill:hover {
-  border-color: #c9cfca;
+  border-color: var(--border-strong);
 }
 
 .active {
