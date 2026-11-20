@@ -1,0 +1,138 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 40px 20px 72px;
+}
+
+.back {
+  align-self: flex-start;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.back:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+.message {
+  color: var(--text-muted);
+}
+
+.error {
+  color: var(--danger);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.meta {
+  color: var(--text-muted);
+}
+
+.note {
+  padding: 12px 16px;
+  border-radius: var(--radius-control);
+  background: var(--caution-soft);
+  color: var(--caution);
+  font-size: 14px;
+}
+
+.items {
+  margin: 8px 0 0;
+  padding: 0 24px;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: baseline;
+  column-gap: 24px;
+  padding: 16px 0;
+}
+
+.item + .item {
+  border-top: 1px solid var(--border);
+}
+
+.name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.name a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.name a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.calc {
+  color: var(--text-muted);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.line {
+  min-width: 80px;
+  text-align: right;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.total {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 24px;
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 560px) {
+  .items {
+    padding: 0 16px;
+  }
+
+  .item {
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: 2px;
+  }
+
+  .calc {
+    grid-column: 1;
+  }
+
+  .line {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+  }
+
+  .total {
+    padding: 0 16px;
+  }
+}

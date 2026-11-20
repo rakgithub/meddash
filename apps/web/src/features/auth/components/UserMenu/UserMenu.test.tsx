@@ -65,6 +65,7 @@ describe("UserMenu", () => {
     expect(screen.getByText("Ana Weber")).toBeVisible();
     expect(screen.getByText("ana@example.com")).toBeVisible();
     expect(screen.getByRole("link", { name: "Profile" })).toHaveAttribute("href", "/profile");
+    expect(screen.getByRole("link", { name: "Orders" })).toHaveAttribute("href", "/orders");
     expect(screen.getByRole("button", { name: "Log out" })).toBeVisible();
 
     await user.click(button);

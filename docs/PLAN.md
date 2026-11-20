@@ -76,8 +76,8 @@ Plan (with the detail page redesign, account menu and the orders part of Phase 6
 
 - [ ] Drizzle schema + migration: `orders`, `order_items` (price snapshotted at order time), `addresses`; order status enum
       (`pending_payment`, `paid`, `failed`, `cancelled`)
-- [ ] `POST /api/orders` creates an order from the cart in one transaction (re-checks stock and prices)
-- [ ] `GET /api/orders`, `GET /api/orders/:id` — users only see their own orders (403/404 otherwise)
+- [x] `POST /api/orders` creates an order from the cart in one transaction (re-checks stock and prices)
+- [x] `GET /api/orders`, `GET /api/orders/:id` — users only see their own orders (403/404 otherwise)
 - [ ] Web: checkout page (shipping address, order summary), "My orders" list and order detail
 - [ ] e2e: cart → checkout → order created in `pending_payment`
 

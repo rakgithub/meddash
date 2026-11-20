@@ -1,17 +1,27 @@
-import { screen, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { ApiError } from "../../../../lib/apiClient";
+import type { Order } from "../../../orders";
 import { AuthProvider } from "../../../auth";
 import * as authApi from "../../../auth/api/authApi";
-import { ana, cartWithIbuprofen, cartWithTwoLines, emptyCart } from "../../../../test/fixtures";
+import {
+  ana,
+  cartWithIbuprofen,
+  cartWithTwoLines,
+  emptyCart,
+  order,
+} from "../../../../test/fixtures";
 import { renderWithRouter } from "../../../../test/renderWithRouter";
+import * as ordersApi from "../../../orders/api/ordersApi";
 import * as cartApi from "../../api/cartApi";
 import { CartProvider } from "../CartProvider/CartProvider";
 import { CartPage } from "./CartPage";
 
 vi.mock("../../../auth/api/authApi");
 vi.mock("../../api/cartApi");
+vi.mock("../../../orders/api/ordersApi");
 
 beforeEach(() => {
   vi.resetAllMocks();
@@ -52,7 +62,7 @@ describe("CartPage", () => {
     expect(screen.getByRole("heading", { name: "Vitamin D3 1000 IU" })).toBeVisible();
     expect(summary().getByText("3 items")).toBeVisible();
     expect(summary().getByText(/21,93\s€/)).toBeVisible();
-    expect(summary().getByRole("button", { name: "Place order" })).toBeDisabled();
+    expect(summary().getByRole("button", { name: "Place order" })).toBeEnabled();
   });
 
   it("says 1 item in the singular", async () => {
@@ -177,5 +187,51 @@ describe("CartPage", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Decrease quantity" }));
     await vi.waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
+  });
+
+  describe("Place order", () => {
+    const renderWithOrderRoute = () =>
+      render(
+        <MemoryRouter initialEntries={["/cart"]}>
+          <AuthProvider>
+            <CartProvider>
+              <Routes>
+                <Route path="/cart" element={<CartPage />} />
+                <Route path="/orders/:id" element={<p>On the order page</p>} />
+              </Routes>
+            </CartProvider>
+          </AuthProvider>
+        </MemoryRouter>,
+      );
+
+    it("creates the order, goes to its page and leaves the cart empty", async () => {
+      vi.mocked(cartApi.getCart).mockResolvedValue(cartWithTwoLines);
+      const request = deferred<Order>();
+      vi.mocked(ordersApi.createOrder).mockReturnValue(request.promise);
+      renderWithOrderRoute();
+
+      await userEvent.click(await screen.findByRole("button", { name: "Place order" }));
+      expect(screen.getByRole("button", { name: "Placing order…" })).toBeDisabled();
+
+      request.resolve(order);
+      expect(await screen.findByText("On the order page")).toBeVisible();
+      expect(ordersApi.createOrder).toHaveBeenCalledTimes(1);
+    });
+
+    it("shows the server's reason and keeps the cart when the order is rejected", async () => {
+      vi.mocked(cartApi.getCart).mockResolvedValue(cartWithTwoLines);
+      vi.mocked(ordersApi.createOrder).mockRejectedValue(
+        new ApiError(409, "Only 1 of Ibuprofen 400mg in stock"),
+      );
+      renderWithOrderRoute();
+
+      await userEvent.click(await screen.findByRole("button", { name: "Place order" }));
+
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        "Only 1 of Ibuprofen 400mg in stock",
+      );
+      expect(screen.getByRole("button", { name: "Place order" })).toBeEnabled();
+      expect(screen.getByRole("heading", { name: "Ibuprofen 400mg" })).toBeVisible();
+    });
   });
 });

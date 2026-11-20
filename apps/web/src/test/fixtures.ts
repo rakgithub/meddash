@@ -1,6 +1,7 @@
 import type { Product, ProductDetail } from "../features/products/types";
 import type { User } from "../features/auth/types";
 import type { Cart } from "../features/cart/types";
+import type { Order, OrderSummary } from "../features/orders/types";
 
 export const ibuprofen: Product = {
   id: "1",
@@ -98,4 +99,21 @@ export const cartWithTwoLines: Cart = {
   ],
   itemCount: 3,
   subtotal: 21.93,
+};
+
+export const orderSummary: OrderSummary = {
+  id: 7,
+  status: "pending_payment",
+  total: 21.93,
+  itemCount: 3,
+  // Midday UTC, so the local date is the same in every time zone that matters.
+  createdAt: "2026-11-20T12:00:00.000Z",
+};
+
+export const order: Order = {
+  ...orderSummary,
+  items: [
+    { productId: "1", name: "Ibuprofen 400mg", unitPrice: 6.49, quantity: 2, lineTotal: 12.98 },
+    { productId: "3", name: "Vitamin D3 1000 IU", unitPrice: 8.95, quantity: 1, lineTotal: 8.95 },
+  ],
 };

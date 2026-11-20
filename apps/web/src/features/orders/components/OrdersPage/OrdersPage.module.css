@@ -1,0 +1,147 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 40px 20px 72px;
+}
+
+.back {
+  align-self: flex-start;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.back:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.message {
+  color: var(--text-muted);
+}
+
+.error {
+  color: var(--danger);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.order {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas:
+    "number status total"
+    "meta status total";
+  align-items: center;
+  column-gap: 20px;
+  row-gap: 2px;
+  padding: 18px 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  text-decoration: none;
+  transition: box-shadow var(--duration-base) var(--ease-out);
+}
+
+.order:hover {
+  box-shadow: var(--shadow-hover);
+}
+
+.number {
+  grid-area: number;
+  font-size: 17px;
+  font-weight: 650;
+}
+
+.meta {
+  grid-area: meta;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.order > :nth-child(3) {
+  grid-area: status;
+}
+
+.total {
+  grid-area: total;
+  min-width: 80px;
+  text-align: right;
+  font-size: 17px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 48px 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-align: center;
+}
+
+.emptyTitle {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.emptyText {
+  margin-bottom: 12px;
+  color: var(--text-muted);
+}
+
+.primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 24px;
+  border-radius: var(--radius-control);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.primary:hover {
+  background: var(--accent-hover);
+}
+
+@media (max-width: 560px) {
+  .order {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "number total"
+      "meta meta"
+      "status status";
+    padding: 16px;
+  }
+
+  .order > :nth-child(3) {
+    justify-self: start;
+    margin-top: 6px;
+  }
+}

@@ -3,6 +3,7 @@ import { AppHeader } from "./components/AppHeader/AppHeader";
 import { AssistantPage } from "./features/assistant";
 import { AuthProvider, LoginPage, ProfilePage, RegisterPage, RequireAuth } from "./features/auth";
 import { CartPage, CartProvider } from "./features/cart";
+import { OrderDetailPage, OrdersPage } from "./features/orders";
 import { ProductDetailPage, ProductsPage } from "./features/products";
 
 export default function App() {
@@ -30,6 +31,22 @@ export default function App() {
               element={
                 <RequireAuth>
                   <CartPage />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/orders"
+              element={
+                <RequireAuth>
+                  <OrdersPage />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/orders/:id"
+              element={
+                <RequireAuth>
+                  <OrderDetailPage />
                 </RequireAuth>
               }
             />

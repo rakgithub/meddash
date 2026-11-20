@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "../../../auth";
+import { createOrder } from "../../../orders";
 import { addToCart, getCart, removeCartItem, updateCartItem } from "../../api/cartApi";
 import type { Cart } from "../../types";
 import { CartContext, type CartState } from "../../cartContext";
@@ -46,6 +47,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
     updateItem: (productId: string, quantity: number) =>
       apply(() => updateCartItem(productId, quantity)),
     removeItem: (productId: string) => apply(() => removeCartItem(productId)),
+    placeOrder: async () => {
+      if (!userId) throw new Error("Log in to place an order");
+      const order = await createOrder();
+      // The server emptied the cart in the same transaction.
+      setLoaded({
+        userId,
+        state: { status: "ready", cart: { items: [], itemCount: 0, subtotal: 0 } },
+      });
+      return order.id;
+    },
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

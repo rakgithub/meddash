@@ -104,3 +104,45 @@ export const cartItems = pgTable(
     check("cart_items_quantity_positive", sql`${t.quantity} > 0`),
   ],
 );
+
+export const orderStatus = pgEnum("order_status", [
+  "pending_payment",
+  "paid",
+  "failed",
+  "cancelled",
+]);
+
+export const orders = pgTable(
+  "orders",
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    status: orderStatus().notNull().default("pending_payment"),
+    total: numeric({ precision: 10, scale: 2 }).notNull(),
+    ...timestamps,
+  },
+  // Matches the list query: one user's orders, newest first.
+  (t) => [index("orders_user_created_idx").on(t.userId, t.createdAt)],
+);
+
+// name and unit_price are copied from the product at order time, so later catalogue edits
+// do not change past orders. product_id is only a link back and goes null if the product is deleted.
+export const orderItems = pgTable(
+  "order_items",
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    orderId: integer("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    productId: integer("product_id").references(() => products.id, { onDelete: "set null" }),
+    name: text().notNull(),
+    unitPrice: numeric("unit_price", { precision: 10, scale: 2 }).notNull(),
+    quantity: integer().notNull(),
+  },
+  (t) => [
+    index("order_items_order_idx").on(t.orderId),
+    check("order_items_quantity_positive", sql`${t.quantity} > 0`),
+  ],
+);

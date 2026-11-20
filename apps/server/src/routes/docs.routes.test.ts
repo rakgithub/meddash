@@ -33,6 +33,21 @@ describe("OpenAPI docs", () => {
     expect(product.required).toContain("imageUrl");
   });
 
+  it("documents the orders endpoints with cookie auth and their schemas", async () => {
+    const res = await request(app).get("/openapi.json");
+    for (const [path, method] of [
+      ["/orders", "post"],
+      ["/orders", "get"],
+      ["/orders/{id}", "get"],
+    ]) {
+      expect(res.body.paths[path][method].security).toEqual([{ cookieAuth: [] }]);
+    }
+    expect(Object.keys(res.body.paths["/orders"].post.responses)).toEqual(["201", "401", "409"]);
+    for (const name of ["Order", "OrderSummary", "OrderItem", "OrderList", "OrderStatus"]) {
+      expect(res.body.components.schemas).toHaveProperty(name);
+    }
+  });
+
   it("documents /search/suggest with its q param and response schema", async () => {
     const res = await request(app).get("/openapi.json");
     const op = res.body.paths["/search/suggest"].get;
