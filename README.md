@@ -31,7 +31,7 @@ Open <http://localhost:5173>. Vite proxies `/api/*` to the server on `:3001`.
   - Debounced (250 ms, minimum 2 characters); a new keystroke cancels the previous request, so stale responses never overwrite newer ones.
   - Accessible combobox: Up/Down arrows (wrapping), Enter to pick, Escape to close, `aria-activedescendant`, and a live status for result count, empty and error states.
 
-![Autocomplete on desktop](docs/screenshots/autocomplete-desktop.png)
+![Autocomplete on desktop](docs/screenshots/search-autocomplete/desktop.png)
 
 ## API
 
