@@ -69,6 +69,9 @@ jobs:
         run: pnpm --filter web exec playwright install --with-deps chromium
       - name: Migrate and seed the database
         run: pnpm db:migrate && pnpm db:seed
+        env:
+          # The server config requires a signing key even for migrations. A CI-only value, like the e2e one.
+          JWT_SECRET: ci-only-jwt-secret-not-for-real-use
       - name: End-to-end tests
         run: pnpm --filter web test:e2e
         env:
