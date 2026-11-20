@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import request from "supertest";
-import { createApp } from "../app.js";
+import { createApp } from "../createApp.js";
 import { pool } from "../db/client.js";
 
 afterEach(() => vi.restoreAllMocks());

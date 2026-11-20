@@ -66,3 +66,39 @@ test.describe("Add to cart", () => {
     await expect(buy.getByRole("spinbutton", { name: "Quantity" })).toHaveValue("3");
   });
 });
+
+test.describe("Cart page", () => {
+  test("change quantity → reload keeps it → remove → empty", async ({ page }) => {
+    await page.request.post("/api/auth/register", {
+      data: { email: newEmail(), password, name: "Ana" },
+    });
+
+    await page.goto("/products/1");
+    const buy = page.getByRole("region", { name: "Buy" });
+    await buy.getByRole("button", { name: "Increase quantity" }).click();
+    await buy.getByRole("button", { name: "Add to cart" }).click();
+    await buy.getByRole("link", { name: "View cart" }).click();
+
+    const banner = page.getByRole("banner");
+    const line = page.getByRole("article", { name: "Ibuprofen 400mg" });
+    const summary = page.getByRole("region", { name: "Order summary" });
+    await expect(line.getByRole("spinbutton")).toHaveValue("2");
+    await expect(summary).toContainText("2 items");
+
+    await line.getByRole("button", { name: "Increase quantity" }).click();
+    await expect(line.getByRole("spinbutton")).toHaveValue("3");
+    await expect(summary).toContainText("3 items");
+    // The header count follows the cart page.
+    await expect(banner.getByRole("link", { name: "Cart, 3 items" })).toBeVisible();
+
+    // The quantity is stored on the server, not just in the page.
+    await page.reload();
+    await expect(line.getByRole("spinbutton")).toHaveValue("3");
+
+    await line.getByRole("button", { name: "Remove" }).click();
+    await expect(page.getByText("Your cart is empty")).toBeVisible();
+    await expect(banner.getByRole("link", { name: "Cart, 0 items" })).toBeVisible();
+    await page.getByRole("link", { name: "Browse products" }).click();
+    await expect(page).toHaveURL(/\/$/);
+  });
+});

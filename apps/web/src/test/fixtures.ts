@@ -90,3 +90,12 @@ export const cartWithIbuprofen: Cart = {
   itemCount: 2,
   subtotal: 12.98,
 };
+
+export const cartWithTwoLines: Cart = {
+  items: [
+    { product: ibuprofen, quantity: 2, lineTotal: 12.98 },
+    { product: vitaminD, quantity: 1, lineTotal: 8.95 },
+  ],
+  itemCount: 3,
+  subtotal: 21.93,
+};

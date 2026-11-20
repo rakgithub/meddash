@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "../../../auth";
-import { addToCart, getCart } from "../../api/cartApi";
+import { addToCart, getCart, removeCartItem, updateCartItem } from "../../api/cartApi";
+import type { Cart } from "../../types";
 import { CartContext, type CartState } from "../../cartContext";
 
 /** What was last loaded, and for whom: a different (or no) user makes it stale without an effect. */
@@ -32,11 +33,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
   else if (loaded && loaded.userId === userId) state = loaded.state;
   else state = { status: "loading" };
 
-  const addItem = async (productId: string, quantity: number) => {
-    if (!userId) throw new Error("Log in to add to your cart");
-    const cart = await addToCart(productId, quantity);
+  /** Every cart endpoint answers with the whole cart, which becomes the shared state. */
+  const apply = async (request: () => Promise<Cart>) => {
+    if (!userId) throw new Error("Log in to change your cart");
+    const cart = await request();
     setLoaded({ userId, state: { status: "ready", cart } });
   };
 
-  return <CartContext.Provider value={{ state, addItem }}>{children}</CartContext.Provider>;
+  const value = {
+    state,
+    addItem: (productId: string, quantity: number) => apply(() => addToCart(productId, quantity)),
+    updateItem: (productId: string, quantity: number) =>
+      apply(() => updateCartItem(productId, quantity)),
+    removeItem: (productId: string) => apply(() => removeCartItem(productId)),
+  };
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

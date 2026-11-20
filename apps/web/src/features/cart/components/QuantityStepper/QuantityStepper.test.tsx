@@ -46,15 +46,49 @@ describe("QuantityStepper", () => {
     expect(screen.getByRole("button", { name: "Increase quantity" })).toBeDisabled();
   });
 
-  it("takes a typed quantity within the limits", async () => {
+  it("takes a typed quantity on Enter, not per keystroke", async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    render(<Harness max={10} onChange={onChange} />);
+
+    await user.clear(input());
+    await user.type(input(), "10");
+    expect(onChange).not.toHaveBeenCalled();
+
+    await user.keyboard("{Enter}");
+    expect(onChange.mock.calls).toEqual([[10]]);
+    expect(input()).toHaveValue(10);
+  });
+
+  it("takes a typed quantity on blur", async () => {
     const onChange = vi.fn();
     const user = userEvent.setup();
     render(<Harness max={5} onChange={onChange} />);
 
     await user.clear(input());
     await user.type(input(), "4");
+    await user.tab();
 
-    expect(onChange).toHaveBeenLastCalledWith(4);
+    expect(onChange.mock.calls).toEqual([[4]]);
+  });
+
+  it("drops a typed quantity on Escape and ignores an unchanged one", async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    render(<Harness initial={2} max={5} onChange={onChange} />);
+
+    await user.clear(input());
+    await user.type(input(), "4{Escape}");
+    expect(input()).toHaveValue(2);
+    await user.clear(input());
+    await user.type(input(), "2{Enter}");
+
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("can be named for its product", () => {
+    render(<QuantityStepper value={2} max={5} onChange={vi.fn()} label="Quantity of Ibuprofen" />);
+    expect(screen.getByRole("spinbutton", { name: "Quantity of Ibuprofen" })).toHaveValue(2);
   });
 
   it("ignores a typed quantity out of range and snaps back on blur", async () => {
@@ -64,9 +98,9 @@ describe("QuantityStepper", () => {
 
     await user.clear(input());
     await user.type(input(), "9");
-    expect(onChange).not.toHaveBeenCalled();
-
     await user.tab();
+
+    expect(onChange).not.toHaveBeenCalled();
     expect(input()).toHaveValue(2);
   });
 

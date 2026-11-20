@@ -14,7 +14,7 @@ vi.mock("../../../auth/api/authApi");
 vi.mock("../../api/cartApi");
 
 function Probe() {
-  const { state, addItem } = useCart();
+  const { state, addItem, updateItem, removeItem } = useCart();
   const [failed, setFailed] = useState(false);
   return (
     <>
@@ -25,6 +25,12 @@ function Probe() {
       </p>
       <button type="button" onClick={() => addItem("1", 2).catch(() => setFailed(true))}>
         Add
+      </button>
+      <button type="button" onClick={() => updateItem("1", 5)}>
+        Update
+      </button>
+      <button type="button" onClick={() => removeItem("1")}>
+        Remove
       </button>
     </>
   );
@@ -86,6 +92,27 @@ describe("CartProvider", () => {
 
     expect(await screen.findByText("ready 2")).toBeInTheDocument();
     expect(cartApi.addToCart).toHaveBeenCalledWith("1", 2);
+  });
+
+  it("takes the cart the server answers with after updating and removing", async () => {
+    vi.mocked(authApi.fetchCurrentUser).mockResolvedValue(ana);
+    vi.mocked(cartApi.getCart).mockResolvedValue(cartWithIbuprofen);
+    vi.mocked(cartApi.updateCartItem).mockResolvedValue({
+      ...cartWithIbuprofen,
+      itemCount: 5,
+    });
+    vi.mocked(cartApi.removeCartItem).mockResolvedValue(emptyCart);
+    const user = userEvent.setup();
+    renderProvider();
+    await screen.findByText("ready 2");
+
+    await user.click(screen.getByRole("button", { name: "Update" }));
+    expect(await screen.findByText("ready 5")).toBeInTheDocument();
+    expect(cartApi.updateCartItem).toHaveBeenCalledWith("1", 5);
+
+    await user.click(screen.getByRole("button", { name: "Remove" }));
+    expect(await screen.findByText("ready 0")).toBeInTheDocument();
+    expect(cartApi.removeCartItem).toHaveBeenCalledWith("1");
   });
 
   it("refuses to add when signed out", async () => {
