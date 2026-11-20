@@ -112,4 +112,4 @@ Runs alongside the phases above. Frontend first with a mock engine; backend late
 - [x] S5 — Compare mode
 - [x] S6 — Body map entry
 - [ ] S7 — Polish and integrations: done except add to cart, which needs Phase 5
-- [ ] Backend: LLM orchestration endpoint (separate plan)
+- [ ] Backend: LLM orchestration endpoint. Plan: [`docs/plans/symptom-assistant-backend/`](plans/symptom-assistant-backend/README.md)
