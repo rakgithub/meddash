@@ -1,0 +1,98 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fromUser {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.bubble {
+  max-width: min(80%, 520px);
+  padding: 10px 14px;
+  border-radius: 18px 18px 4px;
+  background: var(--accent-soft);
+  font-size: 16px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* The assistant speaks on the page itself, like notes on a counter pad: no bubble, a rule on the left. */
+.reply {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-left: 16px;
+  border-left: 2px solid var(--accent);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 62ch;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* A caret after the last word shows the reply is still being written. */
+.streaming .text:last-child p:last-child::after {
+  content: "";
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: var(--accent);
+  animation: blink 1s steps(1) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.waiting,
+.note {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  font-size: 14px;
+  color: var(--danger);
+}
+
+.retry {
+  height: 32px;
+  padding: 0 12px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.retry:hover {
+  background: var(--bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .streaming .text:last-child p:last-child::after {
+    animation: none;
+  }
+}

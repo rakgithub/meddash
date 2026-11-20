@@ -83,3 +83,28 @@ describe("ProductsPage search and filters", () => {
     );
   });
 });
+
+describe("ProductsPage assistant link", () => {
+  // Braces matter: a function returned from beforeEach runs as teardown, and this mock would hang it.
+  beforeEach(() => {
+    searchProducts.mockReturnValue(new Promise(() => {}));
+  });
+
+  it("opens the assistant with the current search text", () => {
+    renderWithRouter(<ProductsPage />, "/?q=sore throat");
+
+    expect(screen.getByRole("link", { name: "Not sure what you need?" })).toHaveAttribute(
+      "href",
+      "/assistant?q=sore+throat",
+    );
+  });
+
+  it("opens an empty assistant when there is no search", () => {
+    renderWithRouter(<ProductsPage />);
+
+    expect(screen.getByRole("link", { name: "Not sure what you need?" })).toHaveAttribute(
+      "href",
+      "/assistant",
+    );
+  });
+});

@@ -1,0 +1,107 @@
+.composer {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 8px 8px 8px 16px;
+  border: 1.5px solid var(--input-border);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: var(--shadow-hover);
+}
+
+/* The ring sits on the whole box, so the buttons inside it read as part of the field. */
+.composer:focus-within {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.grow {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  max-height: 180px;
+  overflow: hidden;
+}
+
+.grow::after,
+.input {
+  grid-area: 1 / 1;
+  padding: 7px 0;
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.grow::after {
+  /* The trailing space keeps a final empty line from collapsing. */
+  content: attr(data-value) " ";
+  visibility: hidden;
+}
+
+.input {
+  min-height: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  resize: none;
+  overflow-y: auto;
+}
+
+.input:focus-visible {
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+.send,
+.stop {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 14px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.send {
+  border: 0;
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.send:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.send:disabled {
+  background: var(--border);
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.stop {
+  border: 1.5px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.stop:hover {
+  background: var(--bg);
+}
+
+.icon {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}

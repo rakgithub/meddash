@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useProductSearch } from "../../hooks/useProductSearch";
 import { formatResultRange } from "../../utils/formatResultRange";
 import { FilterBar } from "../FilterBar/FilterBar";
@@ -9,13 +10,23 @@ export function ProductsPage() {
   const { products, pagination, status, filters, search, goToPage } = useProductSearch();
 
   const range = status === "success" && pagination ? formatResultRange(pagination) : "";
+  // Carries the search text over, so the assistant starts from what the user already typed.
+  const assistantSearch = filters.q ? `?${new URLSearchParams({ q: filters.q })}` : "";
 
   return (
     <div className={styles.page}>
       <div className={styles.resultsHead}>
         <header className={styles.header}>
           <h1>Products</h1>
-          {range && <p>{range}</p>}
+          <div className={styles.headerAside}>
+            {range && <p>{range}</p>}
+            <Link
+              className={styles.assistantLink}
+              to={{ pathname: "/assistant", search: assistantSearch }}
+            >
+              Not sure what you need?
+            </Link>
+          </div>
         </header>
         <FilterBar filters={filters} onChange={search} />
       </div>

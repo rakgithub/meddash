@@ -15,6 +15,8 @@ beforeEach(() => {
     removeEventListener: () => {},
     dispatchEvent: () => false,
   });
+  // jsdom doesn't scroll; without this it logs "Not implemented" for every scrollTo.
+  window.scrollTo = () => {};
 });
 
 afterEach(() => cleanup());
