@@ -1,5 +1,6 @@
 import { OpenAPIRegistry, OpenApiGeneratorV3 } from "@asteasolutions/zod-to-openapi";
 import "./extend.js";
+import { loginBodySchema, registerBodySchema, userSchema } from "../schemas/auth.schema.js";
 import {
   productDetailSchema,
   productIdParamsSchema,
@@ -13,6 +14,66 @@ import {
 import { suggestQuerySchema, suggestResponseSchema } from "../schemas/suggest.schema.js";
 
 const registry = new OpenAPIRegistry();
+
+const cookieAuth = registry.registerComponent("securitySchemes", "cookieAuth", {
+  type: "apiKey",
+  in: "cookie",
+  name: "session",
+  description: "httpOnly JWT session cookie set by register and login",
+});
+
+const json = <T>(schema: T) => ({ content: { "application/json": { schema } } });
+const sessionCookie = {
+  "Set-Cookie": { description: "The `session` cookie", schema: { type: "string" as const } },
+};
+
+registry.registerPath({
+  method: "post",
+  path: "/auth/register",
+  summary: "Create an account",
+  description: "Creates a customer account and signs it in (sets the session cookie).",
+  tags: ["Auth"],
+  request: { body: { required: true, ...json(registerBodySchema) } },
+  responses: {
+    201: { description: "The new user", headers: sessionCookie, ...json(userSchema) },
+    400: { description: "Invalid body", ...json(errorResponseSchema) },
+    409: { description: "Email already registered", ...json(errorResponseSchema) },
+  },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/auth/login",
+  summary: "Sign in",
+  tags: ["Auth"],
+  request: { body: { required: true, ...json(loginBodySchema) } },
+  responses: {
+    200: { description: "The signed-in user", headers: sessionCookie, ...json(userSchema) },
+    400: { description: "Invalid body", ...json(errorResponseSchema) },
+    401: { description: "Invalid email or password", ...json(errorResponseSchema) },
+  },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/auth/logout",
+  summary: "Sign out",
+  description: "Clears the session cookie. Succeeds whether or not the caller was signed in.",
+  tags: ["Auth"],
+  responses: { 204: { description: "Signed out", headers: sessionCookie } },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/auth/me",
+  summary: "The signed-in user",
+  tags: ["Auth"],
+  security: [{ [cookieAuth.name]: [] }],
+  responses: {
+    200: { description: "The signed-in user", ...json(userSchema) },
+    401: { description: "Not signed in or session expired", ...json(errorResponseSchema) },
+  },
+});
 
 registry.registerPath({
   method: "get",

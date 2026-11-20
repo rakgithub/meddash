@@ -2,15 +2,19 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import * as authApi from "../../features/auth/api/authApi";
+import { AuthProvider } from "../../features/auth";
 import * as suggestApi from "../../features/products/api/fetchSuggestions";
 import { renderWithRouter } from "../../test/renderWithRouter";
 import { AppHeader } from "./AppHeader";
 
 vi.mock("../../features/products/api/fetchSuggestions");
+vi.mock("../../features/auth/api/authApi");
 
 beforeEach(() => {
   vi.resetAllMocks();
   vi.mocked(suggestApi.fetchSuggestions).mockResolvedValue([]);
+  vi.mocked(authApi.fetchCurrentUser).mockResolvedValue(null);
 });
 
 // Shows where the header sent the user.
@@ -21,10 +25,10 @@ function Location() {
 
 const renderHeader = (route: string) =>
   renderWithRouter(
-    <>
+    <AuthProvider>
       <AppHeader />
       <Location />
-    </>,
+    </AuthProvider>,
     route,
   );
 
@@ -42,6 +46,11 @@ describe("AppHeader", () => {
     expect(screen.getByRole("search")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Search" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Upload prescription" })).toBeInTheDocument();
+  });
+
+  it("offers Log in when signed out", async () => {
+    renderHeader("/");
+    expect(await screen.findByRole("link", { name: "Log in" })).toBeInTheDocument();
   });
 
   it("opens the results for a search made on another page", async () => {

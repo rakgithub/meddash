@@ -50,7 +50,7 @@
   min-width: 0;
 }
 
-/* On a phone the logo and upload button share the first row and the search gets its own. */
+/* On a phone the logo, upload button and user menu share the first row and the search gets its own. */
 @media (max-width: 720px) {
   .inner {
     padding-block: 14px;

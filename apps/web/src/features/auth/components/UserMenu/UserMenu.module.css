@@ -1,0 +1,68 @@
+.root {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  min-height: 36px;
+}
+
+.name {
+  max-width: 160px;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.login,
+.logout {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.login:hover,
+.logout:hover {
+  border-color: var(--accent);
+  color: var(--accent-hover);
+}
+
+/* Floats under the menu like the prescription note, so it never moves the header. */
+.note {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow-hover);
+  color: var(--danger);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.note:empty {
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+}
+
+@media (max-width: 720px) {
+  .name {
+    max-width: 96px;
+  }
+}

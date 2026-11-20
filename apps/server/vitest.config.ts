@@ -6,7 +6,8 @@ const testDatabaseUrl =
 
 export default defineConfig({
   test: {
-    env: { DATABASE_URL: testDatabaseUrl },
+    // A fixed test-only signing key; real ones come from apps/server/.env.
+    env: { DATABASE_URL: testDatabaseUrl, JWT_SECRET: "test-only-jwt-secret-not-for-real-use" },
     globalSetup: ["./src/test/global-setup.ts"],
     coverage: {
       provider: "v8",
