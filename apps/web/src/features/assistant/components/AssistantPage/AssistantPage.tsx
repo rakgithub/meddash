@@ -1,8 +1,7 @@
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../../../auth";
 import { useConsultation } from "../../hooks/useConsultation";
-import { regionMessage } from "../../utils/bodyRegions";
-import { BodyMap } from "../BodyMap/BodyMap";
+import { BODY_REGIONS, regionMessage } from "../../utils/bodyRegions";
 import { CaseFilePanel } from "../CaseFilePanel/CaseFilePanel";
 import { Composer } from "../Composer/Composer";
 import { MessageList } from "../MessageList/MessageList";
@@ -85,7 +84,25 @@ export function AssistantPage() {
                 </ul>
                 {/* Keyed by user, so signing in as someone else shows their list, not the last one. */}
                 {userId && <SavedConsultations key={userId} userId={userId} onReopen={restore} />}
-                <BodyMap onSelect={(region) => send(regionMessage(region))} />
+                {/* For when the words for a symptom don't come: start from the part of the body. */}
+                <section className={styles.areas} aria-labelledby="assistant-areas">
+                  <h3 id="assistant-areas" className={styles.areasHeading}>
+                    Or start from where it bothers you
+                  </h3>
+                  <ul className={styles.starters}>
+                    {BODY_REGIONS.map((region) => (
+                      <li key={region.id}>
+                        <button
+                          className={styles.starter}
+                          type="button"
+                          onClick={() => send(regionMessage(region))}
+                        >
+                          {region.label}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
               </section>
             ) : (
               <MessageList

@@ -19,9 +19,7 @@ test.describe("Symptom assistant", () => {
     await expect(page.getByRole("button", { name: "Since today" })).toBeVisible();
   });
 
-  test("starts from the body map: tap throat, pick a symptom, see suggestions", async ({
-    page,
-  }) => {
+  test("starts from a body area: tap throat, pick a symptom, see suggestions", async ({ page }) => {
     await page.goto("/assistant");
 
     await page.getByRole("button", { name: "Nose and throat" }).click();
