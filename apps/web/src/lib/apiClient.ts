@@ -56,3 +56,19 @@ export async function apiPost<T>(path: string, body: unknown, init?: RequestInit
 export async function apiPostNoContent(path: string, init?: RequestInit): Promise<void> {
   await send(path, { ...init, method: "POST" });
 }
+
+export async function apiPatch<T>(path: string, body: unknown, init?: RequestInit): Promise<T> {
+  const res = await send(path, {
+    ...init,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  return res.json() as Promise<T>;
+}
+
+/** For DELETE endpoints that answer with a JSON body. */
+export async function apiDelete<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await send(path, { ...init, method: "DELETE" });
+  return res.json() as Promise<T>;
+}

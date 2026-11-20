@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { UserMenu } from "../../features/auth";
+import { CartLink } from "../../features/cart";
 import { SearchBar, UploadPrescriptionButton, useSearchQuery } from "../../features/products";
 import { ThemeToggle } from "../ThemeToggle/ThemeToggle";
 import styles from "./AppHeader.module.css";
@@ -43,6 +44,7 @@ export function AppHeader() {
         )}
         {!slim && <UploadPrescriptionButton />}
         <ThemeToggle />
+        {!slim && <CartLink />}
         {!slim && <UserMenu />}
       </div>
     </header>

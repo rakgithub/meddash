@@ -3,13 +3,17 @@ import userEvent from "@testing-library/user-event";
 import { useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as authApi from "../../features/auth/api/authApi";
+import { CartProvider } from "../../features/cart";
+import * as cartApi from "../../features/cart/api/cartApi";
 import { AuthProvider } from "../../features/auth";
 import * as suggestApi from "../../features/products/api/fetchSuggestions";
+import { ana, cartWithIbuprofen } from "../../test/fixtures";
 import { renderWithRouter } from "../../test/renderWithRouter";
 import { AppHeader } from "./AppHeader";
 
 vi.mock("../../features/products/api/fetchSuggestions");
 vi.mock("../../features/auth/api/authApi");
+vi.mock("../../features/cart/api/cartApi");
 
 beforeEach(() => {
   vi.resetAllMocks();
@@ -26,8 +30,10 @@ function Location() {
 const renderHeader = (route: string) =>
   renderWithRouter(
     <AuthProvider>
-      <AppHeader />
-      <Location />
+      <CartProvider>
+        <AppHeader />
+        <Location />
+      </CartProvider>
     </AuthProvider>,
     route,
   );
@@ -46,6 +52,22 @@ describe("AppHeader", () => {
     expect(screen.getByRole("search")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Search" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Upload prescription" })).toBeInTheDocument();
+  });
+
+  it("links to the cart with the item count when signed in", async () => {
+    vi.mocked(authApi.fetchCurrentUser).mockResolvedValue(ana);
+    vi.mocked(cartApi.getCart).mockResolvedValue(cartWithIbuprofen);
+    renderHeader("/");
+
+    expect(await screen.findByRole("link", { name: "Cart, 2 items" })).toHaveAttribute(
+      "href",
+      "/cart",
+    );
+  });
+
+  it("has no cart link on the auth pages", () => {
+    renderHeader("/login");
+    expect(screen.queryByRole("link", { name: /^Cart/ })).not.toBeInTheDocument();
   });
 
   it("has a dark mode toggle", () => {

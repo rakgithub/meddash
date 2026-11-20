@@ -1,0 +1,86 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 40px 20px 64px;
+  color: var(--text);
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 48px 0;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.message a {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.error {
+  color: var(--danger);
+}
+
+.lines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: baseline;
+  gap: 16px;
+  padding: 16px 20px;
+  font-size: 15px;
+}
+
+.line + .line {
+  border-top: 1px solid var(--border);
+}
+
+.name {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.name:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.qty {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.total {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.subtotal {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+}

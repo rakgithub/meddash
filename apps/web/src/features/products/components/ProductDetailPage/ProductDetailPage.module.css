@@ -30,15 +30,23 @@
   color: var(--danger);
 }
 
+/*
+ * Desktop: image and info on the left, the summary and buy box in a sticky column on the right.
+ * Phone: one column in source order (image, title, buy box, info).
+ */
 .detail {
   display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-  gap: 32px 40px;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  grid-template-areas:
+    "media aside"
+    "info aside";
+  gap: 32px 48px;
   align-items: start;
 }
 
 /* The same domed blister pocket as the product cards, at hero size. */
 .media {
+  grid-area: media;
   display: grid;
   place-items: center;
   aspect-ratio: 4 / 3;
@@ -65,7 +73,10 @@
   opacity: 0.55;
 }
 
-.summary {
+.aside {
+  grid-area: aside;
+  position: sticky;
+  top: 24px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -134,9 +145,31 @@
   color: var(--text-muted);
 }
 
+/* The buy box: the one raised surface on the page, so the eye lands on it. */
+.buyBox {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 8px;
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow), var(--shadow-hover);
+}
+
+.priceRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+}
+
 .price {
-  font-size: 26px;
+  font-size: 32px;
   font-weight: 700;
+  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
 
@@ -150,14 +183,19 @@
   color: var(--danger);
 }
 
+.pack {
+  margin-top: -10px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
 .rx {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 16px;
-  border: 1px solid var(--danger);
-  border-radius: var(--radius);
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--danger-soft);
   font-size: 14px;
   line-height: 1.5;
 }
@@ -166,60 +204,108 @@
   color: var(--danger);
 }
 
-.rx button {
-  padding: 10px 20px;
-  border: 0;
-  border-radius: var(--radius-control);
-  background: var(--accent);
-  color: var(--on-accent);
-  font: inherit;
-  font-weight: 600;
+.service {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 14px 0 0;
+  border-top: 1px solid var(--border);
+  list-style: none;
+  font-size: 13px;
+  color: var(--text-muted);
 }
 
-.rx button:disabled {
-  background: var(--border);
-  color: var(--text-muted);
-  cursor: not-allowed;
+.service li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* A small capsule as the bullet, echoing the logo. */
+.service li::before {
+  content: "";
+  width: 12px;
+  height: 6px;
+  flex-shrink: 0;
+  border: 1.5px solid var(--accent);
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent) 50%, transparent 50%);
 }
 
 .info {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
+  grid-area: info;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border-strong);
 }
 
-.info section {
-  padding: 20px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-  box-shadow: var(--shadow);
+.section {
+  border-bottom: 1px solid var(--border-strong);
 }
 
-.info h2 {
-  margin: 0 0 8px;
-  font-size: 16px;
+.section summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 4px;
+  list-style: none;
+  cursor: pointer;
+}
+
+.section summary::-webkit-details-marker {
+  display: none;
+}
+
+/* A plus that turns into a minus when the section is open. */
+.section summary::after {
+  content: "";
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  background:
+    linear-gradient(currentColor, currentColor) center / 14px 2px no-repeat,
+    linear-gradient(currentColor, currentColor) center / 2px 14px no-repeat;
+  color: var(--text-muted);
+  transition: transform var(--duration-base) var(--ease-in-out);
+}
+
+.section[open] summary::after {
+  background: linear-gradient(currentColor, currentColor) center / 14px 2px no-repeat;
+  transform: rotate(180deg);
+}
+
+.section h2 {
+  font-size: 17px;
   font-weight: 600;
 }
 
-.info p,
-.info li {
-  font-size: 14px;
+.warnings h2 {
+  color: var(--caution);
+}
+
+.section > :not(summary) {
+  margin: 0 4px 20px;
+}
+
+.section p,
+.section li {
+  max-width: 68ch;
+  font-size: 15px;
   line-height: 1.6;
   color: var(--text-muted);
 }
 
-.info ul {
-  margin: 0;
+.section ul {
   padding-left: 20px;
 }
 
 .facts {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin: 0;
+  gap: 8px;
+  max-width: 480px;
   font-size: 14px;
 }
 
@@ -242,5 +328,23 @@
 @media (max-width: 720px) {
   .detail {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "media"
+      "aside"
+      "info";
+    gap: 24px;
+  }
+
+  .aside {
+    position: static;
+  }
+
+  .name {
+    font-size: 24px;
+  }
+
+  /* Room under the info for the bottom bar, so it never covers the last section. */
+  .info {
+    margin-bottom: 72px;
   }
 }
