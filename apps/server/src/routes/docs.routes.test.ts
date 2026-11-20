@@ -42,6 +42,22 @@ describe("OpenAPI docs", () => {
     expect(res.body.components.schemas).toHaveProperty("Suggestion");
   });
 
+  it("documents /search/facets with the search filters and its response schemas", async () => {
+    const res = await request(app).get("/openapi.json");
+    const op = res.body.paths["/search/facets"].get;
+    expect(op.parameters.map((p: { name: string }) => p.name)).toEqual([
+      "q",
+      "category",
+      "brand",
+      "minPrice",
+      "maxPrice",
+    ]);
+    expect(Object.keys(op.responses)).toEqual(["200", "400"]);
+    expect(res.body.components.schemas).toHaveProperty("FacetsResponse");
+    expect(res.body.components.schemas).toHaveProperty("FacetValue");
+    expect(res.body.components.schemas).toHaveProperty("PriceBucket");
+  });
+
   it("documents /products/{id} with its id param, responses and ProductDetail schema", async () => {
     const res = await request(app).get("/openapi.json");
     const op = res.body.paths["/products/{id}"].get;

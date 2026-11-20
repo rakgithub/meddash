@@ -1,6 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 import { BRANDS } from "../../filterOptions";
-import type { ProductFilters } from "../../types";
+import type { Facets, ProductFilters } from "../../types";
 import { PriceFilter } from "../PriceFilter/PriceFilter";
 import styles from "./RefinePanel.module.css";
 
@@ -12,6 +12,8 @@ interface RefinePanelProps {
   sheet: boolean;
   open: boolean;
   onClose: () => void;
+  /** Counts and price spread for the current filters; the panel works without them. */
+  facets?: Facets | null;
 }
 
 const BRAND_OPTIONS = [
@@ -20,7 +22,16 @@ const BRAND_OPTIONS = [
 ];
 
 /** The filters that narrow a category down. New filters go in here as another section. */
-export function RefinePanel({ id, filters, onChange, sheet, open, onClose }: RefinePanelProps) {
+export function RefinePanel({
+  id,
+  filters,
+  onChange,
+  sheet,
+  open,
+  onClose,
+  facets,
+}: RefinePanelProps) {
+  const countId = useId();
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   // Keep the native dialog in step with `open`. showModal gives focus handling, Escape and an inert page.
@@ -41,24 +52,38 @@ export function RefinePanel({ id, filters, onChange, sheet, open, onClose }: Ref
       <PriceFilter
         min={filters.minPrice}
         max={filters.maxPrice}
+        spread={facets?.price}
         onApply={(minPrice, maxPrice) => onChange({ ...filters, minPrice, maxPrice })}
       />
 
       <fieldset className={styles.section}>
         <legend className={styles.legend}>Brand</legend>
         <div className={styles.options}>
-          {BRAND_OPTIONS.map(({ value, label }) => (
-            <label key={value} className={styles.option}>
-              <input
-                type="radio"
-                name={`${id}-brand`}
-                value={value}
-                checked={filters.brand === value}
-                onChange={() => onChange({ ...filters, brand: value })}
-              />
-              {label}
-            </label>
-          ))}
+          {BRAND_OPTIONS.map(({ value, label }) => {
+            // "Any brand" has no count of its own; a brand missing from the facets matches nothing.
+            const count =
+              value && facets ? (facets.brands.find((b) => b.value === value)?.count ?? 0) : null;
+            return (
+              <div key={value} className={styles.optionRow}>
+                <label className={styles.option}>
+                  <input
+                    type="radio"
+                    name={`${id}-brand`}
+                    value={value}
+                    checked={filters.brand === value}
+                    aria-describedby={count === null ? undefined : `${countId}-${value}`}
+                    onChange={() => onChange({ ...filters, brand: value })}
+                  />
+                  {label}
+                </label>
+                {count !== null && (
+                  <span id={`${countId}-${value}`} className={styles.count}>
+                    {count}
+                  </span>
+                )}
+              </div>
+            );
+          })}
         </div>
       </fieldset>
     </>

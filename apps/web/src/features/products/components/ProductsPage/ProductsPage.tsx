@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { useMediaQuery } from "../../../../lib/useMediaQuery";
+import { useFacets } from "../../hooks/useFacets";
 import { useProductSearch } from "../../hooks/useProductSearch";
 import { formatResultRange } from "../../utils/formatResultRange";
 import { looksLikeSymptom } from "../../utils/looksLikeSymptom";
@@ -26,6 +27,7 @@ function nudgeReasonFor(query: string, noResults: boolean) {
 
 export function ProductsPage() {
   const { products, pagination, status, filters, search, goToPage } = useProductSearch();
+  const facets = useFacets(filters);
   const narrow = useMediaQuery(NARROW);
   const [refineOpen, setRefineOpen] = useState(false);
   const refineButtonRef = useRef<HTMLButtonElement>(null);
@@ -53,6 +55,7 @@ export function ProductsPage() {
         <CategoryAisles
           value={filters.category}
           onChange={(category) => search({ ...filters, category })}
+          counts={facets?.categories}
         />
       </div>
 
@@ -64,6 +67,7 @@ export function ProductsPage() {
           id={REFINE_ID}
           filters={filters}
           onChange={search}
+          facets={facets}
           sheet={narrow}
           open={refineOpen}
           onClose={closeRefine}

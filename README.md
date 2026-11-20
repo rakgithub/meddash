@@ -37,16 +37,17 @@ Open <http://localhost:5173>. Vite proxies `/api/*` to the server on `:3001`.
 
 Interactive docs: <http://localhost:3001/docs> (raw spec at `/openapi.json`).
 
-| Endpoint              | Description                                                                          |
-| --------------------- | ------------------------------------------------------------------------------------ |
-| `GET /products`       | Every product in the catalogue                                                       |
-| `GET /products/:id`   | One product with every detail field (404 if unknown, 400 for a malformed id)         |
-| `GET /search`         | Search with `q`, `category`, `brand`, `minPrice`, `maxPrice`, `sort`, `page`         |
-| `GET /search/suggest` | Up to 5 products whose name or brand starts with `q` (case-insensitive, names first) |
-| `POST /auth/register` | Create an account (`email`, `password` min 8, `name`) and sign in; 409 if the email exists |
-| `POST /auth/login`    | Sign in; 401 `Invalid email or password` for either a wrong email or wrong password   |
-| `POST /auth/logout`   | Clear the session cookie (204)                                                       |
-| `GET /auth/me`        | The signed-in user; 401 without a valid session                                      |
+| Endpoint              | Description                                                                                                                |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `GET /products`       | Every product in the catalogue                                                                                             |
+| `GET /products/:id`   | One product with every detail field (404 if unknown, 400 for a malformed id)                                               |
+| `GET /search`         | Search with `q`, `category`, `brand`, `minPrice`, `maxPrice`, `sort`, `page`                                               |
+| `GET /search/facets`  | Counts per category and brand plus the price spread, for the same filters as `/search` (each facet ignores its own filter) |
+| `GET /search/suggest` | Up to 5 products whose name or brand starts with `q` (case-insensitive, names first)                                       |
+| `POST /auth/register` | Create an account (`email`, `password` min 8, `name`) and sign in; 409 if the email exists                                 |
+| `POST /auth/login`    | Sign in; 401 `Invalid email or password` for either a wrong email or wrong password                                        |
+| `POST /auth/logout`   | Clear the session cookie (204)                                                                                             |
+| `GET /auth/me`        | The signed-in user; 401 without a valid session                                                                            |
 
 Invalid input returns `400` with `{ error: { message, details } }`. The server reads `PORT`, `DATABASE_URL` (required), `JWT_SECRET` (required, at least 32 characters, e.g. `openssl rand -hex 32`) and `NODE_ENV` from the environment or `apps/server/.env`, and exits with a readable message if any is invalid.
 

@@ -133,6 +133,36 @@ export async function findProducts(
   return { rows: [], total: counted[0]?.total ?? 0 };
 }
 
+/**
+ * What each filter would show if it were not applied: a facet ignores its own filter, so picking a
+ * category still shows the other categories and what they hold.
+ */
+export async function findFacetData(filters: ProductFilters): Promise<{
+  categories: { value: string; count: number }[];
+  brands: { value: string; count: number }[];
+  prices: number[];
+}> {
+  const [categories, brands, prices] = await Promise.all([
+    db
+      .select({ value: products.category, count: count() })
+      .from(products)
+      .where(whereClause({ ...filters, category: undefined }))
+      .groupBy(products.category)
+      .orderBy(asc(products.category)),
+    db
+      .select({ value: products.brand, count: count() })
+      .from(products)
+      .where(whereClause({ ...filters, brand: undefined }))
+      .groupBy(products.brand)
+      .orderBy(asc(products.brand)),
+    db
+      .select({ price: products.price })
+      .from(products)
+      .where(whereClause({ ...filters, minPrice: undefined, maxPrice: undefined })),
+  ]);
+  return { categories, brands, prices: prices.map((r) => Number(r.price)) };
+}
+
 /** Name prefix matches first, then brand-only prefix matches, in catalogue order. */
 export async function findSuggestions(prefix: string, limit: number): Promise<Suggestion[]> {
   const pattern = `${escapeLike(prefix.toLowerCase())}%`;

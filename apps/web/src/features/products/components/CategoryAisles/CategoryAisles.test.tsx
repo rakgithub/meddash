@@ -41,4 +41,35 @@ describe("CategoryAisles", () => {
 
     expect(onChange.mock.calls).toEqual([["skin-care"], [""]]);
   });
+
+  it("shows how many products each aisle holds, and the total on All products", () => {
+    render(
+      <CategoryAisles
+        value=""
+        onChange={vi.fn()}
+        counts={[
+          { value: "vitamins", count: 4 },
+          { value: "skin-care", count: 2 },
+        ]}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: /^Vitamins/ })).toHaveAccessibleDescription("4");
+    expect(screen.getByRole("button", { name: /^Skin care/ })).toHaveAccessibleDescription("2");
+    expect(screen.getByRole("button", { name: /^All products/ })).toHaveAccessibleDescription("6");
+  });
+
+  it("shows 0 for an aisle the counts leave out", () => {
+    render(
+      <CategoryAisles value="" onChange={vi.fn()} counts={[{ value: "vitamins", count: 4 }]} />,
+    );
+
+    expect(screen.getByRole("button", { name: /^Pain relief/ })).toHaveAccessibleDescription("0");
+  });
+
+  it("shows no counts until they are known", () => {
+    render(<CategoryAisles value="" onChange={vi.fn()} />);
+
+    expect(screen.getByRole("button", { name: /^Vitamins/ })).not.toHaveAccessibleDescription();
+  });
 });

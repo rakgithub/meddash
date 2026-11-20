@@ -68,3 +68,22 @@ export interface ProductDetail extends Product {
   stockQuantity: number;
   manufacturer: string | null;
 }
+
+/** Mirrors `facetsResponseSchema` in apps/server/src/schemas/facets.schema.ts. */
+export interface FacetValue {
+  value: string;
+  count: number;
+}
+
+export interface PriceBucket {
+  from: number;
+  to: number;
+  count: number;
+}
+
+/** What the filters would show, ignoring each filter's own choice. `price` is null when nothing matches. */
+export interface Facets {
+  categories: FacetValue[];
+  brands: FacetValue[];
+  price: { min: number; max: number; buckets: PriceBucket[] } | null;
+}
