@@ -116,6 +116,33 @@ function AssistantMessage({
   );
 }
 
+/**
+ * What the live region says about a reply: a short cue while it streams, then the whole reply at once,
+ * not word by word. Alerts and errors are left out because they announce themselves (`role="alert"`).
+ */
+function announcementFor(message: Message): string {
+  if (message.status === "streaming") return "Assistant is replying…";
+  if (message.status === "error") return "";
+  const said = message.parts.flatMap((part) => {
+    switch (part.kind) {
+      case "text":
+        return [part.text.trim()];
+      case "quickReplies":
+        return [`${part.question} Options: ${part.options.map((o) => o.label).join(", ")}.`];
+      case "products": {
+        const names = part.items.filter((i) => i.fit !== "locked").map((i) => i.product.name);
+        if (names.length === 0) return [];
+        const count = `${names.length} ${names.length === 1 ? "suggestion" : "suggestions"}`;
+        return [`${count}: ${names.join(", ")}.`];
+      }
+      default:
+        return [];
+    }
+  });
+  if (message.status === "stopped") said.push("Reply stopped.");
+  return said.filter(Boolean).join(" ");
+}
+
 export function MessageList({
   messages,
   onRetry,
@@ -164,9 +191,7 @@ export function MessageList({
       selected: next?.role === "user" ? messageText(next) : undefined,
     };
   }
-  // Announced once the reply is complete, not word by word.
-  const announcement =
-    last?.role === "assistant" && last.status === "done" ? messageText(last) : "";
+  const announcement = last?.role === "assistant" ? announcementFor(last) : "";
 
   return (
     <>

@@ -35,11 +35,50 @@ describe("MessageList", () => {
       <MessageList messages={[question, answer("streaming", "Try an")]} onRetry={() => {}} />,
     );
     const live = screen.getByRole("status");
-    expect(live).toHaveTextContent("");
+    expect(live).toHaveTextContent("Assistant is replying…");
 
     rerender(<MessageList messages={[question, answer("done")]} onRetry={() => {}} />);
 
     expect(live).toHaveTextContent("Try an antihistamine. Or a spray.");
+  });
+
+  it("announces a question with its options and the suggestions by name", () => {
+    const reply: Message = {
+      id: "a1",
+      role: "assistant",
+      status: "done",
+      parts: [
+        { kind: "text", text: "Here is what I'd try." },
+        {
+          kind: "products",
+          items: [
+            { product: ibuprofenDetail, reason: "Eases pain", fit: "best" },
+            { product: { ...ibuprofenDetail, id: "rx" }, reason: "Rx", fit: "locked" },
+          ],
+        },
+        {
+          kind: "quickReplies",
+          question: "Who is it for?",
+          field: "forWhom",
+          options: [
+            { label: "Me", value: "me" },
+            { label: "A child", value: "child" },
+          ],
+        },
+      ],
+    };
+    renderWithRouter(<MessageList messages={[question, reply]} onRetry={() => {}} />);
+
+    // Prescription-only products are not offered, so they are not announced either.
+    const live = screen.getByText(
+      `Here is what I'd try. 1 suggestion: ${ibuprofenDetail.name}. Who is it for? Options: Me, A child.`,
+    );
+    expect(live).toHaveAttribute("role", "status");
+  });
+
+  it("announces a stopped reply, keeping what was said", () => {
+    render(<MessageList messages={[question, answer("stopped", "Try an")]} onRetry={() => {}} />);
+    expect(screen.getByRole("status")).toHaveTextContent("Try an Reply stopped.");
   });
 
   it("shows the thinking steps of a reply", () => {

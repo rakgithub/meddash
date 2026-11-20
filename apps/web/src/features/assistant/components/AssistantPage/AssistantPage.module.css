@@ -103,8 +103,8 @@
   font-size: 15px;
   cursor: pointer;
   transition:
-    border-color 0.15s ease,
-    background 0.15s ease;
+    border-color var(--duration-fast) var(--ease-in-out),
+    background var(--duration-fast) var(--ease-in-out);
 }
 
 .starter:hover {

@@ -13,7 +13,7 @@
 }
 
 .drawer[open] {
-  animation: rise 0.2s ease-out;
+  animation: rise var(--duration-base) var(--ease-out);
 }
 
 .drawer::backdrop {

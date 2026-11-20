@@ -1,0 +1,90 @@
+.saved {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.saved h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+/* Overrides the start screen's muted paragraph colour: the summary is the card's main line. */
+.card .summary {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.card .date {
+  font-size: 13px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.reopen,
+.remove {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--radius-control);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-in-out),
+    border-color var(--duration-fast) var(--ease-in-out);
+}
+
+.reopen {
+  border: none;
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.reopen:hover {
+  background: var(--accent-hover);
+}
+
+.remove {
+  border: 1.5px solid var(--border-strong);
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.remove:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.error {
+  font-size: 13px;
+  color: var(--danger);
+}

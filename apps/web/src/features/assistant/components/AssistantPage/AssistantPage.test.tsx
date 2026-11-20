@@ -1,8 +1,9 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as engineModule from "../../api/mockEngine";
-import { ibuprofenDetail } from "../../../../test/fixtures";
+import { AuthProvider } from "../../../auth";
+import { ana, ibuprofenDetail } from "../../../../test/fixtures";
 import { renderWithRouter } from "../../../../test/renderWithRouter";
 import type { MessagePart } from "../../types";
 import { AssistantPage } from "./AssistantPage";
@@ -10,8 +11,28 @@ import { AssistantPage } from "./AssistantPage";
 vi.mock("../../api/mockEngine");
 const engine = vi.mocked(engineModule.mockEngine);
 
+/** Answers the session check (GET /api/auth/me), the only request the page makes with the engine mocked. */
+function signedIn(user: typeof ana | null) {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () =>
+      user ? Response.json(user) : Response.json({ error: { message: "No" } }, { status: 401 }),
+    ),
+  );
+}
+
+const renderPage = (url: string) =>
+  renderWithRouter(
+    <AuthProvider>
+      <AssistantPage />
+    </AuthProvider>,
+    url,
+  );
+
 beforeEach(() => {
   vi.resetAllMocks();
+  localStorage.clear();
+  signedIn(null);
   engine.mockImplementation(async function* () {
     yield { kind: "thinking", steps: [{ label: "3 matches", done: true }] };
     yield { kind: "text", text: "Try an " };
@@ -19,9 +40,11 @@ beforeEach(() => {
   });
 });
 
+afterEach(() => vi.unstubAllGlobals());
+
 describe("AssistantPage", () => {
   it("greets with starter prompts and the disclaimer", () => {
-    renderWithRouter(<AssistantPage />, "/assistant");
+    renderPage("/assistant");
 
     expect(screen.getByRole("heading", { name: "What’s bothering you?" })).toBeInTheDocument();
     for (const starter of ["Sore throat and fever", "Can't sleep", "Hay fever", "Upset stomach"]) {
@@ -31,7 +54,7 @@ describe("AssistantPage", () => {
   });
 
   it("sends a starter prompt and renders the streamed reply", async () => {
-    renderWithRouter(<AssistantPage />, "/assistant");
+    renderPage("/assistant");
 
     await userEvent.click(screen.getByRole("button", { name: "Hay fever" }));
 
@@ -65,7 +88,7 @@ describe("AssistantPage", () => {
         yield { kind: "symptoms", symptoms: ["Sore throat"] };
       });
     const user = userEvent.setup();
-    renderWithRouter(<AssistantPage />, "/assistant");
+    renderPage("/assistant");
 
     await user.click(screen.getByRole("button", { name: "Nose and throat" }));
 
@@ -87,7 +110,7 @@ describe("AssistantPage", () => {
   });
 
   it("pre-fills the message box from the link", () => {
-    renderWithRouter(<AssistantPage />, "/assistant?q=ibuprofen");
+    renderPage("/assistant?q=ibuprofen");
 
     expect(screen.getByRole("textbox", { name: "Describe your symptoms" })).toHaveValue(
       "ibuprofen",
@@ -115,7 +138,7 @@ describe("AssistantPage", () => {
         };
       });
     const user = userEvent.setup();
-    renderWithRouter(<AssistantPage />, "/assistant");
+    renderPage("/assistant");
 
     await user.click(screen.getByRole("textbox", { name: "Describe your symptoms" }));
     await user.keyboard("Sore throat{Enter}");
@@ -152,7 +175,7 @@ describe("AssistantPage", () => {
       };
     });
     const user = userEvent.setup();
-    renderWithRouter(<AssistantPage />, "/assistant");
+    renderPage("/assistant");
 
     await user.type(
       screen.getByRole("textbox", { name: "Describe your symptoms" }),
@@ -182,7 +205,7 @@ describe("AssistantPage", () => {
     };
 
     it("is hidden until the conversation starts", async () => {
-      renderWithRouter(<AssistantPage />, "/assistant");
+      renderPage("/assistant");
       expect(screen.queryByRole("complementary", { name: "Case file" })).not.toBeInTheDocument();
 
       await userEvent.click(screen.getByRole("button", { name: "Hay fever" }));
@@ -192,7 +215,7 @@ describe("AssistantPage", () => {
 
     it("re-runs the engine with the edited case file", async () => {
       engine.mockImplementation(products);
-      renderWithRouter(<AssistantPage />, "/assistant");
+      renderPage("/assistant");
       await userEvent.click(screen.getByRole("button", { name: "Hay fever" }));
       await screen.findByRole("article", { name: "Ibuprofen 400mg" });
 
@@ -212,7 +235,7 @@ describe("AssistantPage", () => {
 
     it("drops a card the user says is not for them and does not bring it back", async () => {
       engine.mockImplementation(products);
-      renderWithRouter(<AssistantPage />, "/assistant");
+      renderPage("/assistant");
       await userEvent.click(screen.getByRole("button", { name: "Hay fever" }));
       const card = await screen.findByRole("article", { name: "Ibuprofen 400mg" });
 
@@ -231,7 +254,7 @@ describe("AssistantPage", () => {
     });
 
     it("asks before clearing a conversation, then returns to the greeting", async () => {
-      renderWithRouter(<AssistantPage />, "/assistant");
+      renderPage("/assistant");
       await userEvent.click(screen.getByRole("button", { name: "Hay fever" }));
       await screen.findByRole("status");
 
@@ -258,12 +281,54 @@ describe("AssistantPage", () => {
           body: "Call 112.",
         };
       });
-      renderWithRouter(<AssistantPage />, "/assistant");
+      renderPage("/assistant");
       await userEvent.click(screen.getByRole("button", { name: "Hay fever" }));
       await screen.findByRole("alert", { name: /doctor now/ });
 
       expect(screen.getByRole("combobox", { name: "How long" })).toBeDisabled();
       expect(screen.queryByRole("button", { name: "Remove Chest pain" })).not.toBeInTheDocument();
+    });
+  });
+  describe("saved consultations", () => {
+    const products = async function* (): AsyncGenerator<MessagePart> {
+      yield { kind: "symptoms", symptoms: ["Sore throat"] };
+      yield {
+        kind: "products",
+        items: [{ product: ibuprofenDetail, reason: "Brings fever down", fit: "best" }],
+      };
+    };
+
+    it("are only offered when signed in", async () => {
+      engine.mockImplementation(products);
+      renderPage("/assistant");
+      await userEvent.click(screen.getByRole("button", { name: "Sore throat and fever" }));
+      await screen.findByRole("article", { name: ibuprofenDetail.name });
+
+      expect(screen.queryByRole("button", { name: "Save consultation" })).not.toBeInTheDocument();
+    });
+
+    it("can be saved, then reopened from the start screen after starting over", async () => {
+      signedIn(ana);
+      engine.mockImplementation(products);
+      const user = userEvent.setup();
+      renderPage("/assistant");
+      await user.click(screen.getByRole("button", { name: "Sore throat and fever" }));
+      await screen.findByRole("article", { name: ibuprofenDetail.name });
+
+      await user.click(await screen.findByRole("button", { name: "Save consultation" }));
+      expect(screen.getByText(/^Saved\./)).toBeInTheDocument();
+
+      await user.click(screen.getByRole("button", { name: "Start over" }));
+      await user.click(screen.getByRole("button", { name: "Yes, clear it" }));
+      const saved = screen.getByRole("region", { name: "Your consultations" });
+      expect(saved).toHaveTextContent("Sore throat → 1 suggestion");
+
+      await user.click(within(saved).getByRole("button", { name: "Reopen Sore throat" }));
+
+      expect(screen.getByRole("article", { name: ibuprofenDetail.name })).toBeInTheDocument();
+      expect(screen.getByRole("complementary", { name: "Case file" })).toHaveTextContent(
+        "Sore throat",
+      );
     });
   });
 });

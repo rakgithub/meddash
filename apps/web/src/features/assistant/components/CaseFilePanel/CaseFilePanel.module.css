@@ -165,7 +165,7 @@
     stroke-width: 1.6;
     stroke-linecap: round;
     stroke-linejoin: round;
-    transition: transform 0.15s ease;
+    transition: transform var(--duration-fast) var(--ease-in-out);
   }
 
   .toggle[aria-expanded="true"] .chevron {

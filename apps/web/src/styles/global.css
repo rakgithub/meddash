@@ -11,7 +11,7 @@
   --accent: #0f766e;
   --accent-hover: #0b5f58;
   --accent-soft: #e6f4f1;
-  --accent-soft-hover: #d4ece7;
+  --accent-soft-hover: #d8eee9; /* Light enough that --accent text on it stays at 4.5:1. */
   --on-accent: #ffffff;
   --danger: #b42318;
   --danger-soft: #fef3f2;
@@ -32,6 +32,13 @@
   --cat-cold-flu: #2f7fd8;
   --cat-vitamins: #c98a0b;
   --cat-skin-care: #8a5cd1;
+  /* Motion: one easing per job, three durations. All of it is switched off under reduced motion. */
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1); /* things arriving */
+  --ease-in: cubic-bezier(0.5, 0, 0.75, 0); /* things leaving */
+  --ease-in-out: cubic-bezier(0.45, 0, 0.55, 1); /* hover, state changes and loops */
+  --duration-fast: 150ms;
+  --duration-base: 220ms;
+  --duration-slow: 420ms;
   color-scheme: light;
   font-family:
     Geologica,
@@ -95,6 +102,23 @@ p {
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/*
+ * A safety net under the per-component rules: whatever moves, under reduced motion it lands at its end
+ * state at once. 1ms rather than none, so animationend and transitionend still fire.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Hidden on screen, still read by screen readers. */

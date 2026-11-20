@@ -310,6 +310,22 @@ describe("consultationReducer case file", () => {
   });
 });
 
+describe("restore", () => {
+  it("replaces the conversation with the saved one, marking a reply cut off mid-stream as stopped", () => {
+    const saved: ConsultationState = {
+      ...sent,
+      caseFile: { ...sent.caseFile, symptoms: ["Sneezing"] },
+      dismissed: ["7"],
+    };
+
+    const state = consultationReducer(initialConsultation, { type: "restore", state: saved });
+
+    expect(state.caseFile.symptoms).toEqual(["Sneezing"]);
+    expect(state.dismissed).toEqual(["7"]);
+    expect(state.messages.map((m) => m.status)).toEqual(["done", "stopped"]);
+  });
+});
+
 describe("messageText", () => {
   it("joins the text parts and skips the thinking steps", () => {
     const message: Message = {

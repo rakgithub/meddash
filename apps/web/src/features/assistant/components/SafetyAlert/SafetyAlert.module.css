@@ -6,7 +6,7 @@
   border: 1px solid;
   border-left-width: 4px;
   border-radius: var(--radius);
-  animation: appear 0.25s ease-out;
+  animation: appear var(--duration-base) var(--ease-out);
 }
 
 .urgent {
