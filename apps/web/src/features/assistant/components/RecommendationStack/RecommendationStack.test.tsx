@@ -21,6 +21,12 @@ describe("RecommendationStack", () => {
     ).toEqual(["Ibuprofen 400mg", "Cough Syrup"]);
   });
 
+  it("offers to talk to a pharmacist under the suggestions", () => {
+    renderWithRouter(<RecommendationStack items={items} />);
+
+    expect(screen.getByText("Talk to a pharmacist")).toBeInTheDocument();
+  });
+
   it("shows skeletons while the products load", () => {
     renderWithRouter(<RecommendationStack items={[]} loading={3} />);
 

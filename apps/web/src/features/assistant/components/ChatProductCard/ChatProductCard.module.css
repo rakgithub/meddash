@@ -137,6 +137,35 @@
   font-weight: 600;
 }
 
+/* A product warning that concerns who it is for, e.g. pregnancy. */
+.caution {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--caution-soft);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.caution svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  fill: none;
+  stroke: var(--caution);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cautionLabel {
+  font-weight: 600;
+  color: var(--caution);
+}
+
 .ingredients {
   display: flex;
   flex-wrap: wrap;

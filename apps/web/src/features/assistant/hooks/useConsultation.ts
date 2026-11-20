@@ -5,6 +5,7 @@ import { applyAnswer } from "../utils/caseFile";
 import {
   consultationReducer,
   initialConsultation,
+  isPaused,
   messageText,
 } from "../utils/consultationReducer";
 
@@ -63,10 +64,11 @@ export function useConsultation() {
 
   const { messages, caseFile } = state;
   const isStreaming = messages.at(-1)?.status === "streaming";
+  const paused = isPaused(messages);
 
   function start(text: string, answer?: { field: CaseField; value: string }) {
     const trimmed = text.trim();
-    if (!trimmed || isStreaming) return;
+    if (!trimmed || isStreaming || paused) return;
     const assistantId = crypto.randomUUID();
     dispatch({ type: "send", userId: crypto.randomUUID(), assistantId, text: trimmed, answer });
     // The reducer applies the same answer; the engine needs it now, before the next render.
@@ -91,6 +93,11 @@ export function useConsultation() {
     controllerRef.current?.abort();
   }
 
+  function startOver() {
+    controllerRef.current?.abort();
+    dispatch({ type: "reset" });
+  }
+
   /** Asks again for the last user message; the conversation before it is kept. */
   function retry() {
     const lastUserIndex = messages.map((m) => m.role).lastIndexOf("user");
@@ -105,5 +112,16 @@ export function useConsultation() {
     );
   }
 
-  return { messages, caseFile, isStreaming, send, answer, setSymptoms, stop, retry };
+  return {
+    messages,
+    caseFile,
+    isStreaming,
+    paused,
+    send,
+    answer,
+    setSymptoms,
+    stop,
+    retry,
+    startOver,
+  };
 }

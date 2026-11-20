@@ -13,6 +13,9 @@
   --accent-soft-hover: #d4ece7;
   --on-accent: #ffffff;
   --danger: #b42318;
+  --danger-soft: #fef3f2;
+  --caution: #b54708;
+  --caution-soft: #fffaeb;
   --radius: 12px;
   --shadow: 0 1px 2px rgb(16 24 20 / 6%);
   --shadow-hover: 0 8px 24px rgb(16 24 20 / 10%);
@@ -44,6 +47,9 @@
   --accent-soft-hover: #1c4540;
   --on-accent: #06201c;
   --danger: #f97066;
+  --danger-soft: #2d1614;
+  --caution: #fdb022;
+  --caution-soft: #2b2112;
   --shadow: 0 1px 2px rgb(0 0 0 / 40%);
   --shadow-hover: 0 8px 24px rgb(0 0 0 / 50%);
   color-scheme: dark;

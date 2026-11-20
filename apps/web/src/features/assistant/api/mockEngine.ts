@@ -3,6 +3,7 @@ import type { AssistantEngine, Message, MessagePart, QuickReply, Recommendation 
 import { mergeSymptoms } from "../utils/caseFile";
 import { ingredientName } from "../utils/ingredientName";
 import { rankRecommendations } from "../utils/rankRecommendations";
+import { redFlagAlert } from "../utils/redFlags";
 import { loadProducts, type LoadProduct } from "./loadProducts";
 
 /**
@@ -285,6 +286,14 @@ export function createMockEngine({ delayMs = 1, load }: MockEngineOptions = {}):
     userText,
     signal,
   }): AsyncGenerator<MessagePart> {
+    // Urgent symptoms come before everything else: no questions and no products, only a doctor.
+    const alert = redFlagAlert(userText);
+    if (alert) {
+      yield* think(["Checking for urgent signs"], signal);
+      yield alert;
+      return;
+    }
+
     const asked = ASK_ABOUT.exec(userText.trim());
     if (asked) {
       yield* aboutIngredient(asked[1], history, signal);

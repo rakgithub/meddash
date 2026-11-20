@@ -1,5 +1,6 @@
 import type { CaseField, CaseFile, Message, MessagePart, MessageStatus } from "../types";
 import { applyAnswer, emptyCaseFile, mergeSymptoms } from "./caseFile";
+import { rankRecommendations } from "./rankRecommendations";
 
 export interface ConsultationState {
   messages: Message[];
@@ -20,7 +21,9 @@ export type ConsultationAction =
   /** Replaces the last assistant message (the failed one) with a fresh streaming one. */
   | { type: "retry"; assistantId: string }
   /** The user edited the symptom chips. */
-  | { type: "setSymptoms"; symptoms: string[] };
+  | { type: "setSymptoms"; symptoms: string[] }
+  /** Clears the conversation, e.g. to start over after an urgent alert. */
+  | { type: "reset" };
 
 export const initialConsultation: ConsultationState = { messages: [], caseFile: emptyCaseFile };
 
@@ -48,6 +51,16 @@ function updateMessage(
   return { ...state, messages: state.messages.map((m) => (m.id === id ? update(m) : m)) };
 }
 
+/**
+ * After an urgent alert the assistant stops recommending: no products, no questions and no new turns
+ * until the user starts over. Enforced here, not only in the engine, so a real backend can't skip it.
+ */
+export function isPaused(messages: Message[]): boolean {
+  return messages.some((m) => m.parts.some((p) => p.kind === "alert" && p.level === "urgent"));
+}
+
+const BLOCKED_WHEN_PAUSED = new Set<MessagePart["kind"]>(["products", "quickReplies"]);
+
 function isStreaming(state: ConsultationState, id: string) {
   return state.messages.some((m) => m.id === id && m.status === "streaming");
 }
@@ -58,6 +71,7 @@ export function consultationReducer(
 ): ConsultationState {
   switch (action.type) {
     case "send": {
+      if (isPaused(state.messages)) return state;
       const { answer } = action;
       return {
         caseFile: answer ? applyAnswer(state.caseFile, answer.field, answer.value) : state.caseFile,
@@ -76,7 +90,15 @@ export function consultationReducer(
     case "part": {
       // A late part after Stop or an error must not reopen the message or change the case file.
       if (!isStreaming(state, action.id)) return state;
-      const { part } = action;
+      if (isPaused(state.messages) && BLOCKED_WHEN_PAUSED.has(action.part.kind)) return state;
+      // The safety rules apply to every suggestion, whichever engine sent it.
+      const part: MessagePart =
+        action.part.kind === "products"
+          ? {
+              ...action.part,
+              items: rankRecommendations(action.part.items, state.caseFile.forWhom),
+            }
+          : action.part;
       const next = updateMessage(state, action.id, (m) => ({
         ...m,
         parts: addPart(m.parts, part),
@@ -107,6 +129,8 @@ export function consultationReducer(
         ...state,
         caseFile: { ...state.caseFile, symptoms: mergeSymptoms([], action.symptoms) },
       };
+    case "reset":
+      return initialConsultation;
   }
 }
 

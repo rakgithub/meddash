@@ -3,6 +3,7 @@ import type { CaseField, Message, MessagePart, QuickReply } from "../../types";
 import { messageText } from "../../utils/consultationReducer";
 import { QuickReplies } from "../QuickReplies/QuickReplies";
 import { RecommendationStack } from "../RecommendationStack/RecommendationStack";
+import { SafetyAlert } from "../SafetyAlert/SafetyAlert";
 import { SymptomChips } from "../SymptomChips/SymptomChips";
 import { ThinkingSteps } from "../ThinkingSteps/ThinkingSteps";
 import styles from "./MessageList.module.css";
@@ -70,6 +71,8 @@ function Part({
           onAskIngredient={actions.onAskIngredient}
         />
       );
+    case "alert":
+      return <SafetyAlert level={part.level} title={part.title} body={part.body} />;
     case "text":
       return (
         <div className={styles.text}>

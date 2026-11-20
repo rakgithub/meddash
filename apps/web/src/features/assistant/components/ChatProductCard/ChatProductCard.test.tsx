@@ -28,6 +28,23 @@ describe("ChatProductCard", () => {
     );
   });
 
+  it("shows a caution row when a warning concerns who it is for", () => {
+    renderWithRouter(
+      <ChatProductCard
+        recommendation={{
+          product: ibuprofenDetail,
+          reason: "",
+          fit: "good",
+          caution: "Not suitable for children under 6 years.",
+        }}
+      />,
+    );
+
+    expect(screen.getByRole("article", { name: "Ibuprofen 400mg" })).toHaveTextContent(
+      "Check first: Not suitable for children under 6 years.",
+    );
+  });
+
   it("shows low stock", () => {
     renderWithRouter(
       <ChatProductCard

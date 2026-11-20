@@ -95,4 +95,38 @@ describe("AssistantPage", () => {
     while (document.activeElement !== link) await user.tab({ shift: true });
     expect(link).toHaveAttribute("href", "/products/1");
   });
+
+  it("pauses after an urgent alert until the user starts over", async () => {
+    engine.mockImplementationOnce(async function* () {
+      yield {
+        kind: "alert",
+        level: "urgent",
+        title: "This needs a doctor now: you mentioned chest pain",
+        body: "Call 112.",
+      };
+      // A misbehaving engine still can't recommend after the alert.
+      yield {
+        kind: "products",
+        items: [{ product: ibuprofenDetail, reason: "", fit: "best" }],
+      };
+    });
+    const user = userEvent.setup();
+    renderWithRouter(<AssistantPage />, "/assistant");
+
+    await user.type(
+      screen.getByRole("textbox", { name: "Describe your symptoms" }),
+      "Chest pain{Enter}",
+    );
+
+    expect(await screen.findByRole("alert", { name: /This needs a doctor now/ })).toHaveTextContent(
+      "Call 112.",
+    );
+    expect(screen.queryByRole("article")).not.toBeInTheDocument();
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Start over" }));
+
+    expect(screen.getByRole("heading", { name: "What’s bothering you?" })).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Describe your symptoms" })).toBeInTheDocument();
+  });
 });
