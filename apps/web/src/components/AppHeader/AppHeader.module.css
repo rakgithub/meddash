@@ -52,7 +52,10 @@
 
 /* On a phone the logo, upload button and user menu share the first row and the search gets its own. */
 @media (max-width: 720px) {
+  /* Actions that don't fit beside the logo wrap to the right, under the upload button. */
   .inner {
+    justify-content: flex-end;
+    column-gap: 8px;
     padding-block: 14px;
   }
 

@@ -48,6 +48,11 @@ describe("AppHeader", () => {
     expect(screen.getByRole("button", { name: "Upload prescription" })).toBeInTheDocument();
   });
 
+  it("has a dark mode toggle", () => {
+    renderHeader("/");
+    expect(screen.getByRole("button", { name: "Dark mode" })).toBeInTheDocument();
+  });
+
   it("offers Log in when signed out", async () => {
     renderHeader("/");
     expect(await screen.findByRole("link", { name: "Log in" })).toBeInTheDocument();

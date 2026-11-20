@@ -2,15 +2,21 @@
   --bg: #f7f8f7;
   --surface: #ffffff;
   --border: #e4e7e4;
+  --border-strong: #c9cfca;
+  /* Still 3:1 against --surface so the edge of a text field stays visible. */
+  --input-border: #8c9690;
   --text: #17201b;
   --text-muted: #5f6b64;
   --accent: #0f766e;
   --accent-hover: #0b5f58;
   --accent-soft: #e6f4f1;
+  --accent-soft-hover: #d4ece7;
+  --on-accent: #ffffff;
   --danger: #b42318;
   --radius: 12px;
   --shadow: 0 1px 2px rgb(16 24 20 / 6%);
   --shadow-hover: 0 8px 24px rgb(16 24 20 / 10%);
+  color-scheme: light;
   font-family:
     Inter,
     ui-sans-serif,
@@ -21,6 +27,26 @@
   color: var(--text);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
+}
+
+:root[data-theme="dark"] {
+  --bg: #0f1412;
+  --surface: #171e1b;
+  --border: #2a3430;
+  --border-strong: #3d4a44;
+  --input-border: #5e6b65;
+  --text: #e6ece8;
+  --text-muted: #9aa8a1;
+  /* Lighter teal so it reads on dark surfaces; buttons on it use dark text. */
+  --accent: #34c3b0;
+  --accent-hover: #5ad6c5;
+  --accent-soft: #15322e;
+  --accent-soft-hover: #1c4540;
+  --on-accent: #06201c;
+  --danger: #f97066;
+  --shadow: 0 1px 2px rgb(0 0 0 / 40%);
+  --shadow-hover: 0 8px 24px rgb(0 0 0 / 50%);
+  color-scheme: dark;
 }
 
 *,

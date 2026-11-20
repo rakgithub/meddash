@@ -17,6 +17,8 @@ export default defineConfig({
     setupFiles: ["./src/test/setup.ts"],
     exclude: [...configDefaults.exclude, "e2e/**"],
     globals: false,
+    // Node 22+ ships its own localStorage global, which hides jsdom's; turn it off in test workers.
+    poolOptions: { forks: { execArgv: ["--no-experimental-webstorage"] } },
     coverage: {
       provider: "v8",
       include: ["src/**/*.{ts,tsx}"],
