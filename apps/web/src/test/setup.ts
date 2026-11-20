@@ -17,6 +17,7 @@ beforeEach(() => {
   });
   // jsdom doesn't scroll; without this it logs "Not implemented" for every scrollTo.
   window.scrollTo = () => {};
+  Element.prototype.scrollIntoView = () => {};
 });
 
 // jsdom has no modal dialogs; open and close them like a browser does, including the "close" event.

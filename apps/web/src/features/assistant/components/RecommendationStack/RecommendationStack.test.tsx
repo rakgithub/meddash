@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { coughSyrupDetail, ibuprofenDetail } from "../../../../test/fixtures";
+import { coughSyrupDetail, ibuprofenDetail, paracetamolDetail } from "../../../../test/fixtures";
 import { renderWithRouter } from "../../../../test/renderWithRouter";
 import { RecommendationStack } from "./RecommendationStack";
 
@@ -77,5 +77,70 @@ describe("RecommendationStack", () => {
 
     expect(screen.getByText(/ruled out every suggestion/)).toBeInTheDocument();
     expect(screen.getByText("Talk to a pharmacist")).toBeInTheDocument();
+  });
+
+  describe("compare", () => {
+    const shortlist = [
+      { product: ibuprofenDetail, reason: "Brings fever down", fit: "best" as const },
+      { product: paracetamolDetail, reason: "Gentle on the stomach", fit: "good" as const },
+      { product: coughSyrupDetail, reason: "Loosens a cough", fit: "locked" as const },
+    ];
+
+    it("opens a drawer comparing the suggestions, leaving out prescription-only ones", async () => {
+      renderWithRouter(<RecommendationStack items={shortlist} />);
+
+      await userEvent.click(screen.getByRole("button", { name: "Compare" }));
+
+      const dialog = screen.getByRole("dialog", { name: "Compare products" });
+      expect(
+        within(dialog)
+          .getAllByRole("columnheader")
+          .map((h) => h.textContent),
+      ).toEqual(["Feature", "Ibuprofen 400mgNurofen", "Paracetamol 500mgratiopharm"]);
+    });
+
+    it("compares at most the top three", async () => {
+      const four = [
+        ...shortlist.slice(0, 2),
+        {
+          product: { ...ibuprofenDetail, id: "9", name: "Third" },
+          reason: "",
+          fit: "good" as const,
+        },
+        {
+          product: { ...ibuprofenDetail, id: "10", name: "Fourth" },
+          reason: "",
+          fit: "good" as const,
+        },
+      ];
+      renderWithRouter(<RecommendationStack items={four} />);
+
+      await userEvent.click(screen.getByRole("button", { name: "Compare" }));
+
+      expect(within(screen.getByRole("table")).getAllByRole("columnheader")).toHaveLength(4);
+    });
+
+    it("closes the drawer and returns focus to the Compare button", async () => {
+      renderWithRouter(<RecommendationStack items={shortlist} />);
+      const compare = screen.getByRole("button", { name: "Compare" });
+      await userEvent.click(compare);
+
+      await userEvent.click(screen.getByRole("button", { name: "Close" }));
+
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+      expect(compare).toHaveFocus();
+    });
+
+    it("is not offered for fewer than two options to choose between", () => {
+      renderWithRouter(<RecommendationStack items={[shortlist[0], shortlist[2]]} />);
+
+      expect(screen.queryByRole("button", { name: "Compare" })).not.toBeInTheDocument();
+    });
+
+    it("is not offered while the suggestions load", () => {
+      renderWithRouter(<RecommendationStack items={[]} loading={3} />);
+
+      expect(screen.queryByRole("button", { name: "Compare" })).not.toBeInTheDocument();
+    });
   });
 });

@@ -1,6 +1,6 @@
 # Symptom assistant plan — frontend first
 
-Status: S1–S4 done 2026-11-20. Roadmap entry: [`docs/PLAN.md`](../PLAN.md#track--symptom-assistant-ai-chat).
+Status: S1–S5 done 2026-11-20. Roadmap entry: [`docs/PLAN.md`](../PLAN.md#track--symptom-assistant-ai-chat).
 
 A chat where a customer describes symptoms and gets suggested over-the-counter products from the catalogue,
 shown as product cards inside the chat. It should feel like a pharmacist at the counter: a short guided
@@ -205,12 +205,29 @@ Notes from the build (2026-11-20):
 
 The goal is helping the user decide between the final 2–3 options.
 
-- [ ] "Compare" button on a recommendation stack. It opens a drawer (bottom sheet on mobile) with a side-by-side
+- [x] "Compare" button on a recommendation stack. It opens a drawer (bottom sheet on mobile) with a side-by-side
       table: active ingredients, dosage form, pack size, price per unit, warnings, stock.
-- [ ] Rows that differ are highlighted. Follow-up questions while the drawer is open ("which is gentler on the
+- [x] Rows that differ are highlighted. Follow-up questions while the drawer is open ("which is gentler on the
       stomach?") make the mock answer and highlight the relevant row.
-- [ ] Accessible table markup (`<table>`, `scope` on headers). The drawer traps focus and closes on Esc.
-- [ ] Tests: comparison derivation is a pure util, plus drawer keyboard behaviour.
+- [x] Accessible table markup (`<table>`, `scope` on headers). The drawer traps focus and closes on Esc.
+- [x] Tests: comparison derivation is a pure util, plus drawer keyboard behaviour.
+
+Notes from the build (2026-11-20):
+
+- The Compare button sits above "Talk to a pharmacist" and shows when at least two suggestions can be
+  compared. It compares the first three that are not prescription-only, in stack order. Open state is local to
+  `RecommendationStack`, so it never enters the reducer.
+- `CompareDrawer` is a native modal `<dialog>` like the products `RefinePanel`: a drawer from the right on wide
+  screens, a bottom sheet under 768px. The browser gives focus trapping and Esc; focus goes to Close on open and
+  back to the Compare button on close. The table scrolls sideways on a phone with the feature column pinned.
+- `utils/compareProducts.ts` builds the rows. It adds a plain Price row next to price per unit. The unit price is
+  read from a pack size like "20 tablets" and is "—" when the size has no leading count.
+- Differing rows get a tint and a "Differs" badge, so colour is not the only cue. The row an answer is about gets
+  a stronger highlight and `aria-current`.
+- Questions are asked in the drawer, not the chat composer, because the modal makes the page behind it inert.
+  They are answered by `api/mockCompare.ts` from the real product data (stomach-related warnings, cheapest per
+  unit, stock, pack size, ingredients, form) and do not go through the engine or into the conversation. At the
+  backend handoff this is a second seam to replace, or to route through the engine with the compared products.
 
 ## Phase S6 — Body map entry
 
