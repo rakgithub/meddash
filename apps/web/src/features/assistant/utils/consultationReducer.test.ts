@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
-import type { Message } from "../types";
+import { coughSyrupDetail, ibuprofenDetail } from "../../../test/fixtures";
+import type { Message, MessagePart } from "../types";
 import {
   consultationReducer,
   initialConsultation,
+  isPaused,
   messageText,
   type ConsultationState,
 } from "./consultationReducer";
@@ -159,6 +161,80 @@ describe("consultationReducer case file", () => {
     });
 
     expect(state.caseFile.symptoms).toEqual(["Cough", "Headache"]);
+  });
+
+  describe("safety rules", () => {
+    const urgent: MessagePart = {
+      kind: "alert",
+      level: "urgent",
+      title: "This needs a doctor now",
+      body: "Call 112.",
+    };
+    const part = (state: ConsultationState, p: MessagePart, id = "a1") =>
+      consultationReducer(state, { type: "part", id, part: p });
+
+    it("never shows a prescription-only product as the best fit, whatever the engine sent", () => {
+      const state = part(sent, {
+        kind: "products",
+        items: [
+          { product: coughSyrupDetail, reason: "", fit: "best" },
+          { product: ibuprofenDetail, reason: "", fit: "good" },
+        ],
+      });
+
+      const [products] = reply(state).parts;
+      expect(products.kind === "products" && products.items.map((i) => i.fit)).toEqual([
+        "good",
+        "locked",
+      ]);
+    });
+
+    it("adds cautions for who the products are for", () => {
+      const forChild = { ...sent, caseFile: { ...sent.caseFile, forWhom: "child" as const } };
+      const spray = {
+        ...ibuprofenDetail,
+        warnings: "Not suitable for children under 6 years.",
+      };
+
+      const state = part(forChild, {
+        kind: "products",
+        items: [{ product: spray, reason: "", fit: "best" }],
+      });
+
+      expect(reply(state).parts[0]).toMatchObject({
+        items: [{ fit: "good", caution: "Not suitable for children under 6 years." }],
+      });
+    });
+
+    it("pauses after an urgent alert: no products, no questions and no new turns", () => {
+      let state = part(sent, urgent);
+      state = part(state, { kind: "products", items: [] });
+      state = part(state, {
+        kind: "quickReplies",
+        question: "Who is it for?",
+        field: "forWhom",
+        options: [],
+      });
+      state = consultationReducer(state, { type: "finish", id: "a1", status: "done" });
+
+      expect(isPaused(state.messages)).toBe(true);
+      expect(reply(state).parts).toEqual([urgent]);
+      expect(
+        consultationReducer(state, { type: "send", userId: "u2", assistantId: "a2", text: "Hi" }),
+      ).toBe(state);
+    });
+
+    it("isn't paused by a caution alert", () => {
+      const state = part(sent, { ...urgent, level: "caution" });
+
+      expect(isPaused(state.messages)).toBe(false);
+    });
+
+    it("starts over with an empty conversation", () => {
+      const state = consultationReducer(part(sent, urgent), { type: "reset" });
+
+      expect(state).toEqual(initialConsultation);
+    });
   });
 });
 

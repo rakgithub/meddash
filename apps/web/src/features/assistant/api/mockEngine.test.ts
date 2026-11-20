@@ -112,6 +112,23 @@ describe("mockEngine", () => {
     expect(partOf(parts, "products")).toEqual([]);
   });
 
+  it.each([
+    "Chest pain and a sore throat",
+    "I can't breathe",
+    "Her face is drooping",
+    "My baby has a fever",
+    "Blood in my stool",
+    "I have suicidal thoughts and can't sleep",
+  ])("stops at an urgent alert for %j, with no questions or products", async (text) => {
+    // Even with a full case file, which would otherwise go straight to products.
+    const parts = await collect(text, { caseFile: { ...ready, symptoms: ["Sore throat"] } });
+
+    expect(partOf(parts, "alert")).toEqual([expect.objectContaining({ level: "urgent" })]);
+    expect(partOf(parts, "products")).toEqual([]);
+    expect(partOf(parts, "quickReplies")).toEqual([]);
+    expect(partOf(parts, "symptoms")).toEqual([]);
+  });
+
   it("asks for more detail when it doesn't recognise the symptoms", async () => {
     expect(textOf(await collect("hmm"))).toMatch(/^Tell me a bit more/);
   });

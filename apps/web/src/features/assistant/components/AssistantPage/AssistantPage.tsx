@@ -9,8 +9,18 @@ const STARTERS = ["Sore throat and fever", "Can't sleep", "Hay fever", "Upset st
 /** `/assistant?q=…` pre-fills the message box, e.g. with the search text from the products page. */
 export function AssistantPage() {
   const [searchParams] = useSearchParams();
-  const { messages, caseFile, isStreaming, send, answer, setSymptoms, stop, retry } =
-    useConsultation();
+  const {
+    messages,
+    caseFile,
+    isStreaming,
+    paused,
+    send,
+    answer,
+    setSymptoms,
+    stop,
+    retry,
+    startOver,
+  } = useConsultation();
 
   return (
     <div className={styles.page}>
@@ -39,20 +49,32 @@ export function AssistantPage() {
             messages={messages}
             onRetry={retry}
             symptoms={caseFile.symptoms}
-            onSymptomsChange={setSymptoms}
-            onAnswer={answer}
-            onAskIngredient={(ingredient) => send(`Tell me about ${ingredient}`)}
+            // After an urgent alert everything earlier is a read-only record.
+            onSymptomsChange={paused ? undefined : setSymptoms}
+            onAnswer={paused ? undefined : answer}
+            onAskIngredient={
+              paused ? undefined : (ingredient) => send(`Tell me about ${ingredient}`)
+            }
           />
         )}
       </div>
 
       <div className={styles.dock}>
-        <Composer
-          initialValue={searchParams.get("q") ?? ""}
-          isStreaming={isStreaming}
-          onSend={send}
-          onStop={stop}
-        />
+        {paused ? (
+          <div className={styles.paused}>
+            <p>I’ve stopped suggesting products so you can get help first.</p>
+            <button className={styles.startOver} type="button" onClick={startOver}>
+              Start over
+            </button>
+          </div>
+        ) : (
+          <Composer
+            initialValue={searchParams.get("q") ?? ""}
+            isStreaming={isStreaming}
+            onSend={send}
+            onStop={stop}
+          />
+        )}
         <p className={styles.disclaimer}>Suggestions, not a diagnosis. Ask a pharmacist.</p>
       </div>
     </div>

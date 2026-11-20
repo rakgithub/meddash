@@ -1,5 +1,6 @@
 import type { Recommendation } from "../../types";
 import { ChatProductCard } from "../ChatProductCard/ChatProductCard";
+import { PharmacistContact } from "../PharmacistContact/PharmacistContact";
 import styles from "./RecommendationStack.module.css";
 
 interface RecommendationStackProps {
@@ -51,6 +52,7 @@ export function RecommendationStack({
         </ol>
       )}
       {note && <p className={styles.note}>{note}</p>}
+      {items.length > 0 && <PharmacistContact />}
     </div>
   );
 }

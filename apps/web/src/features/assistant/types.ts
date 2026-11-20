@@ -2,7 +2,7 @@ import type { ProductDetail } from "../products";
 
 /**
  * The message protocol between the chat UI and the assistant engine. The UI renders only these typed
- * parts, never free-form HTML. Later phases add an alert part.
+ * parts, never free-form HTML.
  */
 export type Role = "user" | "assistant";
 
@@ -38,6 +38,8 @@ export interface Recommendation {
   reason: string;
   /** `locked` = prescription-only: shown greyed out, never as the top suggestion. */
   fit: "best" | "good" | "locked";
+  /** The product warning that applies to who it is for, e.g. pregnancy. Set by `rankRecommendations`. */
+  caution?: string;
 }
 
 /**
@@ -57,7 +59,9 @@ export type MessagePart =
       loading?: number;
       /** Suggestions that could not be loaded and were left out. */
       unavailable?: number;
-    };
+    }
+  /** `urgent` = this needs a doctor now; the conversation stops recommending until it starts over. */
+  | { kind: "alert"; level: "urgent" | "caution"; title: string; body: string };
 
 /** `stopped` = the user pressed Stop; `error` = the engine threw. */
 export type MessageStatus = "streaming" | "done" | "stopped" | "error";

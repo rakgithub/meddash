@@ -1,6 +1,6 @@
 # Symptom assistant plan — frontend first
 
-Status: S1 and S2 done 2026-11-20. Roadmap entry: [`docs/PLAN.md`](../PLAN.md#track--symptom-assistant-ai-chat).
+Status: S1, S2 and S3 done 2026-11-20. Roadmap entry: [`docs/PLAN.md`](../PLAN.md#track--symptom-assistant-ai-chat).
 
 A chat where a customer describes symptoms and gets suggested over-the-counter products from the catalogue,
 shown as product cards inside the chat. It should feel like a pharmacist at the counter: a short guided
@@ -143,17 +143,32 @@ Notes from the build (2026-11-20):
 
 The goal is that the assistant knows when **not** to recommend.
 
-- [ ] Red-flag interrupt: the mock checks for urgent symptoms (chest pain, trouble breathing, signs of stroke,
+- [x] Red-flag interrupt: the mock checks for urgent symptoms (chest pain, trouble breathing, signs of stroke,
       very high fever in an infant, blood in vomit or stool, suicidal thoughts). On a match it streams an
       `alert{level:"urgent"}`: a calm full-width card ("This needs a doctor now: call 112 or your GP"). No
       products are shown and the recommendation flow is paused until the user starts over.
-- [ ] Contextual warnings: when a card's `warnings` text matches the case file (pregnant, child, senior), the
+- [x] Contextual warnings: when a card's `warnings` text matches the case file (pregnant, child, senior), the
       card shows an amber caution row and drops to `fit: "good"` or lower.
-- [ ] Hard rule in the reducer, not only the mock: a product with `requiresPrescription` is never shown with
+- [x] Hard rule in the reducer, not only the mock: a product with `requiresPrescription` is never shown with
       `fit: "best"`. This keeps the rule in place when the real backend arrives.
-- [ ] "Talk to a pharmacist" action on every recommendation message. For now it is a static contact card.
-- [ ] Tests: each red-flag phrase blocks products, the prescription rule, warning matching. e2e: urgent phrase →
+- [x] "Talk to a pharmacist" action on every recommendation message. For now it is a static contact card.
+- [x] Tests: each red-flag phrase blocks products, the prescription rule, warning matching. e2e: urgent phrase →
       urgent card, no products.
+
+Notes from the build (2026-11-20):
+
+- Red flags live in `utils/redFlags.ts` (`redFlagAlert`), checked first in the mock, before "Tell me about".
+  Matching errs on the side of caution, so "no chest pain" still matches. Suicidal thoughts get a crisis line
+  (Telefonseelsorge) instead of the GP text.
+- "Paused" is derived, not stored: `isPaused(messages)` is true once any reply has an urgent alert. While
+  paused the reducer drops `products` and `quickReplies` parts and ignores `send`; the page swaps the message
+  box for "Start over" (a `reset` action, no confirmation yet; S4 adds that) and makes earlier replies
+  read-only.
+- The reducer runs every `products` part through `rankRecommendations(items, caseFile.forWhom)`, which locks
+  prescription-only products and adds `caution` (the first matching warning sentence) for pregnant, child
+  and senior. "Senior" matches kidney and liver warnings too. A cautioned best fit drops to good, so a stack
+  can have no "Best fit".
+- "Talk to a pharmacist" is a `<details>` under every non-empty stack. The phone number is a placeholder.
 
 ## Phase S4 — Case file and refine
 

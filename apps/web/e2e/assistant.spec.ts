@@ -41,6 +41,24 @@ test.describe("Symptom assistant", () => {
     await expect(page.getByRole("heading", { name: "Ibuprofen 400mg" })).toBeVisible();
   });
 
+  test("an urgent symptom gets a doctor alert instead of products", async ({ page }) => {
+    await page.goto("/assistant");
+
+    const box = page.getByRole("textbox", { name: "Describe your symptoms" });
+    await box.fill("Sore throat and chest pain");
+    await box.press("Enter");
+
+    await expect(page.getByRole("alert", { name: /This needs a doctor now/ })).toContainText(
+      "Call 112",
+    );
+    await expect(page.getByRole("list", { name: "Suggested products" })).toHaveCount(0);
+    await expect(box).toHaveCount(0);
+
+    await page.getByRole("button", { name: "Start over" }).click();
+
+    await expect(page.getByRole("heading", { name: "What’s bothering you?" })).toBeVisible();
+  });
+
   test("stops a reply that is streaming", async ({ page }) => {
     await page.goto("/assistant");
 

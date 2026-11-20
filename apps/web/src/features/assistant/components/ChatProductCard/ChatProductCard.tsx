@@ -44,7 +44,7 @@ function stockTone(quantity: number) {
 }
 
 export function ChatProductCard({ recommendation, onAskIngredient }: ChatProductCardProps) {
-  const { product, reason, fit } = recommendation;
+  const { product, reason, fit, caution } = recommendation;
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
   const showImage = product.imageUrl !== null && product.imageUrl !== failedUrl;
   const kind = dosageFormKind(product.dosageForm);
@@ -99,6 +99,19 @@ export function ChatProductCard({ recommendation, onAskIngredient }: ChatProduct
           <span className={styles.whyLabel}>Why this? </span>
           {reason}
         </p>
+
+        {caution && (
+          <p className={styles.caution}>
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M8 2l6.5 11.5h-13z" />
+              <path d="M8 6.5v3M8 11.5v.5" />
+            </svg>
+            <span>
+              <span className={styles.cautionLabel}>Check first: </span>
+              {caution}
+            </span>
+          </p>
+        )}
 
         {product.activeIngredients.length > 0 && (
           <ul className={styles.ingredients} aria-label="Active ingredients">

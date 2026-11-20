@@ -1,0 +1,73 @@
+.alert {
+  display: flex;
+  gap: 14px;
+  width: 100%;
+  padding: 18px 20px;
+  border: 1px solid;
+  border-left-width: 4px;
+  border-radius: var(--radius);
+  animation: appear 0.25s ease-out;
+}
+
+.urgent {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.caution {
+  border-color: var(--caution);
+  background: var(--caution-soft);
+}
+
+.icon {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  margin-top: 1px;
+  fill: none;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.urgent .icon {
+  stroke: var(--danger);
+}
+
+.caution .icon {
+  stroke: var(--caution);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text);
+}
+
+.body {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alert {
+    animation: none;
+  }
+}
