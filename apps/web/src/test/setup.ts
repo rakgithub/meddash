@@ -19,4 +19,14 @@ beforeEach(() => {
   window.scrollTo = () => {};
 });
 
+// jsdom has no modal dialogs; open and close them like a browser does, including the "close" event.
+HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
+  this.open = true;
+};
+HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
+  if (!this.open) return;
+  this.open = false;
+  this.dispatchEvent(new Event("close"));
+};
+
 afterEach(() => cleanup());

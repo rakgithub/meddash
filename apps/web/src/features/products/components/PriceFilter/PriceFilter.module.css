@@ -1,41 +1,73 @@
-.root {
-  position: relative;
-}
-
-.panel {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  z-index: 10;
+.price {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  width: 260px;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--surface);
-  box-shadow: var(--shadow-hover);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
 
-.panel[hidden] {
-  display: none;
+.legend {
+  margin-bottom: 10px;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.preset {
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.preset:hover {
+  border-color: var(--border-strong);
+}
+
+.preset[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-hover);
+  font-weight: 600;
+}
+
+.custom {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  container-type: inline-size;
 }
 
 .range {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   color: var(--text-muted);
 }
 
 .range input {
+  flex: 1 1 0;
   width: 100%;
   min-width: 0;
-  height: 38px;
+  height: 36px;
   padding: 0 14px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--input-border);
   border-radius: var(--radius-control);
+  background: var(--surface);
   color: var(--text);
   font: inherit;
   font-size: 14px;
@@ -51,17 +83,14 @@
   border-color: var(--danger);
 }
 
-.error {
-  font-size: 13px;
-  color: var(--danger);
-}
-
 .apply {
+  flex: none;
   height: 36px;
-  border: 0;
+  padding: 0 12px;
+  border: 1px solid var(--accent);
   border-radius: var(--radius-control);
-  background: var(--accent);
-  color: var(--on-accent);
+  background: var(--surface);
+  color: var(--accent);
   font: inherit;
   font-size: 14px;
   font-weight: 600;
@@ -69,30 +98,17 @@
 }
 
 .apply:hover {
-  background: var(--accent-hover);
-}
-.pill {
-  height: 36px;
-  padding: 0 14px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
-  font-size: 14px;
-  cursor: pointer;
-  transition:
-    border-color 0.15s ease,
-    background 0.15s ease;
-}
-
-.pill:hover {
-  border-color: var(--border-strong);
-}
-
-.active {
-  border-color: var(--accent);
   background: var(--accent-soft);
-  color: var(--accent-hover);
-  font-weight: 600;
+}
+
+.error {
+  font-size: 13px;
+  color: var(--danger);
+}
+
+/* In the narrow desktop column, Apply drops to its own row so the fields stay readable. */
+@container (max-width: 260px) {
+  .apply {
+    flex-basis: 100%;
+  }
 }

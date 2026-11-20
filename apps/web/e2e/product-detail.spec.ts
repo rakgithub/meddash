@@ -53,7 +53,7 @@ test.describe("Product detail", () => {
     await page.goto("/products/1");
     await expect(page.getByRole("heading", { name: "Ibuprofen 400mg", level: 1 })).toBeVisible();
 
-    await page.getByLabel("Category").selectOption("skin-care");
+    await page.getByRole("button", { name: /^Skin care/ }).click();
 
     await expect(page).toHaveURL(/\/\?category=skin-care$/);
     await expect(page.getByRole("region", { name: "Results" }).getByRole("listitem")).toHaveCount(

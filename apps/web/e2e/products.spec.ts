@@ -55,8 +55,12 @@ test.describe("Product browsing", () => {
 
 const searchBox = (page: Page) => page.getByRole("combobox", { name: "Search products" });
 
+const aisle = (page: Page, name: string) =>
+  page
+    .getByRole("group", { name: "Category" })
+    .getByRole("button", { name: new RegExp(`^${name}`) });
+
 async function setPrice(page: Page, min: string, max: string) {
-  await page.getByRole("button", { name: "Price" }).click();
   await page.getByLabel("Minimum price").fill(min);
   await page.getByLabel("Maximum price").fill(max);
   await page.getByRole("button", { name: "Apply" }).click();
@@ -92,8 +96,9 @@ test.describe("Search and filters", () => {
   test("filters by category and brand as soon as they are picked", async ({ page }) => {
     await page.goto("/");
 
-    await page.getByLabel("Category").selectOption("skin-care");
-    await page.getByLabel("Brand").selectOption("Eucerin");
+    await aisle(page, "Skin care").click();
+    await page.getByRole("radio", { name: "Eucerin" }).click();
+    await expect(page.getByRole("radio", { name: "Eucerin" })).toBeChecked();
 
     await expect(cards(page)).toHaveCount(2);
     await expect(page.getByRole("heading", { name: "Sunscreen SPF 50" })).toBeVisible();
@@ -133,6 +138,15 @@ test.describe("Search and filters", () => {
     await expect(page.getByText("No products found")).toBeVisible();
   });
 
+  test("filters by a price band in one tap", async ({ page }) => {
+    await page.goto("/");
+
+    await page.getByRole("button", { name: "Up to 5 €" }).click();
+
+    await expect(page).toHaveURL(/maxPrice=5/);
+    await expect(page.getByRole("button", { name: /^Remove Up to 5,00/ })).toBeVisible();
+  });
+
   test("rejects a min price above the max price", async ({ page }) => {
     await page.goto("/");
 
@@ -144,12 +158,12 @@ test.describe("Search and filters", () => {
 
   test("Clear filters removes the filters and keeps the search term", async ({ page }) => {
     await page.goto("/");
-    await page.getByLabel("Category").selectOption("pain-relief");
+    await aisle(page, "Pain relief").click();
     await expect(cards(page)).toHaveCount(3);
 
     await page.getByRole("button", { name: "Clear filters" }).click();
 
-    await expect(page.getByLabel("Category")).toHaveValue("");
+    await expect(aisle(page, "All products")).toHaveAttribute("aria-pressed", "true");
     await expect(cards(page)).toHaveCount(10);
     await expect(page.getByRole("button", { name: "Clear filters" })).toBeHidden();
   });
@@ -199,7 +213,7 @@ test.describe("Search suggestions", () => {
       .click();
 
     await expect(searchBox(page)).toHaveValue("");
-    await expect(page.getByLabel("Category")).toHaveValue("pain-relief");
+    await expect(aisle(page, "Pain relief")).toHaveAttribute("aria-pressed", "true");
     await expect(cards(page)).toHaveCount(3);
   });
 

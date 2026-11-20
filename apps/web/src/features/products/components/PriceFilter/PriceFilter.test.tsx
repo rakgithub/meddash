@@ -5,52 +5,54 @@ import { PriceFilter } from "./PriceFilter";
 
 function setup(min = "", max = "") {
   const onApply = vi.fn();
-  render(
-    <>
-      <PriceFilter min={min} max={max} onApply={onApply} />
-      <button type="button">Outside</button>
-    </>,
-  );
-  return {
-    onApply,
-    user: userEvent.setup(),
-    pill: screen.getByRole("button", { name: /Price|€/ }),
-  };
+  const view = render(<PriceFilter min={min} max={max} onApply={onApply} />);
+  return { onApply, user: userEvent.setup(), view };
 }
 
 describe("PriceFilter", () => {
-  it("opens a min/max form from a collapsed pill", async () => {
-    const { pill, user } = setup();
-    expect(pill).toHaveAttribute("aria-expanded", "false");
-    expect(screen.queryByRole("form", { name: "Price range" })).not.toBeInTheDocument();
+  it("applies a price band in one tap", async () => {
+    const { onApply, user } = setup();
 
-    await user.click(pill);
+    await user.click(screen.getByRole("button", { name: "5–10 €" }));
 
-    expect(pill).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByRole("form", { name: "Price range" })).toBeVisible();
+    expect(onApply).toHaveBeenCalledWith("5", "10");
   });
 
-  it("applies the range, closes, and returns focus to the pill", async () => {
-    const { onApply, pill, user } = setup();
-    await user.click(pill);
+  it("marks the applied band, and removes it when tapped again", async () => {
+    const { onApply, user } = setup("", "5");
+    const band = screen.getByRole("button", { name: "Up to 5 €" });
+    expect(band).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "10 € and up" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+
+    await user.click(band);
+
+    expect(onApply).toHaveBeenCalledWith("", "");
+  });
+
+  it("applies a custom range", async () => {
+    const { onApply, user } = setup();
 
     await user.type(screen.getByLabelText("Minimum price"), "5");
     await user.type(screen.getByLabelText("Maximum price"), "10");
     await user.click(screen.getByRole("button", { name: "Apply" }));
 
     expect(onApply).toHaveBeenCalledWith("5", "10");
-    expect(pill).toHaveAttribute("aria-expanded", "false");
-    expect(pill).toHaveFocus();
   });
 
-  it("shows the applied range on the pill", () => {
-    const { pill } = setup("", "10");
-    expect(pill).toHaveTextContent(/Up to 10,00/);
+  it("shows the applied range in the fields, and follows it when it changes", () => {
+    const { view } = setup("3", "");
+    expect(screen.getByLabelText("Minimum price")).toHaveValue(3);
+
+    view.rerender(<PriceFilter min="" max="" onApply={vi.fn()} />);
+
+    expect(screen.getByLabelText("Minimum price")).toHaveValue(null);
   });
 
   it("blocks a minimum above the maximum", async () => {
-    const { onApply, pill, user } = setup();
-    await user.click(pill);
+    const { onApply, user } = setup();
 
     await user.type(screen.getByLabelText("Minimum price"), "20");
     await user.type(screen.getByLabelText("Maximum price"), "5");
@@ -62,44 +64,12 @@ describe("PriceFilter", () => {
   });
 
   it("blocks negative prices", async () => {
-    const { onApply, pill, user } = setup();
-    await user.click(pill);
+    const { onApply, user } = setup();
 
     await user.type(screen.getByLabelText("Maximum price"), "-1");
     await user.click(screen.getByRole("button", { name: "Apply" }));
 
     expect(screen.getByRole("alert")).toHaveTextContent("Enter a price of 0 or more.");
     expect(onApply).not.toHaveBeenCalled();
-  });
-
-  it("closes on Escape and drops unapplied edits", async () => {
-    const { onApply, pill, user } = setup("5", "");
-    await user.click(pill);
-    await user.clear(screen.getByLabelText("Minimum price"));
-    await user.type(screen.getByLabelText("Minimum price"), "8");
-
-    await user.keyboard("{Escape}");
-    expect(pill).toHaveAttribute("aria-expanded", "false");
-    expect(pill).toHaveFocus();
-
-    await user.click(pill);
-    expect(screen.getByLabelText("Minimum price")).toHaveValue(5);
-    expect(onApply).not.toHaveBeenCalled();
-  });
-
-  it("closes when clicking outside", async () => {
-    const { pill, user } = setup();
-    await user.click(pill);
-
-    await user.click(screen.getByRole("button", { name: "Outside" }));
-
-    expect(pill).toHaveAttribute("aria-expanded", "false");
-  });
-
-  it("toggles closed when the pill is clicked again", async () => {
-    const { pill, user } = setup();
-    await user.click(pill);
-    await user.click(pill);
-    expect(pill).toHaveAttribute("aria-expanded", "false");
   });
 });

@@ -161,18 +161,18 @@ describe("ProductDetailPage content", () => {
 describe("ProductDetailPage filters", () => {
   beforeEach(() => fetchProduct.mockResolvedValue(ibuprofenDetail));
 
-  it("shows the filters", async () => {
+  it("shows the category aisles", async () => {
     renderPage("1");
     await screen.findByRole("heading", { name: "Ibuprofen 400mg", level: 1 });
 
-    expect(screen.getByRole("group", { name: "Filters" })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Category" })).toBeInTheDocument();
   });
 
-  it("opens the results for a filter", async () => {
+  it("opens the results for a category", async () => {
     const user = userEvent.setup();
     renderPage("1");
 
-    await user.selectOptions(screen.getByRole("combobox", { name: "Category" }), "vitamins");
+    await user.click(screen.getByRole("button", { name: /^Vitamins/ }));
 
     expect(await screen.findByText("Results at /?category=vitamins")).toBeInTheDocument();
   });
