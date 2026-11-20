@@ -12,3 +12,6 @@ export type {
   ProductFilters as ProductFilterValues,
   SearchResponse,
 } from "./types";
+export { fetchProduct } from "./api/fetchProduct";
+export { formatPrice } from "./utils/formatPrice";
+export { formatStock } from "./utils/formatStock";

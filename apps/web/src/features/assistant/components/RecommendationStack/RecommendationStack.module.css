@@ -1,0 +1,118 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stack {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wide {
+  grid-column: 1 / -1;
+}
+
+/* The one entrance in the chat: the shortlist rises out of the reply, one card after another. */
+.item {
+  animation: rise 0.42s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.item:nth-child(2) {
+  animation-delay: 70ms;
+}
+
+.item:nth-child(3) {
+  animation-delay: 140ms;
+}
+
+.item:nth-child(n + 4) {
+  animation-delay: 210ms;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+.note {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.skeletonMedia,
+.skeletonLine {
+  background: var(--accent-soft);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+.skeletonMedia {
+  aspect-ratio: 2 / 1;
+  border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
+}
+
+.wide .skeletonMedia {
+  aspect-ratio: 3 / 1;
+}
+
+.skeletonLine {
+  height: 12px;
+  margin: 0 16px;
+  border-radius: 6px;
+}
+
+.short {
+  width: 40%;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* On a phone the shortlist becomes a row to swipe through; the next card peeks in from the edge. */
+@media (max-width: 639px) {
+  .stack {
+    display: flex;
+    gap: 10px;
+    margin-right: -20px;
+    padding: 0 20px 6px 0;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-left: 0;
+  }
+
+  .stack > * {
+    flex: 0 0 78%;
+    scroll-snap-align: start;
+  }
+
+  .stack > .wide {
+    flex-basis: 86%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .item,
+  .skeletonMedia,
+  .skeletonLine {
+    animation: none;
+  }
+}

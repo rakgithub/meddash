@@ -1,10 +1,24 @@
 import { useEffect, useRef } from "react";
-import type { Message, MessagePart } from "../../types";
+import type { CaseField, Message, MessagePart, QuickReply } from "../../types";
 import { messageText } from "../../utils/consultationReducer";
+import { QuickReplies } from "../QuickReplies/QuickReplies";
+import { RecommendationStack } from "../RecommendationStack/RecommendationStack";
+import { SymptomChips } from "../SymptomChips/SymptomChips";
 import { ThinkingSteps } from "../ThinkingSteps/ThinkingSteps";
 import styles from "./MessageList.module.css";
 
-interface MessageListProps {
+/** What the user can still do with the parts of one reply; a missing handler makes that part read-only. */
+interface PartActions {
+  /** The case file's current symptoms, shown on the latest symptoms part. */
+  symptoms?: string[];
+  onSymptomsChange?: (symptoms: string[]) => void;
+  onAnswer?: (field: CaseField, option: QuickReply) => void;
+  onAskIngredient?: (ingredient: string) => void;
+  /** The option the user picked for this reply's question, i.e. their next message. */
+  selected?: string;
+}
+
+interface MessageListProps extends Omit<PartActions, "selected"> {
   messages: Message[];
   onRetry: () => void;
 }
@@ -17,31 +31,72 @@ function isNearBottom() {
   return window.innerHeight + window.scrollY >= scrollHeight - STICK_THRESHOLD;
 }
 
-function Part({ part, active }: { part: MessagePart; active: boolean }) {
-  if (part.kind === "thinking") return <ThinkingSteps steps={part.steps} active={active} />;
-  return (
-    <div className={styles.text}>
-      {part.text.split(/\n{2,}/).map((paragraph, i) => (
-        <p key={i}>{paragraph}</p>
-      ))}
-    </div>
-  );
+function Part({
+  part,
+  active,
+  actions,
+}: {
+  part: MessagePart;
+  active: boolean;
+  actions: PartActions;
+}) {
+  switch (part.kind) {
+    case "thinking":
+      return <ThinkingSteps steps={part.steps} active={active} />;
+    case "symptoms":
+      return (
+        <SymptomChips
+          symptoms={actions.symptoms ?? part.symptoms}
+          onChange={actions.onSymptomsChange}
+        />
+      );
+    case "quickReplies": {
+      const { onAnswer } = actions;
+      return (
+        <QuickReplies
+          question={part.question}
+          options={part.options}
+          selected={actions.selected}
+          onAnswer={onAnswer && ((option) => onAnswer(part.field, option))}
+        />
+      );
+    }
+    case "products":
+      return (
+        <RecommendationStack
+          items={part.items}
+          loading={part.loading}
+          unavailable={part.unavailable}
+          onAskIngredient={actions.onAskIngredient}
+        />
+      );
+    case "text":
+      return (
+        <div className={styles.text}>
+          {part.text.split(/\n{2,}/).map((paragraph, i) => (
+            <p key={i}>{paragraph}</p>
+          ))}
+        </div>
+      );
+  }
 }
 
 function AssistantMessage({
   message,
   isLast,
   onRetry,
+  actions,
 }: {
   message: Message;
   isLast: boolean;
   onRetry: () => void;
+  actions: PartActions;
 }) {
   const streaming = message.status === "streaming";
   return (
     <div className={streaming ? `${styles.reply} ${styles.streaming}` : styles.reply}>
       {message.parts.map((part, i) => (
-        <Part key={i} part={part} active={streaming} />
+        <Part key={i} part={part} active={streaming} actions={actions} />
       ))}
       {streaming && message.parts.length === 0 && <p className={styles.waiting}>Thinking…</p>}
       {message.status === "stopped" && <p className={styles.note}>Stopped</p>}
@@ -59,7 +114,14 @@ function AssistantMessage({
   );
 }
 
-export function MessageList({ messages, onRetry }: MessageListProps) {
+export function MessageList({
+  messages,
+  onRetry,
+  symptoms,
+  onSymptomsChange,
+  onAnswer,
+  onAskIngredient,
+}: MessageListProps) {
   // A ref, not state: following the conversation never needs a re-render of its own.
   const stickRef = useRef(true);
   const countRef = useRef(messages.length);
@@ -82,6 +144,24 @@ export function MessageList({ messages, onRetry }: MessageListProps) {
   }, [messages]);
 
   const last = messages.at(-1);
+  const idle = last?.status !== "streaming";
+  // Only the most recent list of symptoms is the live, editable case file; older ones are a record.
+  const latestSymptoms = [...messages]
+    .reverse()
+    .find((m) => m.parts.some((p) => p.kind === "symptoms"));
+
+  function actionsFor(message: Message, index: number): PartActions {
+    const next = messages[index + 1];
+    const isLatestSymptoms = message === latestSymptoms;
+    return {
+      symptoms: isLatestSymptoms ? symptoms : undefined,
+      onSymptomsChange: isLatestSymptoms && idle ? onSymptomsChange : undefined,
+      // A question can be answered only while it is the last thing said and the reply has finished.
+      onAnswer: message === last && message.status === "done" ? onAnswer : undefined,
+      onAskIngredient: idle ? onAskIngredient : undefined,
+      selected: next?.role === "user" ? messageText(next) : undefined,
+    };
+  }
   // Announced once the reply is complete, not word by word.
   const announcement =
     last?.role === "assistant" && last.status === "done" ? messageText(last) : "";
@@ -89,7 +169,7 @@ export function MessageList({ messages, onRetry }: MessageListProps) {
   return (
     <>
       <ol className={styles.list}>
-        {messages.map((message) => (
+        {messages.map((message, index) => (
           <li key={message.id} className={message.role === "user" ? styles.fromUser : undefined}>
             <span className="visually-hidden">
               {message.role === "user" ? "You said:" : "Assistant:"}
@@ -97,7 +177,12 @@ export function MessageList({ messages, onRetry }: MessageListProps) {
             {message.role === "user" ? (
               <p className={styles.bubble}>{messageText(message)}</p>
             ) : (
-              <AssistantMessage message={message} isLast={message === last} onRetry={onRetry} />
+              <AssistantMessage
+                message={message}
+                isLast={message === last}
+                onRetry={onRetry}
+                actions={actionsFor(message, index)}
+              />
             )}
           </li>
         ))}

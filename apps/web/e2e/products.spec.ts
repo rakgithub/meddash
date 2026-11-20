@@ -1,7 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
 import { API_URL } from "../playwright.config";
 
-const cards = (page: Page) => page.getByRole("listitem");
+// Scoped to the results, so other lists on the page (like the symptom starters) aren't counted.
+const cards = (page: Page) => page.getByRole("region", { name: "Results" }).getByRole("listitem");
 const search = (page: Page) => page.getByRole("button", { name: "Search" });
 const isSearchCall = (url: string) => new URL(url).pathname === "/api/search";
 

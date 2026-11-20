@@ -140,4 +140,32 @@ describe("useConsultation", () => {
 
     expect(engine.mock.lastCall?.[0].signal.aborted).toBe(true);
   });
+
+  it("echoes a quick-reply answer and passes the updated case file to the engine", async () => {
+    engine.mockImplementation(reply({ kind: "text", text: "Ok." }));
+    const { result } = renderHook(() => useConsultation());
+
+    act(() => result.current.answer("forWhom", { label: "A child", value: "child" }));
+
+    expect(result.current.messages[0].parts).toEqual([{ kind: "text", text: "A child" }]);
+    expect(result.current.caseFile.forWhom).toBe("child");
+    expect(engine.mock.lastCall?.[0]).toMatchObject({
+      userText: "A child",
+      caseFile: { forWhom: "child" },
+    });
+    await waitFor(() => expect(result.current.isStreaming).toBe(false));
+  });
+
+  it("keeps the symptoms the engine found and the user's edits in the case file", async () => {
+    engine.mockImplementation(reply({ kind: "symptoms", symptoms: ["Cough", "Fever"] }));
+    const { result } = renderHook(() => useConsultation());
+
+    act(() => result.current.send("Cough and fever"));
+    await waitFor(() => expect(result.current.caseFile.symptoms).toEqual(["Cough", "Fever"]));
+    act(() => result.current.setSymptoms(["Cough"]));
+    await waitFor(() => expect(result.current.isStreaming).toBe(false));
+    act(() => result.current.send("Since today"));
+
+    expect(engine.mock.lastCall?.[0].caseFile.symptoms).toEqual(["Cough"]);
+  });
 });

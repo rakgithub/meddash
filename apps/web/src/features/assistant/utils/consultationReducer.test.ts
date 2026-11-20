@@ -97,6 +97,71 @@ describe("consultationReducer", () => {
   });
 });
 
+describe("consultationReducer case file", () => {
+  it("adds the symptoms the assistant found to the case file", () => {
+    let state = consultationReducer(sent, {
+      type: "part",
+      id: "a1",
+      part: { kind: "symptoms", symptoms: ["Sore throat", "Fever"] },
+    });
+    state = consultationReducer(state, {
+      type: "part",
+      id: "a1",
+      part: { kind: "symptoms", symptoms: ["fever", "Cough"] },
+    });
+
+    expect(state.caseFile.symptoms).toEqual(["Sore throat", "Fever", "Cough"]);
+  });
+
+  it("ignores symptoms that arrive after the reply finished", () => {
+    const stopped = consultationReducer(sent, { type: "finish", id: "a1", status: "stopped" });
+    const late = consultationReducer(stopped, {
+      type: "part",
+      id: "a1",
+      part: { kind: "symptoms", symptoms: ["Fever"] },
+    });
+
+    expect(late).toBe(stopped);
+  });
+
+  it("replaces a products snapshot with the next one", () => {
+    let state = consultationReducer(sent, {
+      type: "part",
+      id: "a1",
+      part: { kind: "products", items: [], loading: 2 },
+    });
+    state = consultationReducer(state, {
+      type: "part",
+      id: "a1",
+      part: { kind: "products", items: [], unavailable: 2 },
+    });
+
+    expect(reply(state).parts).toEqual([{ kind: "products", items: [], unavailable: 2 }]);
+  });
+
+  it("stores a quick-reply answer sent with the message", () => {
+    const state = consultationReducer(initialConsultation, {
+      type: "send",
+      userId: "u1",
+      assistantId: "a1",
+      text: "A child",
+      answer: { field: "forWhom", value: "child" },
+    });
+
+    expect(state.caseFile.forWhom).toBe("child");
+    expect(state.messages[0].parts).toEqual([{ kind: "text", text: "A child" }]);
+  });
+
+  it("replaces the symptoms when the user edits the chips", () => {
+    const state = consultationReducer(sent, {
+      type: "setSymptoms",
+      symptoms: ["Cough", " cough ", "Headache"],
+    });
+
+    expect(state.caseFile.symptoms).toEqual(["Cough", "Headache"]);
+  });
+});
+
 describe("messageText", () => {
   it("joins the text parts and skips the thinking steps", () => {
     const message: Message = {

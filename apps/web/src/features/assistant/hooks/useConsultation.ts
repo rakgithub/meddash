@@ -1,6 +1,7 @@
 import { useEffect, useReducer, useRef } from "react";
 import { mockEngine } from "../api/mockEngine";
-import type { Message } from "../types";
+import type { CaseField, CaseFile, Message, QuickReply } from "../types";
+import { applyAnswer } from "../utils/caseFile";
 import {
   consultationReducer,
   initialConsultation,
@@ -19,7 +20,12 @@ export function useConsultation() {
   // Leaving the page cancels a reply in progress.
   useEffect(() => () => controllerRef.current?.abort(), []);
 
-  async function run(assistantId: string, history: Message[], userText: string) {
+  async function run(
+    assistantId: string,
+    history: Message[],
+    userText: string,
+    caseFile: CaseFile,
+  ) {
     const controller = new AbortController();
     controllerRef.current = controller;
     const { signal } = controller;
@@ -33,7 +39,7 @@ export function useConsultation() {
     };
 
     try {
-      for await (const part of mockEngine({ history, userText, signal })) {
+      for await (const part of mockEngine({ caseFile, history, userText, signal })) {
         if (signal.aborted) break;
         if (buffer && part.kind === "text") {
           pending += part.text;
@@ -55,15 +61,30 @@ export function useConsultation() {
     }
   }
 
-  const { messages } = state;
+  const { messages, caseFile } = state;
   const isStreaming = messages.at(-1)?.status === "streaming";
 
-  function send(text: string) {
+  function start(text: string, answer?: { field: CaseField; value: string }) {
     const trimmed = text.trim();
     if (!trimmed || isStreaming) return;
     const assistantId = crypto.randomUUID();
-    dispatch({ type: "send", userId: crypto.randomUUID(), assistantId, text: trimmed });
-    void run(assistantId, messages, trimmed);
+    dispatch({ type: "send", userId: crypto.randomUUID(), assistantId, text: trimmed, answer });
+    // The reducer applies the same answer; the engine needs it now, before the next render.
+    const nextCaseFile = answer ? applyAnswer(caseFile, answer.field, answer.value) : caseFile;
+    void run(assistantId, messages, trimmed, nextCaseFile);
+  }
+
+  function send(text: string) {
+    start(text);
+  }
+
+  /** A tapped quick reply: echoed as the user's message and stored in the case file. */
+  function answer(field: CaseField, option: QuickReply) {
+    start(option.label, { field, value: option.value });
+  }
+
+  function setSymptoms(symptoms: string[]) {
+    dispatch({ type: "setSymptoms", symptoms });
   }
 
   function stop() {
@@ -76,8 +97,13 @@ export function useConsultation() {
     if (lastUserIndex === -1 || isStreaming) return;
     const assistantId = crypto.randomUUID();
     dispatch({ type: "retry", assistantId });
-    void run(assistantId, messages.slice(0, lastUserIndex), messageText(messages[lastUserIndex]));
+    void run(
+      assistantId,
+      messages.slice(0, lastUserIndex),
+      messageText(messages[lastUserIndex]),
+      caseFile,
+    );
   }
 
-  return { messages, isStreaming, send, stop, retry };
+  return { messages, caseFile, isStreaming, send, answer, setSymptoms, stop, retry };
 }

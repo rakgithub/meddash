@@ -1,6 +1,6 @@
 # Symptom assistant plan — frontend first
 
-Status: S1 done 2026-11-20. Roadmap entry: [`docs/PLAN.md`](../PLAN.md#track--symptom-assistant-ai-chat).
+Status: S1 and S2 done 2026-11-20. Roadmap entry: [`docs/PLAN.md`](../PLAN.md#track--symptom-assistant-ai-chat).
 
 A chat where a customer describes symptoms and gets suggested over-the-counter products from the catalogue,
 shown as product cards inside the chat. It should feel like a pharmacist at the counter: a short guided
@@ -107,22 +107,37 @@ Notes from the build (2026-11-20):
 
 The goal is a chat whose replies are things the user can tap, not only text.
 
-- [ ] `SymptomChips`: the symptoms the assistant pulled from the user's text, shown as chips with remove (×) and
+- [x] `SymptomChips`: the symptoms the assistant pulled from the user's text, shown as chips with remove (×) and
       "+ add". Editing them updates the case file.
-- [ ] `QuickReplies`: one question with 2–5 option buttons (duration, who it is for, dosage-form preference). The
+- [x] `QuickReplies`: one question with 2–5 option buttons (duration, who it is for, dosage-form preference). The
       choice is echoed as a user message and the old options become read-only.
-- [ ] `ChatProductCard`: image, name, brand, dosage-form icon (tablet, syrup, spray, cream), price, stock badge
+- [x] `ChatProductCard`: image, name, brand, dosage-form icon (tablet, syrup, spray, cream), price, stock badge
       (reuses `formatStock` / `formatPrice`), and a **"Why this?"** line. Links to `/products/:id`.
-- [ ] `RecommendationStack`: cards slide up from the message, with the "Best fit" card slightly larger. On mobile
+- [x] `RecommendationStack`: cards slide up from the message, with the "Best fit" card slightly larger. On mobile
       it becomes a horizontal scroll-snap carousel.
-- [ ] Ingredient pills on each card. Tapping one sends "Tell me about <ingredient>". The mock answers in one line
+- [x] Ingredient pills on each card. Tapping one sends "Tell me about <ingredient>". The mock answers in one line
       and offers same-ingredient alternatives. A cheaper generic is labelled "same ingredient, €X cheaper".
-- [ ] Prescription-only items render `fit: "locked"`: greyed out with "Needs a prescription" and a link to the
+- [x] Prescription-only items render `fit: "locked"`: greyed out with "Needs a prescription" and a link to the
       existing `UploadPrescriptionButton` flow.
-- [ ] Loading skeleton for cards while `fetchProduct` resolves. A card whose fetch fails is dropped quietly, with
+- [x] Loading skeleton for cards while `fetchProduct` resolves. A card whose fetch fails is dropped quietly, with
       a short "1 suggestion unavailable" note.
-- [ ] Tests: each component, plus a keyboard-only path through quick replies and cards. e2e: symptoms → answer 2
+- [x] Tests: each component, plus a keyboard-only path through quick replies and cards. e2e: symptoms → answer 2
       questions → see product cards → open one.
+
+Notes from the build (2026-11-20):
+
+- The mock asks two questions (how long, who it is for) before recommending. Dosage-form preference is left
+  for S4, where `avoid` gets used.
+- `products` parts are snapshots like `thinking`: the mock first sends `{ items: [], loading: n }` for the
+  skeletons, then the loaded cards with an `unavailable` count. Product data comes through `fetchProduct`.
+- `rankRecommendations` already forces prescription-only products to `locked` and sorts them last; S3 still
+  moves that rule into the reducer.
+- The catalogue is small, so some flows suggest one product (hay fever, sleep) and upset stomach suggests
+  none, saying so in the reply.
+- "Tell me about <ingredient>" compares against the priciest suggested product with that ingredient, so a
+  cheaper one is labelled "Same ingredient, X € cheaper".
+- The chips show the live case file only on the latest symptom list; older lists and answered questions
+  stay as a read-only record. The chosen answer is derived from the next user message.
 
 ## Phase S3 — Safety layer
 

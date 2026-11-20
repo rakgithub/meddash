@@ -1,0 +1,45 @@
+.nudge {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  padding: 16px 20px;
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.body {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.action {
+  flex-shrink: 0;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--on-accent);
+  text-decoration: none;
+  background: var(--accent);
+  border-radius: 999px;
+}
+
+.action:hover {
+  background: var(--accent-hover);
+}

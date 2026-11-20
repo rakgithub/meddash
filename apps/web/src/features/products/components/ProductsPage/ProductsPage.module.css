@@ -21,28 +21,6 @@
   letter-spacing: -0.02em;
 }
 
-.headerAside {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: flex-end;
-  gap: 8px 16px;
-}
-
-/* Quieter than the filters: a way out for people who can't name what they're looking for. */
-.assistantLink {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--accent-hover);
-  text-decoration: underline;
-  text-decoration-thickness: 1.5px;
-  text-underline-offset: 3px;
-}
-
-.assistantLink:hover {
-  color: var(--accent);
-}
-
 .header p {
   font-size: 14px;
   color: var(--text-muted);

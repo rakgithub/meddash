@@ -2,6 +2,7 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as engineModule from "../../api/mockEngine";
+import { ibuprofenDetail } from "../../../../test/fixtures";
 import { renderWithRouter } from "../../../../test/renderWithRouter";
 import { AssistantPage } from "./AssistantPage";
 
@@ -50,5 +51,48 @@ describe("AssistantPage", () => {
     expect(screen.getByRole("textbox", { name: "Describe your symptoms" })).toHaveValue(
       "ibuprofen",
     );
+  });
+
+  it("can be used by keyboard alone: answer a question, then open a suggested product", async () => {
+    engine
+      .mockImplementationOnce(async function* () {
+        yield { kind: "symptoms", symptoms: ["Sore throat"] };
+        yield {
+          kind: "quickReplies",
+          question: "How long has it been going on?",
+          field: "duration",
+          options: [
+            { label: "Since today", value: "today" },
+            { label: "2–3 days", value: "2-3 days" },
+          ],
+        };
+      })
+      .mockImplementationOnce(async function* () {
+        yield {
+          kind: "products",
+          items: [{ product: ibuprofenDetail, reason: "Brings fever down", fit: "best" }],
+        };
+      });
+    const user = userEvent.setup();
+    renderWithRouter(<AssistantPage />, "/assistant");
+
+    await user.click(screen.getByRole("textbox", { name: "Describe your symptoms" }));
+    await user.keyboard("Sore throat{Enter}");
+    const option = await screen.findByRole("button", { name: "2–3 days" });
+
+    // Tab from the message box back to the answer, then press it.
+    while (document.activeElement !== option) await user.tab({ shift: true });
+    await user.keyboard("{Enter}");
+
+    expect(engine).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        userText: "2–3 days",
+        caseFile: expect.objectContaining({ duration: "2-3 days" }),
+      }),
+    );
+    const link = await screen.findByRole("link", { name: "Ibuprofen 400mg" });
+    expect(screen.queryByRole("button", { name: "2–3 days" })).not.toBeInTheDocument();
+    while (document.activeElement !== link) await user.tab({ shift: true });
+    expect(link).toHaveAttribute("href", "/products/1");
   });
 });

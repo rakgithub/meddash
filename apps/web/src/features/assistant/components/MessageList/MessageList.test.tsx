@@ -1,7 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { Message } from "../../types";
+import { ibuprofenDetail } from "../../../../test/fixtures";
+import { renderWithRouter } from "../../../../test/renderWithRouter";
+import type { Message, MessagePart } from "../../types";
 import { MessageList } from "./MessageList";
 
 const question: Message = {
@@ -95,7 +97,8 @@ describe("MessageList", () => {
     expect(scrollTo).toHaveBeenCalledOnce();
 
     // Scrolled far from the bottom of a long page.
-    vi.spyOn(document.documentElement, "scrollHeight", "get").mockReturnValue(5000);
+    // Spied on the prototype that owns the getter: restoring an instance spy of an inherited getter recurses.
+    vi.spyOn(Element.prototype, "scrollHeight", "get").mockReturnValue(5000);
     window.dispatchEvent(new Event("scroll"));
     scrollTo.mockClear();
     rerender(
@@ -110,5 +113,140 @@ describe("MessageList", () => {
       />,
     );
     expect(scrollTo).toHaveBeenCalledOnce();
+  });
+
+  describe("structured parts", () => {
+    const reply = (
+      id: string,
+      parts: MessagePart[],
+      status: Message["status"] = "done",
+    ): Message => ({
+      id,
+      role: "assistant",
+      parts,
+      status,
+    });
+    const said = (id: string, text: string): Message => ({
+      id,
+      role: "user",
+      parts: [{ kind: "text", text }],
+      status: "done",
+    });
+    const durationQuestion: MessagePart = {
+      kind: "quickReplies",
+      question: "How long?",
+      field: "duration",
+      options: [
+        { label: "Since today", value: "today" },
+        { label: "Longer", value: "longer" },
+      ],
+    };
+
+    it("shows the case file's symptoms on the latest symptom list, editable", async () => {
+      const onSymptomsChange = vi.fn();
+      render(
+        <MessageList
+          messages={[
+            question,
+            reply("a1", [{ kind: "symptoms", symptoms: ["Old"] }]),
+            said("u2", "Cough too"),
+            reply("a2", [{ kind: "symptoms", symptoms: ["Cough"] }]),
+          ]}
+          symptoms={["Sneezing", "Cough"]}
+          onSymptomsChange={onSymptomsChange}
+          onRetry={() => {}}
+        />,
+      );
+
+      const [older, latest] = screen.getAllByRole("list", { name: "What I noted" });
+      expect(older).toHaveTextContent("Old");
+      expect(latest).toHaveTextContent("SneezingCough");
+      await userEvent.click(screen.getByRole("button", { name: "Remove Sneezing" }));
+      expect(onSymptomsChange).toHaveBeenCalledWith(["Cough"]);
+      expect(screen.queryByRole("button", { name: "Remove Old" })).not.toBeInTheDocument();
+    });
+
+    it("keeps the symptoms read-only while a reply streams", () => {
+      render(
+        <MessageList
+          messages={[
+            question,
+            reply("a1", [{ kind: "symptoms", symptoms: ["Cough"] }], "streaming"),
+          ]}
+          symptoms={["Cough"]}
+          onSymptomsChange={() => {}}
+          onRetry={() => {}}
+        />,
+      );
+
+      expect(screen.queryByRole("button", { name: "Remove Cough" })).not.toBeInTheDocument();
+    });
+
+    it("lets the user answer the last question", async () => {
+      const onAnswer = vi.fn();
+      render(
+        <MessageList
+          messages={[question, reply("a1", [durationQuestion])]}
+          onAnswer={onAnswer}
+          onRetry={() => {}}
+        />,
+      );
+
+      await userEvent.click(screen.getByRole("button", { name: "Longer" }));
+
+      expect(onAnswer).toHaveBeenCalledWith("duration", { label: "Longer", value: "longer" });
+    });
+
+    it("shows an answered question read-only with the user's answer marked", () => {
+      render(
+        <MessageList
+          messages={[
+            question,
+            reply("a1", [durationQuestion]),
+            said("u2", "Longer"),
+            reply("a2", [], "streaming"),
+          ]}
+          onAnswer={() => {}}
+          onRetry={() => {}}
+        />,
+      );
+
+      expect(screen.queryByRole("button", { name: "Longer" })).not.toBeInTheDocument();
+      expect(screen.getByText("Longer", { selector: "span" })).toHaveTextContent(
+        "Longer (your answer)",
+      );
+    });
+
+    it("shows product cards and asks about an ingredient only when idle", async () => {
+      const onAskIngredient = vi.fn();
+      const products: MessagePart = {
+        kind: "products",
+        items: [{ product: ibuprofenDetail, reason: "Brings fever down", fit: "best" }],
+      };
+      const { rerender } = renderWithRouter(
+        <MessageList
+          messages={[question, reply("a1", [products])]}
+          onAskIngredient={onAskIngredient}
+          onRetry={() => {}}
+        />,
+      );
+
+      await userEvent.click(screen.getByRole("button", { name: "Ask about Ibuprofen" }));
+      expect(onAskIngredient).toHaveBeenCalledWith("Ibuprofen");
+
+      rerender(
+        <MessageList
+          messages={[
+            question,
+            reply("a1", [products]),
+            said("u2", "Hi"),
+            reply("a2", [], "streaming"),
+          ]}
+          onAskIngredient={onAskIngredient}
+          onRetry={() => {}}
+        />,
+      );
+      expect(screen.queryByRole("button", { name: "Ask about Ibuprofen" })).not.toBeInTheDocument();
+    });
   });
 });

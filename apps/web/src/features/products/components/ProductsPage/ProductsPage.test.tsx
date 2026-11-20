@@ -84,27 +84,49 @@ describe("ProductsPage search and filters", () => {
   });
 });
 
-describe("ProductsPage assistant link", () => {
-  // Braces matter: a function returned from beforeEach runs as teardown, and this mock would hang it.
-  beforeEach(() => {
+describe("ProductsPage assistant entry points", () => {
+  const empty = { items: [], pagination: { page: 1, pageSize: 10, total: 0, totalPages: 0 } };
+  const found = {
+    items: [ibuprofen],
+    pagination: { page: 1, pageSize: 10, total: 1, totalPages: 1 },
+  };
+
+  it("offers symptom starters when there is no search", () => {
     searchProducts.mockReturnValue(new Promise(() => {}));
+    renderWithRouter(<ProductsPage />);
+
+    expect(screen.getByRole("region", { name: /Start with how you feel/ })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Ask the assistant" })).not.toBeInTheDocument();
   });
 
-  it("opens the assistant with the current search text", () => {
+  it("points a symptom search to the assistant with the search text", () => {
+    searchProducts.mockReturnValue(new Promise(() => {}));
     renderWithRouter(<ProductsPage />, "/?q=sore throat");
 
-    expect(screen.getByRole("link", { name: "Not sure what you need?" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Ask the assistant" })).toHaveAttribute(
       "href",
       "/assistant?q=sore+throat",
     );
+    expect(
+      screen.queryByRole("region", { name: /Start with how you feel/ }),
+    ).not.toBeInTheDocument();
   });
 
-  it("opens an empty assistant when there is no search", () => {
-    renderWithRouter(<ProductsPage />);
+  it("points a search that found nothing to the assistant", async () => {
+    searchProducts.mockResolvedValue(empty);
+    renderWithRouter(<ProductsPage />, "/?q=xyz");
 
-    expect(screen.getByRole("link", { name: "Not sure what you need?" })).toHaveAttribute(
-      "href",
-      "/assistant",
-    );
+    expect(await screen.findByText("Nothing matches “xyz”")).toBeInTheDocument();
+  });
+
+  it("stays out of the way when a product search finds results", async () => {
+    searchProducts.mockResolvedValue(found);
+    renderWithRouter(<ProductsPage />, "/?q=ibu");
+
+    await screen.findByText("Showing 1 of 1 result");
+    expect(screen.queryByRole("link", { name: "Ask the assistant" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("region", { name: /Start with how you feel/ }),
+    ).not.toBeInTheDocument();
   });
 });

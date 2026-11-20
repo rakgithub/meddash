@@ -56,7 +56,9 @@ test.describe("Product detail", () => {
     await page.getByLabel("Category").selectOption("skin-care");
 
     await expect(page).toHaveURL(/\/\?category=skin-care$/);
-    await expect(page.getByRole("listitem")).toHaveCount(3);
+    await expect(page.getByRole("region", { name: "Results" }).getByRole("listitem")).toHaveCount(
+      3,
+    );
   });
 
   test("a card opens the product when clicked anywhere on it", async ({ page }) => {
