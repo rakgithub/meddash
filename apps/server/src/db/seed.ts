@@ -13,10 +13,11 @@ if (process.env.NODE_ENV === "production" || !["localhost", "127.0.0.1", "[::1]"
   process.exit(1);
 }
 
-// Truncate and re-insert: replaces all products.
+// Truncate and re-insert: replaces all products. CASCADE also empties cart_items, whose
+// product ids would no longer mean the same products.
 try {
   await db.transaction(async (tx) => {
-    await tx.execute(sql`TRUNCATE ${products} RESTART IDENTITY`);
+    await tx.execute(sql`TRUNCATE ${products} RESTART IDENTITY CASCADE`);
     await tx
       .insert(products)
       .values(seedProducts.map((p) => ({ ...p, id: Number(p.id), price: p.price.toFixed(2) })));

@@ -1,11 +1,13 @@
 import { sql } from "drizzle-orm";
 import {
   boolean,
+  check,
   index,
   integer,
   numeric,
   pgEnum,
   pgTable,
+  primaryKey,
   text,
   timestamp,
 } from "drizzle-orm/pg-core";
@@ -66,3 +68,39 @@ export const users = pgTable("users", {
 });
 
 export type UserRow = typeof users.$inferSelect;
+
+const timestamps = {
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+};
+
+// One cart per user, created on the first add.
+export const carts = pgTable("carts", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer("user_id")
+    .notNull()
+    .unique()
+    .references(() => users.id, { onDelete: "cascade" }),
+  ...timestamps,
+});
+
+export const cartItems = pgTable(
+  "cart_items",
+  {
+    cartId: integer("cart_id")
+      .notNull()
+      .references(() => carts.id, { onDelete: "cascade" }),
+    productId: integer("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    quantity: integer().notNull(),
+    ...timestamps,
+  },
+  (t) => [
+    primaryKey({ columns: [t.cartId, t.productId] }),
+    check("cart_items_quantity_positive", sql`${t.quantity} > 0`),
+  ],
+);

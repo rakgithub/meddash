@@ -1,5 +1,11 @@
 import { OpenAPIRegistry, OpenApiGeneratorV3 } from "@asteasolutions/zod-to-openapi";
 import "./extend.js";
+import {
+  addCartItemBodySchema,
+  cartItemParamsSchema,
+  cartSchema,
+  updateCartItemBodySchema,
+} from "../schemas/cart.schema.js";
 import { loginBodySchema, registerBodySchema, userSchema } from "../schemas/auth.schema.js";
 import {
   productDetailSchema,
@@ -74,6 +80,72 @@ registry.registerPath({
   responses: {
     200: { description: "The signed-in user", ...json(userSchema) },
     401: { description: "Not signed in or session expired", ...json(errorResponseSchema) },
+  },
+});
+
+const cartAuth = [{ [cookieAuth.name]: [] }];
+const cartResponses = {
+  200: { description: "The whole cart after the change", ...json(cartSchema) },
+  401: { description: "Not signed in or session expired", ...json(errorResponseSchema) },
+};
+const cartChangeErrors = {
+  400: { description: "Invalid body or product id", ...json(errorResponseSchema) },
+  404: { description: "Unknown product", ...json(errorResponseSchema) },
+  409: {
+    description: "Prescription-only, out of stock, or more than the stock or the per-product limit",
+    ...json(errorResponseSchema),
+  },
+};
+
+registry.registerPath({
+  method: "get",
+  path: "/cart",
+  summary: "The signed-in user's cart",
+  description: "Prices are the current ones from the catalogue. Empty when nothing was added yet.",
+  tags: ["Cart"],
+  security: cartAuth,
+  responses: { ...cartResponses, 200: { description: "The cart", ...json(cartSchema) } },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/cart/items",
+  summary: "Add a product to the cart",
+  description: "Adds `quantity` to what is already in the cart for that product.",
+  tags: ["Cart"],
+  security: cartAuth,
+  request: { body: { required: true, ...json(addCartItemBodySchema) } },
+  responses: { ...cartResponses, ...cartChangeErrors },
+});
+
+registry.registerPath({
+  method: "patch",
+  path: "/cart/items/{productId}",
+  summary: "Set the quantity of a cart line",
+  tags: ["Cart"],
+  security: cartAuth,
+  request: {
+    params: cartItemParamsSchema,
+    body: { required: true, ...json(updateCartItemBodySchema) },
+  },
+  responses: {
+    ...cartResponses,
+    ...cartChangeErrors,
+    404: { description: "Unknown product, or not in the cart", ...json(errorResponseSchema) },
+  },
+});
+
+registry.registerPath({
+  method: "delete",
+  path: "/cart/items/{productId}",
+  summary: "Remove a product from the cart",
+  description: "Succeeds when the product was not in the cart.",
+  tags: ["Cart"],
+  security: cartAuth,
+  request: { params: cartItemParamsSchema },
+  responses: {
+    ...cartResponses,
+    400: { description: "Invalid product id", ...json(errorResponseSchema) },
   },
 });
 
