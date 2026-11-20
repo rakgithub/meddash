@@ -1,61 +1,158 @@
-# MedDash
+<div align="center">
 
-MedDash is an online pharmacy: browse and search medicines, vitamins, cold and flu remedies and skin care. A React frontend and an Express API in a pnpm monorepo.
+# 💊 MedDash
 
-| App                          | Stack                           | Port |
-| ---------------------------- | ------------------------------- | ---- |
-| [`apps/web`](apps/web)       | React 18, Vite, TypeScript      | 5173 |
-| [`apps/server`](apps/server) | Express, zod, OpenAPI (Swagger) | 3001 |
+**An online pharmacy you can run on your laptop.**
+Search the shelves, read the label, ask the pharmacist.
 
-## Getting started
+React 18 · Vite · TypeScript · Express · zod · Postgres · Drizzle
 
-Requires Node.js 22+, [pnpm](https://pnpm.io) (version pinned in `package.json`) and Docker.
+</div>
 
-```bash
-pnpm install
-cp apps/server/.env.example apps/server/.env
-docker compose up -d   # or: pnpm db:up
-pnpm db:migrate
-pnpm db:seed
-pnpm dev
+![MedDash product search, light theme](docs/screenshots/blister-theme/products-light-desktop.png)
+
+---
+
+## 🏪 The pharmacy in one picture
+
+Think of MedDash as a small pharmacy. Each part of the code has a job in the shop:
+
+| In the shop             | In the code                                  | Where                                   |
+| ----------------------- | -------------------------------------------- | --------------------------------------- |
+| 🪟 Shop window & aisles | Search, filters, product cards, detail pages | [`apps/web`](apps/web) · port **5173**  |
+| 🧑‍⚕️ The counter          | Express API that answers every question      | [`apps/server`](apps/server) · **3001** |
+| 🗄️ The stock room       | Postgres 16 in Docker                        | host port **5433**                      |
+| 📋 The rulebook         | zod schemas: what a valid request looks like | `apps/server/src/schemas`               |
+
+```mermaid
+flowchart LR
+  You([🙂 Customer]) --> Web["🪟 Web app<br/>React + Vite :5173"]
+  Web -- "/api/*" --> API["🧑‍⚕️ API<br/>Express + zod :3001"]
+  API --> DB[("🗄️ Postgres<br/>:5433")]
 ```
 
-Postgres 16 runs in Docker on host port **5433** (so it doesn't clash with a local Postgres on 5432). It holds two databases: `meddash` for development and `meddash_test`, which the server tests migrate and seed themselves. `pnpm db:seed` replaces all products with the seed catalogue (it refuses to run in production or against a non-local database); `pnpm db:down` stops the container and keeps the data volume.
+A request walks the same path every time: **route → controller → service → db**. The Vite dev server forwards
+anything under `/api` to the API, so the browser only ever talks to one address.
 
-Open <http://localhost:5173>. Vite proxies `/api/*` to the server on `:3001`.
+---
 
-## Features
+## 🔑 Open the shop in 5 steps
 
-- Find medicines by name, category, brand and price range; sort and paginate results.
-- **Autocomplete** on the Name field: suggestions as you type, driven by `GET /search/suggest`.
-  - Debounced (250 ms, minimum 2 characters); a new keystroke cancels the previous request, so stale responses never overwrite newer ones.
-  - Accessible combobox: Up/Down arrows (wrapping), Enter to pick, Escape to close, `aria-activedescendant`, and a live status for result count, empty and error states.
+You need **Node.js 22+**, **[pnpm](https://pnpm.io)** (version pinned in `package.json`) and **Docker**.
 
-![Autocomplete on desktop](docs/screenshots/search-autocomplete/desktop.png)
+```bash
+pnpm install                                   # 1. bring in the supplies
+cp apps/server/.env.example apps/server/.env   # 2. cut the keys (set JWT_SECRET, see below)
+pnpm db:up                                     # 3. unlock the stock room (Postgres in Docker)
+pnpm db:migrate && pnpm db:seed                # 4. build the shelves and stock them
+pnpm dev                                       # 5. open the doors
+```
 
-## API
+Then walk in at **<http://localhost:5173>** 🎉
 
-Interactive docs: <http://localhost:3001/docs> (raw spec at `/openapi.json`).
+<details>
+<summary>🔐 What goes in <code>.env</code>?</summary>
 
-| Endpoint              | Description                                                                                                                |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `GET /products`       | Every product in the catalogue                                                                                             |
-| `GET /products/:id`   | One product with every detail field (404 if unknown, 400 for a malformed id)                                               |
-| `GET /search`         | Search with `q`, `category`, `brand`, `minPrice`, `maxPrice`, `sort`, `page`                                               |
-| `GET /search/facets`  | Counts per category and brand plus the price spread, for the same filters as `/search` (each facet ignores its own filter) |
-| `GET /search/suggest` | Up to 5 products whose name or brand starts with `q` (case-insensitive, names first)                                       |
-| `POST /auth/register` | Create an account (`email`, `password` min 8, `name`) and sign in; 409 if the email exists                                 |
-| `POST /auth/login`    | Sign in; 401 `Invalid email or password` for either a wrong email or wrong password                                        |
-| `POST /auth/logout`   | Clear the session cookie (204)                                                                                             |
-| `GET /auth/me`        | The signed-in user; 401 without a valid session                                                                            |
+| Variable       | Needed? | What it is                                                   |
+| -------------- | ------- | ------------------------------------------------------------ |
+| `DATABASE_URL` | yes     | Where the stock room is                                      |
+| `JWT_SECRET`   | yes     | At least 32 characters. Make one with `openssl rand -hex 32` |
+| `PORT`         | no      | API port, defaults to 3001                                   |
+| `NODE_ENV`     | no      | `production` turns on `Secure` cookies                       |
 
-Invalid input returns `400` with `{ error: { message, details } }`. The server reads `PORT`, `DATABASE_URL` (required), `JWT_SECRET` (required, at least 32 characters, e.g. `openssl rand -hex 32`) and `NODE_ENV` from the environment or `apps/server/.env`, and exits with a readable message if any is invalid.
+The server checks these at startup and stops with a readable message if one is wrong.
 
-Authentication is a JWT (HS256, 7 days) in an `httpOnly`, `SameSite=Lax` cookie named `session`, marked `Secure` when `NODE_ENV=production`. Passwords are hashed with Node's built-in scrypt. Logging out clears the cookie; the token itself stays valid until it expires.
+</details>
 
-## Scripts
+<details>
+<summary>🗄️ More about the stock room</summary>
 
-Run from the repo root.
+- Postgres runs on host port **5433**, so it doesn't fight with a Postgres you may already have on 5432.
+- It holds two databases: `meddash` for you, and `meddash_test`, which the server tests set up themselves.
+- `pnpm db:seed` throws out all products and restocks from the seed catalogue. It refuses to run in production or
+  against a database that isn't local.
+- `pnpm db:down` closes the stock room but keeps the data.
+
+</details>
+
+---
+
+## 🛍️ Take the tour
+
+### 1. Find it
+
+Type a name and suggestions appear as you go. Browse by aisle (pain relief, cold & flu, vitamins, skin care),
+narrow down by brand and price, and see how prices are spread before you pick a range.
+
+- Autocomplete waits 250 ms and needs 2 letters. A new keystroke cancels the old request, so an old answer never
+  overwrites a newer one.
+- Fully keyboard friendly: ↑ ↓ to move, Enter to pick, Esc to close, and screen readers hear the result count.
+
+![Autocomplete](docs/screenshots/search-autocomplete/desktop.png)
+
+### 2. Read the label
+
+Every product has its own page: active ingredients, how to use it, warnings, pack size and PZN.
+Prescription-only medicines are clearly marked and can't be bought without a prescription.
+
+![Product detail](docs/screenshots/blister-theme/detail-light-desktop.png)
+
+### 3. Ask the pharmacist
+
+Not sure what you need? The **symptom assistant** at `/assistant` works like a short chat at the counter. Describe
+your symptoms, or tap where it hurts on the body map, and it suggests real products from the catalogue.
+
+- 🚨 Safety first: red-flag symptoms tell you to see a doctor instead of offering a product.
+- 🗂️ A case file remembers what you told it. Refine the answer or start over.
+- ⚖️ Compare suggestions side by side.
+
+| Body map                                                    | Compare                                                              |
+| ----------------------------------------------------------- | -------------------------------------------------------------------- |
+| ![Body map](docs/screenshots/body-map/body-map-desktop.png) | ![Compare](docs/screenshots/compare-mode/compare-drawer-desktop.png) |
+
+> The assistant runs on a scripted mock engine in the browser for now. The real AI backend plugs in later by
+> replacing one file. Plan: [`docs/plans/symptom-assistant-frontend.md`](docs/plans/symptom-assistant-frontend.md).
+
+### 4. Become a regular
+
+Create an account, log in, log out. Your session lives in a secure cookie.
+Light or dark? Your choice, and the shop remembers it.
+
+---
+
+## 🧑‍⚕️ Talk to the counter (API)
+
+Interactive docs live at **<http://localhost:3001/docs>** (raw spec: `/openapi.json`).
+
+| Ask                   | And you get                                                                                   |
+| --------------------- | --------------------------------------------------------------------------------------------- |
+| `GET /products`       | Every product in the catalogue                                                                |
+| `GET /products/:id`   | One product with all its details (404 if unknown, 400 for a malformed id)                     |
+| `GET /search`         | Search with `q`, `category`, `brand`, `minPrice`, `maxPrice`, `sort`, `page`                  |
+| `GET /search/facets`  | Counts per category and brand plus the price spread (each filter ignores its own choice)      |
+| `GET /search/suggest` | Up to 5 products whose name or brand starts with `q` (names first)                            |
+| `POST /auth/register` | Create an account (`email`, `password` min 8, `name`) and sign in; 409 if the email is taken  |
+| `POST /auth/login`    | Sign in; a wrong email and a wrong password both get the same 401 `Invalid email or password` |
+| `POST /auth/logout`   | Clear the session cookie (204)                                                                |
+| `GET /auth/me`        | Who is signed in; 401 without a valid session                                                 |
+
+Bad input gets a `400` with `{ error: { message, details } }`.
+
+<details>
+<summary>🔒 How sign-in works</summary>
+
+- A JWT (HS256, valid 7 days) in an `httpOnly`, `SameSite=Lax` cookie named `session`, marked `Secure` when
+  `NODE_ENV=production`.
+- Passwords are hashed with Node's built-in scrypt.
+- Logging out clears the cookie. The token itself stays valid until it expires.
+
+</details>
+
+---
+
+## 🧰 The toolbox
+
+Run everything from the repo root.
 
 | Command              | What it does                                         |
 | -------------------- | ---------------------------------------------------- |
@@ -63,9 +160,9 @@ Run from the repo root.
 | `pnpm dev:web`       | Web only                                             |
 | `pnpm dev:server`    | API only                                             |
 | `pnpm db:up`         | Start Postgres in Docker and wait until healthy      |
-| `pnpm db:down`       | Stop Postgres (data volume is kept)                  |
+| `pnpm db:down`       | Stop Postgres (data is kept)                         |
 | `pnpm db:migrate`    | Apply migrations from `apps/server/drizzle`          |
-| `pnpm db:seed`       | Replace the products table with the seed catalogue   |
+| `pnpm db:seed`       | Replace the products with the seed catalogue         |
 | `pnpm test`          | Unit tests in both apps                              |
 | `pnpm test:e2e`      | Playwright e2e against the real API and Vite server  |
 | `pnpm build`         | Production build of both apps                        |
@@ -73,41 +170,81 @@ Run from the repo root.
 | `pnpm verify:web`    | Lint, format, types, tests with coverage, build, e2e |
 | `pnpm verify`        | Both of the above                                    |
 
-`verify:*` is the definition of done for each app and is what CI runs. Both need Postgres running; `verify:web` also needs the dev database migrated and seeded, because e2e tests start the real API.
+> ✅ **`verify` is the definition of done.** CI runs the same thing. Both need Postgres running, and `verify:web`
+> also needs the dev database migrated and seeded, because its e2e tests use the real API.
 
-## Deployment (Vercel)
+---
 
-A merge to `main` deploys to production and PRs get preview deployments, via Vercel's GitHub integration. [`vercel.json`](vercel.json) defines two Vercel services in one project: `web` (`apps/web`, Vite) serves the site, and `server` (`apps/server`, Express) receives `/api/*`. They share one domain, so the web app's `/api` base and the session cookie work unchanged. Vercel forwards the original path (`/api/products`) and the server strips the `/api` prefix, as the Vite dev proxy does.
+## 🗺️ What's on the shelf, what's coming
+
+| Status | Feature                                                                        |
+| ------ | ------------------------------------------------------------------------------ |
+| ✅     | Catalogue in Postgres, product images, search, filters and autocomplete        |
+| ✅     | Product detail pages, prescription-only products blocked                       |
+| ✅     | Accounts: register, log in, log out                                            |
+| ✅     | Symptom assistant: chat, safety layer, case file, compare, body map            |
+| 🔜     | New product page with quantity and **Add to cart**, cart page, orders, profile |
+| 🔜     | Checkout and payment (Stripe test mode)                                        |
+| 🔜     | Admin roles and security hardening                                             |
+
+The full roadmap is in [`docs/PLAN.md`](docs/PLAN.md). The next one up is
+[`docs/plans/product-detail-cart-orders.md`](docs/plans/product-detail-cart-orders.md).
+
+---
+
+## 🚀 Deployment (Vercel)
+
+A merge to `main` goes to production, and every PR gets a preview, through Vercel's GitHub integration.
+[`vercel.json`](vercel.json) runs two services in one project on one domain:
+
+- `web` (`apps/web`, Vite) serves the site.
+- `server` (`apps/server`, Express) answers `/api/*`. It strips the `/api` prefix, just like the Vite dev proxy,
+  so the web app and the session cookie work unchanged.
 
 One-time setup:
 
-1. Create a hosted Postgres (for example Neon via the Vercel Marketplace).
+1. Create a hosted Postgres (for example Neon from the Vercel Marketplace).
 2. Import the repo in Vercel (root directory = repo root, production branch = `main`).
-3. Set `DATABASE_URL` and `JWT_SECRET` (`openssl rand -hex 32`) in the project's environment variables. Give Production and Preview different values so previews never touch production data.
-4. Migrate and seed the database from your machine: `DATABASE_URL=<url> pnpm db:migrate && DATABASE_URL=<url> pnpm db:seed`. Run `db:migrate` again before merging a PR that changes the schema; deploys do not migrate.
+3. Set `DATABASE_URL` and `JWT_SECRET` (`openssl rand -hex 32`) in the project's environment variables. Use
+   different values for Production and Preview, so previews never touch production data.
+4. Migrate and seed from your machine: `DATABASE_URL=<url> pnpm db:migrate && DATABASE_URL=<url> pnpm db:seed`.
+   Deploys don't migrate, so run `db:migrate` again before merging a PR that changes the schema.
 
-## Project layout
+---
+
+## 📂 Where things live
 
 ```
 apps/
   web/      features/<feature>/{components,hooks,api,utils}, shared code in src/lib
-  server/   routes -> controllers -> services -> db (Drizzle + Postgres), with zod schemas and OpenAPI in schemas/ and openapi/
+  server/   routes -> controllers -> services -> db (Drizzle + Postgres)
+            zod schemas in schemas/, OpenAPI in openapi/
+docs/
+  PLAN.md   the roadmap
+  plans/    one plan per bigger piece of work
 ```
 
-Zod schemas in `apps/server/src/schemas` are the source of truth for request and response shapes; the web app mirrors them in `types.ts`.
+The zod schemas in `apps/server/src/schemas` are the single source of truth for request and response shapes. The
+web app mirrors them in each feature's `types.ts`.
 
-## How we work with Claude
+---
 
-The repo ships its own Claude Code setup: conventions in `CLAUDE.md`, command permissions and a format-on-edit hook in `.claude/settings.json`, dev servers in `.claude/launch.json`, and skills in `.claude/skills`. For each task:
+## 🤖 Working with Claude
 
-1. Pick a phase or task from [`docs/PLAN.md`](docs/PLAN.md) and create a branch.
-2. For a big phase (database, auth, orders, payment), start in plan mode and approve the plan before any code is written.
-3. Implement until `pnpm verify` passes. For a new or changed API endpoint, use the `/add-endpoint` skill.
+The repo comes with its own Claude Code setup: conventions in `CLAUDE.md`, permissions and a format-on-edit hook in
+`.claude/settings.json`, dev servers in `.claude/launch.json`, and skills in `.claude/skills`.
+
+1. Pick a task from [`docs/PLAN.md`](docs/PLAN.md) and create a branch.
+2. For a big phase (database, auth, orders, payment), write a plan in `docs/plans/` and approve it before any code.
+3. Build until `pnpm verify` passes. For a new or changed endpoint, use the `/add-endpoint` skill.
 4. Run `/code-review high`, plus `/security-review` for auth, cart, payment and security work.
 5. Open the PR, fill in the template, and tick the boxes in `docs/PLAN.md`.
 
-When Claude gets something wrong, the fix PR also adds what would have prevented it: a line in the relevant `CLAUDE.md`, a lint rule, a test or a hook.
+When Claude gets something wrong, the fix PR also adds what would have prevented it: a line in the right
+`CLAUDE.md`, a lint rule, a test or a hook.
 
-## Contributing
+## 🤝 Contributing
 
-Per-app conventions live in [`apps/web/CLAUDE.md`](apps/web/CLAUDE.md) and [`apps/server/CLAUDE.md`](apps/server/CLAUDE.md). In short: no new dependencies without discussion, and don't commit `dist`, `coverage` or `test-results`.
+House rules per app live in [`apps/web/CLAUDE.md`](apps/web/CLAUDE.md) and
+[`apps/server/CLAUDE.md`](apps/server/CLAUDE.md). The short version: no new dependencies without a chat first, and
+never commit `dist`, `coverage` or `test-results`.
