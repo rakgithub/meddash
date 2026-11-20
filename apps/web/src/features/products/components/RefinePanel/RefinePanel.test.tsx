@@ -2,9 +2,13 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { RefinePanel } from "./RefinePanel";
-import { EMPTY_FILTERS, type ProductFilters } from "../../types";
+import { EMPTY_FILTERS, type Facets, type ProductFilters } from "../../types";
 
-function setup(filters: ProductFilters = EMPTY_FILTERS, sheet = { sheet: false, open: false }) {
+function setup(
+  filters: ProductFilters = EMPTY_FILTERS,
+  sheet = { sheet: false, open: false },
+  facets?: Facets,
+) {
   const onChange = vi.fn();
   const onClose = vi.fn();
   const panel = (open: boolean) => (
@@ -13,6 +17,7 @@ function setup(filters: ProductFilters = EMPTY_FILTERS, sheet = { sheet: false, 
       filters={filters}
       onChange={onChange}
       sheet={sheet.sheet}
+      facets={facets}
       open={open}
       onClose={onClose}
     />
@@ -60,6 +65,28 @@ describe("RefinePanel", () => {
     await user.click(screen.getByRole("button", { name: "Up to 5 €" }));
 
     expect(onChange).toHaveBeenCalledWith({ ...EMPTY_FILTERS, brand: "Abtei", maxPrice: "5" });
+  });
+
+  describe("with facets", () => {
+    const facets: Facets = {
+      categories: [],
+      brands: [{ value: "Nurofen", count: 2 }],
+      price: { min: 3, max: 11, buckets: [{ from: 3, to: 11, count: 5 }] },
+    };
+
+    it("shows how many products each brand has, 0 for a brand with none", () => {
+      setup(EMPTY_FILTERS, { sheet: false, open: false }, facets);
+
+      expect(screen.getByRole("radio", { name: "Nurofen" })).toHaveAccessibleDescription("2");
+      expect(screen.getByRole("radio", { name: "Abtei" })).toHaveAccessibleDescription("0");
+      expect(screen.getByRole("radio", { name: "Any brand" })).not.toHaveAccessibleDescription();
+    });
+
+    it("shows the price spread", () => {
+      setup(EMPTY_FILTERS, { sheet: false, open: false }, facets);
+
+      expect(screen.getByText(/3,00\s€ – 11,00\s€/)).toBeInTheDocument();
+    });
   });
 
   describe("as a sheet on narrow screens", () => {

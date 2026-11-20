@@ -1,10 +1,14 @@
 import { useState, type FormEvent } from "react";
+import type { Facets } from "../../types";
+import { PriceHistogram } from "../PriceHistogram/PriceHistogram";
 import styles from "./PriceFilter.module.css";
 
 interface PriceFilterProps {
   min: string;
   max: string;
   onApply: (min: string, max: string) => void;
+  /** Where the prices sit, drawn above the bands. Left out, there is no chart. */
+  spread?: Facets["price"];
 }
 
 // Most products cost 1–20 €, so three bands cover the range with one tap each.
@@ -25,10 +29,11 @@ function rangeError(min: string, max: string): string {
 }
 
 /** One-tap price bands, plus a custom range that applies on "Apply". */
-export function PriceFilter({ min, max, onApply }: PriceFilterProps) {
+export function PriceFilter({ min, max, onApply, spread }: PriceFilterProps) {
   return (
     <fieldset className={styles.price}>
       <legend className={styles.legend}>Price</legend>
+      {spread && <PriceHistogram spread={spread} min={min} max={max} />}
       <div className={styles.presets}>
         {PRESETS.map((p) => {
           const active = p.min === min && p.max === max;

@@ -1,5 +1,6 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 import { CATEGORIES, type Category } from "../../filterOptions";
+import type { FacetValue } from "../../types";
 import { formatCategory } from "../../utils/formatCategory";
 import styles from "./CategoryAisles.module.css";
 
@@ -7,6 +8,8 @@ interface CategoryAislesProps {
   /** Category slug, or "" for all products. */
   value: string;
   onChange: (category: string) => void;
+  /** How many products each category holds under the other filters. Left out, no counts show. */
+  counts?: FacetValue[];
 }
 
 // What people come to each aisle for, so the tile reads like the sign above a pharmacy shelf.
@@ -53,7 +56,8 @@ const AISLES = [
 ] as const;
 
 /** Categories as big tiles you can see at a glance, instead of a dropdown. One is always picked. */
-export function CategoryAisles({ value, onChange }: CategoryAislesProps) {
+export function CategoryAisles({ value, onChange, counts }: CategoryAislesProps) {
+  const idPrefix = useId();
   const groupRef = useRef<HTMLDivElement>(null);
 
   // On narrow screens the row scrolls sideways; bring the picked aisle into view if it's off-screen.
@@ -67,6 +71,11 @@ export function CategoryAisles({ value, onChange }: CategoryAislesProps) {
     if (hidden) group.scrollLeft = tile.offsetLeft - 20;
   }, [value]);
 
+  const countOf = (slug: string) =>
+    slug === ""
+      ? (counts ?? []).reduce((sum, c) => sum + c.count, 0)
+      : (counts?.find((c) => c.value === slug)?.count ?? 0);
+
   return (
     <div ref={groupRef} role="group" aria-label="Category" className={styles.aisles}>
       {AISLES.map(({ slug, name, hint }) => (
@@ -75,6 +84,7 @@ export function CategoryAisles({ value, onChange }: CategoryAislesProps) {
           type="button"
           className={styles.tile}
           aria-pressed={value === slug}
+          aria-describedby={counts ? `${idPrefix}-${slug || "all"}` : undefined}
           onClick={() => onChange(slug)}
         >
           <span className={styles.icon}>
@@ -82,7 +92,14 @@ export function CategoryAisles({ value, onChange }: CategoryAislesProps) {
               {ICONS[slug]}
             </svg>
           </span>
-          <span className={styles.name}>{name}</span>
+          <span className={styles.name}>
+            {name}
+            {counts && (
+              <span id={`${idPrefix}-${slug || "all"}`} className={styles.count}>
+                {countOf(slug)}
+              </span>
+            )}
+          </span>
           <span className={styles.hint}>{hint}</span>
         </button>
       ))}

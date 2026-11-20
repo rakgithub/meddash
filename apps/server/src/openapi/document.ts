@@ -6,8 +6,10 @@ import {
   productIdParamsSchema,
   productListResponseSchema,
 } from "../schemas/product.schema.js";
+import { facetsResponseSchema } from "../schemas/facets.schema.js";
 import {
   errorResponseSchema,
+  facetsQuerySchema,
   searchQuerySchema,
   searchResponseSchema,
 } from "../schemas/search.schema.js";
@@ -121,6 +123,26 @@ registry.registerPath({
     200: {
       description: "Matching products, one page",
       content: { "application/json": { schema: searchResponseSchema } },
+    },
+    400: {
+      description: "Invalid query parameters",
+      content: { "application/json": { schema: errorResponseSchema } },
+    },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/search/facets",
+  summary: "Filter counts and price spread",
+  description:
+    "For the filter UI. Takes the same filters as `/search`. Each facet ignores its own filter, so the counts show what picking another value would give.",
+  tags: ["Search"],
+  request: { query: facetsQuerySchema },
+  responses: {
+    200: {
+      description: "Counts per category and brand, and the price spread",
+      content: { "application/json": { schema: facetsResponseSchema } },
     },
     400: {
       description: "Invalid query parameters",

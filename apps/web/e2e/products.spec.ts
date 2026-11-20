@@ -105,6 +105,20 @@ test.describe("Search and filters", () => {
     await expect(page.getByRole("heading", { name: "Moisturising Cream" })).toBeVisible();
   });
 
+  test("shows how many products each category and brand holds", async ({ page }) => {
+    await page.goto("/");
+
+    await expect(aisle(page, "Pain relief")).toHaveAccessibleDescription("3");
+    await expect(aisle(page, "All products")).toHaveAccessibleDescription("12");
+    await expect(page.getByRole("radio", { name: "Nurofen" })).toHaveAccessibleDescription("2");
+
+    // Counts follow the other filters, and a category keeps showing what the others hold.
+    await page.getByRole("button", { name: "Up to 5 €" }).click();
+
+    await expect(aisle(page, "Pain relief")).toHaveAccessibleDescription("1");
+    await expect(aisle(page, "Vitamins")).toHaveAccessibleDescription("0");
+  });
+
   test("filters by price range", async ({ page }) => {
     await page.goto("/");
 

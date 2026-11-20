@@ -10,6 +10,16 @@ function setup(min = "", max = "") {
 }
 
 describe("PriceFilter", () => {
+  it("draws the price spread above the bands when it has one", () => {
+    const spread = { min: 3, max: 11, buckets: [{ from: 3, to: 11, count: 5 }] };
+    const { rerender } = render(<PriceFilter min="" max="" onApply={vi.fn()} spread={spread} />);
+    expect(screen.getByText(/3,00\s€ – 11,00\s€/)).toBeInTheDocument();
+
+    rerender(<PriceFilter min="" max="" onApply={vi.fn()} spread={null} />);
+
+    expect(screen.queryByText(/3,00\s€/)).not.toBeInTheDocument();
+  });
+
   it("applies a price band in one tap", async () => {
     const { onApply, user } = setup();
 

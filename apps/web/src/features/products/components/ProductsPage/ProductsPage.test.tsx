@@ -2,16 +2,31 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ProductsPage } from "./ProductsPage";
+import * as facetsApi from "../../api/fetchFacets";
 import * as api from "../../api/searchProducts";
 import { EMPTY_FILTERS } from "../../types";
 import { ibuprofen, vitaminD } from "../../../../test/fixtures";
 import { renderWithRouter } from "../../../../test/renderWithRouter";
 
 vi.mock("../../api/searchProducts");
+vi.mock("../../api/fetchFacets");
 vi.mock("../../api/fetchSuggestions");
 const searchProducts = vi.mocked(api.searchProducts);
+const fetchFacets = vi.mocked(facetsApi.fetchFacets);
 
-beforeEach(() => vi.resetAllMocks());
+const facets = {
+  categories: [
+    { value: "pain-relief", count: 3 },
+    { value: "vitamins", count: 2 },
+  ],
+  brands: [{ value: "Nurofen", count: 2 }],
+  price: { min: 3, max: 11, buckets: [{ from: 3, to: 11, count: 5 }] },
+};
+
+beforeEach(() => {
+  vi.resetAllMocks();
+  fetchFacets.mockResolvedValue({ categories: [], brands: [], price: null });
+});
 
 describe("ProductsPage header", () => {
   it("shows the visible result range once loaded", async () => {
@@ -83,6 +98,42 @@ describe("ProductsPage search and filters", () => {
         expect.any(AbortSignal),
       ),
     );
+  });
+});
+
+describe("ProductsPage facets", () => {
+  it("shows counts on the aisles and brands, and the price spread", async () => {
+    searchProducts.mockReturnValue(new Promise(() => {}));
+    fetchFacets.mockResolvedValue(facets);
+    renderWithRouter(<ProductsPage />);
+
+    const painRelief = await screen.findByRole("button", { name: /^Pain relief/ });
+    expect(painRelief).toHaveAccessibleDescription("3");
+    expect(screen.getByRole("button", { name: /^All products/ })).toHaveAccessibleDescription("5");
+    expect(screen.getByRole("radio", { name: "Nurofen" })).toHaveAccessibleDescription("2");
+    expect(screen.getByText(/3,00\s€ – 11,00\s€/)).toBeInTheDocument();
+  });
+
+  it("asks for the counts of the current filters", async () => {
+    searchProducts.mockReturnValue(new Promise(() => {}));
+    renderWithRouter(<ProductsPage />, "/?q=gel&category=skin-care");
+
+    await waitFor(() =>
+      expect(fetchFacets).toHaveBeenCalledWith(
+        { ...EMPTY_FILTERS, q: "gel", category: "skin-care" },
+        expect.any(AbortSignal),
+      ),
+    );
+  });
+
+  it("works without counts when they can't be loaded", async () => {
+    searchProducts.mockReturnValue(new Promise(() => {}));
+    fetchFacets.mockRejectedValue(new Error("boom"));
+    renderWithRouter(<ProductsPage />);
+
+    await waitFor(() => expect(fetchFacets).toHaveBeenCalled());
+    expect(screen.getByRole("button", { name: /^Pain relief/ })).not.toHaveAccessibleDescription();
+    expect(screen.getByRole("radio", { name: "Nurofen" })).toBeVisible();
   });
 });
 

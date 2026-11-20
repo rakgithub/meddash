@@ -65,8 +65,18 @@
 }
 
 .name {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
   font-size: 15px;
   font-weight: 600;
+}
+
+.count {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-muted);
 }
 
 .tile[aria-pressed="true"] .name {
