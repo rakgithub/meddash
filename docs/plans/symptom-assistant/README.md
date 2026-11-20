@@ -256,8 +256,10 @@ Notes from the build (2026-11-20):
   (it was part of "Muscle pain").
 - Skin and "Feeling stressed" have no scripted flow, so they get the "tell me a bit more" fallback. The
   catalogue has nothing for them yet.
-- `BodyMap` is a fixed 240×460 box: an SVG outline and a list of buttons, each a dot on the body with its
-  label beside it. Under 640px the outline is hidden and the buttons become a wrapped list like the starters.
+- ~~`BodyMap` is a fixed 240×460 box: an SVG outline and a list of buttons, each a dot on the body with its
+  label beside it.~~ Replaced on 2026-11-20 by a plain row of area chips under the starters ("Or start from
+  where it bothers you"): the outline took most of the empty state, its labels covered the figure, and areas
+  like Skin and Sleep and mind have no place on a body. Same regions, same messages, same flow.
 
 ## Phase S7 — Polish and integrations
 

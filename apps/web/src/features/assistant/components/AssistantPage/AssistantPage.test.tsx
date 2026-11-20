@@ -6,6 +6,7 @@ import { AuthProvider } from "../../../auth";
 import { ana, ibuprofenDetail } from "../../../../test/fixtures";
 import { renderWithRouter } from "../../../../test/renderWithRouter";
 import type { MessagePart } from "../../types";
+import { BODY_REGIONS } from "../../utils/bodyRegions";
 import { AssistantPage } from "./AssistantPage";
 
 vi.mock("../../api/mockEngine");
@@ -71,7 +72,18 @@ describe("AssistantPage", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("starts from the body map: the region is sent, then a picked symptom seeds the case file", async () => {
+  it("offers every body area as a chip", () => {
+    renderPage("/assistant");
+
+    const areas = screen.getByRole("region", { name: "Or start from where it bothers you" });
+    expect(
+      within(areas)
+        .getAllByRole("button")
+        .map((b) => b.textContent),
+    ).toEqual(BODY_REGIONS.map((region) => region.label));
+  });
+
+  it("starts from a body area: the area is sent, then a picked symptom seeds the case file", async () => {
     engine
       .mockImplementationOnce(async function* () {
         yield {
@@ -95,7 +107,7 @@ describe("AssistantPage", () => {
     expect(engine).toHaveBeenLastCalledWith(
       expect.objectContaining({ userText: "My nose and throat" }),
     );
-    expect(screen.queryByRole("region", { name: /show me where/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: /where it bothers you/i })).not.toBeInTheDocument();
 
     await user.click(await screen.findByRole("button", { name: "Sore throat" }));
 
