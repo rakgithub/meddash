@@ -96,3 +96,17 @@ New dependencies need approval (repo rule). Proposed, simplest option first:
 - [ ] Request body size limits; audit that every route validates params/body with zod
 - [ ] No secrets or personal data in logs; DB user with least privilege
 - [ ] Run `/security-review`; fix findings
+
+## Track — Symptom assistant (AI chat)
+
+Runs alongside the phases above. Frontend first with a mock engine; backend later. Plan:
+[`docs/plans/symptom-assistant-frontend.md`](plans/symptom-assistant-frontend.md).
+
+- [x] S1 — Chat shell and streaming
+- [ ] S2 — Structured replies and product cards
+- [ ] S3 — Safety layer (red flags, prescription rule, contextual warnings)
+- [ ] S4 — Case file and refine
+- [ ] S5 — Compare mode
+- [ ] S6 — Body map entry
+- [ ] S7 — Polish and integrations (add to cart needs Phase 5)
+- [ ] Backend: LLM orchestration endpoint (separate plan)

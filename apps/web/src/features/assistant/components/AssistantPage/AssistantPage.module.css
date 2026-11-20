@@ -1,0 +1,118 @@
+/*
+ * The chat fills the window under the header. Only while this page is shown do the app's wrappers
+ * become a column, so the other pages keep their normal block layout.
+ */
+:global(#root):has(.page) {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+:global(main):has(> .page) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.page {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* The page scrolls as a whole, so the message box sticks to the bottom of the window. */
+.conversation {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 40px 0 24px;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: auto 0;
+}
+
+.empty h2 {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+}
+
+.empty p {
+  max-width: 52ch;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.starters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.starter {
+  height: 40px;
+  padding: 0 16px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 20px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.starter:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* A fade above the box, so text scrolling under it doesn't end in a hard line. */
+.dock {
+  position: sticky;
+  bottom: 0;
+  padding: 16px 0 12px;
+  background: linear-gradient(to bottom, transparent, var(--bg) 16px);
+}
+
+.disclaimer {
+  margin-top: 8px;
+  font-size: 12px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 0 16px;
+  }
+
+  .conversation {
+    padding-top: 24px;
+  }
+
+  .empty h2 {
+    font-size: 26px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .starter {
+    transition: none;
+  }
+}
