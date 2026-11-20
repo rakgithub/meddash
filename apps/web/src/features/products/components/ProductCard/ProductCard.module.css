@@ -21,15 +21,17 @@
   box-shadow: var(--shadow-hover);
 }
 
-/* Bleeds to the card edges; the fixed ratio keeps every card's text on the same baseline. */
+/* A domed blister pocket; the fixed ratio keeps every card's text on the same baseline. */
 .media {
   display: grid;
   place-items: center;
   aspect-ratio: 4 / 3;
-  margin: -20px -20px 6px;
+  max-width: 100%;
+  margin-bottom: 6px;
   overflow: hidden;
-  border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
-  background: var(--accent-soft);
+  border-radius: var(--radius-well);
+  background: var(--well-bg);
+  box-shadow: var(--well-shadow);
 }
 
 .image {
@@ -42,10 +44,10 @@
   width: 56px;
   height: 56px;
   fill: none;
-  stroke: var(--accent);
+  stroke: var(--text-muted);
   stroke-width: 1.25;
   stroke-linecap: round;
-  opacity: 0.55;
+  opacity: 0.7;
 }
 
 .top {
@@ -56,19 +58,46 @@
 }
 
 .category {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 2px 10px;
+  border: 1px solid var(--border-strong);
   border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: var(--surface);
+  color: var(--text);
   font-size: 12px;
-  font-weight: 600;
+}
+
+/* Two-tone capsule: one colour per aisle, so categories are recognisable before they are read. */
+.capsule {
+  --cat: var(--text-muted);
+  width: 18px;
+  height: 9px;
+  border: 1.5px solid var(--cat);
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--cat) 50%, transparent 50%);
+}
+
+.capsule[data-category="pain-relief"] {
+  --cat: var(--cat-pain-relief);
+}
+
+.capsule[data-category="cold-flu"] {
+  --cat: var(--cat-cold-flu);
+}
+
+.capsule[data-category="vitamins"] {
+  --cat: var(--cat-vitamins);
+}
+
+.capsule[data-category="skin-care"] {
+  --cat: var(--cat-skin-care);
 }
 
 .brand {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-muted);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .name {

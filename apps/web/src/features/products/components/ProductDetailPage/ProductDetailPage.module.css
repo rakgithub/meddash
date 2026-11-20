@@ -37,14 +37,16 @@
   align-items: start;
 }
 
+/* The same domed blister pocket as the product cards, at hero size. */
 .media {
   display: grid;
   place-items: center;
   aspect-ratio: 4 / 3;
+  max-width: 100%;
   overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--accent-soft);
+  border-radius: var(--radius-well);
+  background: var(--well-bg);
+  box-shadow: var(--well-shadow);
 }
 
 .image {
@@ -57,7 +59,7 @@
   width: 72px;
   height: 72px;
   fill: none;
-  stroke: var(--accent);
+  stroke: var(--text-muted);
   stroke-width: 1.25;
   stroke-linecap: round;
   opacity: 0.55;
@@ -76,19 +78,46 @@
 }
 
 .category {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 2px 10px;
+  border: 1px solid var(--border-strong);
   border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: var(--surface);
+  color: var(--text);
   font-size: 12px;
-  font-weight: 600;
+}
+
+/* Same two-tone aisle capsule as the product cards. */
+.capsule {
+  --cat: var(--text-muted);
+  width: 18px;
+  height: 9px;
+  border: 1.5px solid var(--cat);
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--cat) 50%, transparent 50%);
+}
+
+.capsule[data-category="pain-relief"] {
+  --cat: var(--cat-pain-relief);
+}
+
+.capsule[data-category="cold-flu"] {
+  --cat: var(--cat-cold-flu);
+}
+
+.capsule[data-category="vitamins"] {
+  --cat: var(--cat-vitamins);
+}
+
+.capsule[data-category="skin-care"] {
+  --cat: var(--cat-skin-care);
 }
 
 .brand {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-muted);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .name {
@@ -140,7 +169,7 @@
 .rx button {
   padding: 10px 20px;
   border: 0;
-  border-radius: var(--radius);
+  border-radius: var(--radius-control);
   background: var(--accent);
   color: var(--on-accent);
   font: inherit;
