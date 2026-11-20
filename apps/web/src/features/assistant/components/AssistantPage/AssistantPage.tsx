@@ -9,7 +9,8 @@ const STARTERS = ["Sore throat and fever", "Can't sleep", "Hay fever", "Upset st
 /** `/assistant?q=…` pre-fills the message box, e.g. with the search text from the products page. */
 export function AssistantPage() {
   const [searchParams] = useSearchParams();
-  const { messages, isStreaming, send, stop, retry } = useConsultation();
+  const { messages, caseFile, isStreaming, send, answer, setSymptoms, stop, retry } =
+    useConsultation();
 
   return (
     <div className={styles.page}>
@@ -34,7 +35,14 @@ export function AssistantPage() {
             </ul>
           </section>
         ) : (
-          <MessageList messages={messages} onRetry={retry} />
+          <MessageList
+            messages={messages}
+            onRetry={retry}
+            symptoms={caseFile.symptoms}
+            onSymptomsChange={setSymptoms}
+            onAnswer={answer}
+            onAskIngredient={(ingredient) => send(`Tell me about ${ingredient}`)}
+          />
         )}
       </div>
 

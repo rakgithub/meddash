@@ -6,7 +6,7 @@ test.describe("Symptom assistant", () => {
   }) => {
     await page.goto("/?q=sore%20throat");
 
-    await page.getByRole("link", { name: "Not sure what you need?" }).click();
+    await page.getByRole("link", { name: "Ask the assistant" }).click();
 
     await expect(page).toHaveURL(/\/assistant\?q=sore\+throat$/);
     await expect(page.getByRole("textbox", { name: "Describe your symptoms" })).toHaveValue(
@@ -15,10 +15,30 @@ test.describe("Symptom assistant", () => {
 
     await page.getByRole("button", { name: "Hay fever" }).click();
 
-    await expect(page.getByRole("button", { name: "Stop" })).toBeVisible();
-    await expect(page.getByText(/Hay fever responds well/)).toBeVisible();
-    await expect(page.getByRole("button", { name: "3 matches 4 steps" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Send" })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("list", { name: "What I noted" })).toContainText("Hay fever");
+    await expect(page.getByRole("button", { name: "Since today" })).toBeVisible();
+  });
+
+  test("asks two questions, then suggests real products that open their page", async ({ page }) => {
+    await page.goto("/assistant");
+
+    await page.getByRole("button", { name: "Sore throat and fever" }).click();
+    await page.getByRole("button", { name: "2–3 days" }).click();
+    await page.getByRole("button", { name: "Me", exact: true }).click();
+
+    const suggestions = page.getByRole("list", { name: "Suggested products" });
+    await expect(suggestions.getByRole("article", { name: "Ibuprofen 400mg" })).toContainText(
+      "Best fit",
+      { timeout: 15_000 },
+    );
+    await expect(suggestions.getByRole("article", { name: "Cough Syrup" })).toContainText(
+      "Needs a prescription",
+    );
+
+    await suggestions.getByRole("link", { name: "Ibuprofen 400mg" }).click();
+
+    await expect(page).toHaveURL(/\/products\/1$/);
+    await expect(page.getByRole("heading", { name: "Ibuprofen 400mg" })).toBeVisible();
   });
 
   test("stops a reply that is streaming", async ({ page }) => {
