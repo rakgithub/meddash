@@ -74,6 +74,17 @@ Run from the repo root.
 
 `verify:*` is the definition of done for each app and is what CI runs. Both need Postgres running; `verify:web` also needs the dev database migrated and seeded, because e2e tests start the real API.
 
+## Deployment (Vercel)
+
+A merge to `main` deploys to production and PRs get preview deployments, via Vercel's GitHub integration. [`vercel.json`](vercel.json) builds both apps and serves the web build as static files; [`api/index.mjs`](api/index.mjs) runs the Express app as one serverless function behind `/api/*`, so the web app and API share an origin.
+
+One-time setup:
+
+1. Create a hosted Postgres (for example Neon via the Vercel Marketplace).
+2. Import the repo in Vercel (root directory = repo root, production branch = `main`).
+3. Set `DATABASE_URL` and `JWT_SECRET` (`openssl rand -hex 32`) in the project's environment variables. Give Production and Preview different values so previews never touch production data.
+4. Migrate and seed the database from your machine: `DATABASE_URL=<url> pnpm db:migrate && DATABASE_URL=<url> pnpm db:seed`. Run `db:migrate` again before merging a PR that changes the schema; deploys do not migrate.
+
 ## Project layout
 
 ```
