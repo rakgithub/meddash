@@ -64,7 +64,8 @@
 
 .skeletonMedia {
   aspect-ratio: 2 / 1;
-  border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
+  margin: 10px 10px 0;
+  border-radius: var(--radius-well);
 }
 
 .wide .skeletonMedia {

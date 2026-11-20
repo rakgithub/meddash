@@ -25,7 +25,7 @@
   height: 40px;
   padding: 0 16px;
   border: 1.5px solid var(--accent);
-  border-radius: 10px;
+  border-radius: var(--radius-control);
   font-size: 15px;
   font-weight: 500;
 }
