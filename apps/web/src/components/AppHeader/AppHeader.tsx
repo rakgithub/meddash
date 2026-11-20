@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { UserMenu } from "../../features/auth";
 import { SearchBar, UploadPrescriptionButton, useSearchQuery } from "../../features/products";
 import styles from "./AppHeader.module.css";
 
@@ -35,6 +36,7 @@ export function AppHeader() {
           />
         </div>
         <UploadPrescriptionButton />
+        <UserMenu />
       </div>
     </header>
   );

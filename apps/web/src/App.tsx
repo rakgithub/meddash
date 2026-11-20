@@ -1,15 +1,18 @@
 import { Link, Route, Routes } from "react-router-dom";
 import { AppHeader } from "./components/AppHeader/AppHeader";
+import { AuthProvider, LoginPage, RegisterPage } from "./features/auth";
 import { ProductDetailPage, ProductsPage } from "./features/products";
 
 export default function App() {
   return (
-    <>
+    <AuthProvider>
       <AppHeader />
       <main>
         <Routes>
           <Route path="/" element={<ProductsPage />} />
           <Route path="/products/:id" element={<ProductDetailPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
           <Route
             path="*"
             element={
@@ -21,6 +24,6 @@ export default function App() {
           />
         </Routes>
       </main>
-    </>
+    </AuthProvider>
   );
 }

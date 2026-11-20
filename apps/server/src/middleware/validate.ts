@@ -3,7 +3,7 @@ import type { ZodTypeAny } from "zod";
 import { AppError } from "../errors/AppError.js";
 
 const validate =
-  (source: "query" | "params", message: string) =>
+  (source: "query" | "params" | "body", message: string) =>
   (schema: ZodTypeAny): RequestHandler =>
   (req, res, next) => {
     const result = schema.safeParse(req[source]);
@@ -26,3 +26,6 @@ export const validateQuery = validate("query", "Invalid query parameters");
 
 /** Same for path params, stored on res.locals.params. */
 export const validateParams = validate("params", "Invalid path parameters");
+
+/** Same for the JSON body, stored on res.locals.body. */
+export const validateBody = validate("body", "Invalid request body");

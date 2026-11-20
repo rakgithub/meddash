@@ -19,6 +19,8 @@ export default defineConfig({
     {
       command: "pnpm --dir ../server dev",
       url: `${API_URL}/products`,
+      // A test-only signing key, so e2e (and CI) don't need apps/server/.env to define one.
+      env: { JWT_SECRET: process.env.JWT_SECRET ?? "e2e-only-jwt-secret-not-for-real-use" },
       reuseExistingServer: !process.env.CI,
       timeout: 30_000,
     },

@@ -6,6 +6,11 @@ export const notFound: RequestHandler = (req, _res, next) => {
 };
 
 export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
+  // express.json() rejects unparseable bodies with a 400-class error carrying `type`.
+  if (err instanceof SyntaxError && "type" in err && err.type === "entity.parse.failed") {
+    res.status(400).json({ error: { message: "Malformed JSON body" } });
+    return;
+  }
   if (err instanceof AppError) {
     res.status(err.statusCode).json({ error: { message: err.message, details: err.details } });
     return;

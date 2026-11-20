@@ -1,5 +1,14 @@
 import { sql } from "drizzle-orm";
-import { boolean, index, integer, numeric, pgTable, text } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  index,
+  integer,
+  numeric,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+} from "drizzle-orm/pg-core";
 
 export const products = pgTable(
   "products",
@@ -39,3 +48,21 @@ export const products = pgTable(
 );
 
 export type ProductRow = typeof products.$inferSelect;
+
+export const userRole = pgEnum("user_role", ["customer", "admin"]);
+
+export const users = pgTable("users", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  // Stored lower-cased (the zod schema normalises it), so the unique index is case-insensitive.
+  email: text().notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  name: text().notNull(),
+  role: userRole().notNull().default("customer"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+export type UserRow = typeof users.$inferSelect;

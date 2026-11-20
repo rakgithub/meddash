@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ApiError, apiGet } from "./apiClient";
+import { ApiError, apiGet, apiPost, apiPostNoContent } from "./apiClient";
 
 function mockFetch(response: Partial<Response>) {
   const fn = vi.fn().mockResolvedValue(response);
@@ -35,5 +35,76 @@ describe("apiGet", () => {
 
     expect(error).toBeInstanceOf(ApiError);
     expect(error).toMatchObject({ status: 500, message: "Internal Server Error" });
+  });
+
+  it("uses the server's error message when the body has one", async () => {
+    mockFetch({
+      ok: false,
+      status: 404,
+      statusText: "Not Found",
+      json: async () => ({ error: { message: "Product not found" } }),
+    });
+
+    const error = await apiGet("/products/9").catch((e: unknown) => e);
+
+    expect(error).toMatchObject({ status: 404, message: "Product not found" });
+  });
+
+  it("falls back to the status text for a body that is not JSON", async () => {
+    mockFetch({
+      ok: false,
+      status: 502,
+      statusText: "Bad Gateway",
+      json: async () => {
+        throw new SyntaxError("Unexpected token <");
+      },
+    });
+
+    const error = await apiGet("/products").catch((e: unknown) => e);
+
+    expect(error).toMatchObject({ status: 502, message: "Bad Gateway" });
+  });
+});
+
+describe("apiPost", () => {
+  it("sends a JSON body and returns parsed JSON", async () => {
+    const fetchMock = mockFetch({ ok: true, json: async () => ({ id: "1" }) });
+
+    const result = await apiPost("/auth/login", { email: "a@b.de" });
+
+    expect(fetchMock).toHaveBeenCalledWith("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: '{"email":"a@b.de"}',
+    });
+    expect(result).toEqual({ id: "1" });
+  });
+
+  it("throws an ApiError with the server message", async () => {
+    mockFetch({
+      ok: false,
+      status: 401,
+      statusText: "Unauthorized",
+      json: async () => ({ error: { message: "Invalid email or password" } }),
+    });
+
+    const error = await apiPost("/auth/login", {}).catch((e: unknown) => e);
+
+    expect(error).toMatchObject({ status: 401, message: "Invalid email or password" });
+  });
+});
+
+describe("apiPostNoContent", () => {
+  it("posts without a body and resolves on success", async () => {
+    const fetchMock = mockFetch({ ok: true, status: 204 });
+
+    await expect(apiPostNoContent("/auth/logout")).resolves.toBeUndefined();
+    expect(fetchMock).toHaveBeenCalledWith("/api/auth/logout", { method: "POST" });
+  });
+
+  it("throws on failure", async () => {
+    mockFetch({ ok: false, status: 500, statusText: "Internal Server Error" });
+
+    await expect(apiPostNoContent("/auth/logout")).rejects.toBeInstanceOf(ApiError);
   });
 });

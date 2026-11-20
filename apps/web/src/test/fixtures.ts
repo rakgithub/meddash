@@ -1,4 +1,5 @@
 import type { Product, ProductDetail } from "../features/products/types";
+import type { User } from "../features/auth/types";
 
 export const ibuprofen: Product = {
   id: "1",
@@ -52,4 +53,11 @@ export const coughSyrupDetail: ProductDetail = {
   requiresPrescription: true,
   stockQuantity: 25,
   manufacturer: "Engelhard Arzneimittel",
+};
+
+export const ana: User = {
+  id: "1",
+  email: "ana@example.com",
+  name: "Ana Weber",
+  role: "customer",
 };

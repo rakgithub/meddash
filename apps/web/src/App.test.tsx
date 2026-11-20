@@ -1,15 +1,17 @@
 import { screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
+import * as authApi from "./features/auth/api/authApi";
 import * as detailApi from "./features/products/api/fetchProduct";
 import * as searchApi from "./features/products/api/searchProducts";
-import { ibuprofen, ibuprofenDetail } from "./test/fixtures";
+import { ana, ibuprofen, ibuprofenDetail } from "./test/fixtures";
 import { renderWithRouter } from "./test/renderWithRouter";
 import userEvent from "@testing-library/user-event";
 
 vi.mock("./features/products/api/searchProducts");
 vi.mock("./features/products/api/fetchSuggestions");
 vi.mock("./features/products/api/fetchProduct");
+vi.mock("./features/auth/api/authApi");
 
 beforeEach(() => {
   vi.resetAllMocks();
@@ -18,6 +20,7 @@ beforeEach(() => {
     pagination: { page: 1, pageSize: 10, total: 1, totalPages: 1 },
   });
   vi.mocked(detailApi.fetchProduct).mockResolvedValue(ibuprofenDetail);
+  vi.mocked(authApi.fetchCurrentUser).mockResolvedValue(null);
 });
 
 describe("App routes", () => {
@@ -31,6 +34,29 @@ describe("App routes", () => {
     expect(
       await screen.findByRole("heading", { name: "Ibuprofen 400mg", level: 1 }),
     ).toBeInTheDocument();
+  });
+
+  it.each([
+    ["/login", "Log in"],
+    ["/register", "Create an account"],
+  ])("shows the auth page at %s", async (route, heading) => {
+    renderWithRouter(<App />, route);
+    expect(await screen.findByRole("heading", { name: heading, level: 1 })).toBeInTheDocument();
+  });
+
+  it("logs in from the header and shows the user", async () => {
+    vi.mocked(authApi.login).mockResolvedValue(ana);
+    const user = userEvent.setup();
+    renderWithRouter(<App />, "/products/1");
+
+    await user.click(await screen.findByRole("link", { name: "Log in" }));
+    await user.type(screen.getByLabelText("Email"), ana.email);
+    await user.type(screen.getByLabelText("Password"), "secret123");
+    await user.click(screen.getByRole("button", { name: "Log in" }));
+
+    expect(await screen.findByText("Ana Weber")).toBeInTheDocument();
+    // Back on the page the user came from.
+    expect(screen.getByRole("heading", { name: "Ibuprofen 400mg", level: 1 })).toBeInTheDocument();
   });
 
   it("shows a not-found page for an unknown route", () => {

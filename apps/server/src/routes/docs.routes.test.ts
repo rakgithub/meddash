@@ -57,6 +57,23 @@ describe("OpenAPI docs", () => {
     );
   });
 
+  it("documents the auth endpoints, their responses and the session cookie scheme", async () => {
+    const res = await request(app).get("/openapi.json");
+    const { paths, components } = res.body;
+    expect(Object.keys(paths["/auth/register"].post.responses)).toEqual(["201", "400", "409"]);
+    expect(Object.keys(paths["/auth/login"].post.responses)).toEqual(["200", "400", "401"]);
+    expect(Object.keys(paths["/auth/logout"].post.responses)).toEqual(["204"]);
+    expect(Object.keys(paths["/auth/me"].get.responses)).toEqual(["200", "401"]);
+    expect(paths["/auth/me"].get.security).toEqual([{ cookieAuth: [] }]);
+    expect(components.securitySchemes.cookieAuth).toMatchObject({ in: "cookie", name: "session" });
+    expect(Object.keys(components.schemas.User.properties)).toEqual([
+      "id",
+      "email",
+      "name",
+      "role",
+    ]);
+  });
+
   it("serves Swagger UI", async () => {
     const res = await request(app).get("/docs/");
     expect(res.status).toBe(200);
