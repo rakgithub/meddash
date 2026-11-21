@@ -159,21 +159,22 @@ Bad input gets a `400` with `{ error: { message, details } }`.
 
 Run everything from the repo root.
 
-| Command              | What it does                                         |
-| -------------------- | ---------------------------------------------------- |
-| `pnpm dev`           | Web and API together                                 |
-| `pnpm dev:web`       | Web only                                             |
-| `pnpm dev:server`    | API only                                             |
-| `pnpm db:up`         | Start Postgres in Docker and wait until healthy      |
-| `pnpm db:down`       | Stop Postgres (data is kept)                         |
-| `pnpm db:migrate`    | Apply migrations from `apps/server/drizzle`          |
-| `pnpm db:seed`       | Replace the products with the seed catalogue         |
-| `pnpm test`          | Unit tests in both apps                              |
-| `pnpm test:e2e`      | Playwright e2e against the real API and Vite server  |
-| `pnpm build`         | Production build of both apps                        |
-| `pnpm verify:server` | Lint, format, types, tests with coverage, build      |
-| `pnpm verify:web`    | Lint, format, types, tests with coverage, build, e2e |
-| `pnpm verify`        | Both of the above                                    |
+| Command               | What it does                                         |
+| --------------------- | ---------------------------------------------------- |
+| `pnpm dev`            | Web and API together                                 |
+| `pnpm dev:web`        | Web only                                             |
+| `pnpm dev:server`     | API only                                             |
+| `pnpm db:up`          | Start Postgres in Docker and wait until healthy      |
+| `pnpm db:down`        | Stop Postgres (data is kept)                         |
+| `pnpm db:migrate`     | Apply migrations from `apps/server/drizzle`          |
+| `pnpm db:seed`        | Replace the products with the seed catalogue         |
+| `pnpm test`           | Unit tests in both apps                              |
+| `pnpm test:e2e`       | Playwright e2e against the real API and Vite server  |
+| `pnpm build`          | Production build of both apps                        |
+| `pnpm verify:server`  | Lint, format, types, tests with coverage, build      |
+| `pnpm verify:web`     | Lint, format, types, tests with coverage, build, e2e |
+| `pnpm verify`         | Both of the above                                    |
+| `pnpm assistant:eval` | Assistant evals on the real model (costs money)      |
 
 > ✅ **`verify` is the definition of done.** CI runs the same thing. Both need Postgres running, and `verify:web`
 > also needs the dev database migrated and seeded, because its e2e tests use the real API.
