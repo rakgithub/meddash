@@ -2,14 +2,125 @@
 
 # 💊 MedDash
 
-**An online pharmacy you can run on your laptop.**
-Search the shelves, read the label, ask the pharmacist.
+**An online pharmacy you can run on your laptop, with a pharmacist that never closes.**
+Search the shelves, read the label, and when you don't know what you need, just say how you feel.
 
-React 18 · Vite · TypeScript · Express · zod · Postgres · Drizzle
+React 18 · Vite · TypeScript · Express · zod · Postgres · Drizzle · Claude
+
+<br/>
+
+<img src="docs/screenshots/ui-refresh/desktop-assistant-start.png" width="68%" alt="The MedDash assistant's start screen: the doctor mascot, “What’s bothering you today?” and the message box">
+<img src="docs/screenshots/ui-refresh/mobile-assistant-suggestions.png" width="24%" alt="Suggestions on a phone: a When to see a doctor box above the best-fit product">
 
 </div>
 
-![MedDash product search, light theme](docs/screenshots/blister-theme/products-light-desktop.png)
+---
+
+<a id="assistant"></a>
+
+## 🧑‍⚕️ Meet the MedDash assistant
+
+> **Package leaflet: information for the user**
+> *MedDash assistant, conversation, oral (well, typed)*
+> Read all of this leaflet carefully before you start chatting, because it contains important information for you.
+
+### 1. What the MedDash assistant is and what it is used for
+
+The assistant is a short chat at the counter. You describe how you feel, in your own words or by tapping where it
+bothers you. It asks a couple of questions, the way a pharmacist would, and then hands you a shortlist of
+**real products from the MedDash catalogue**, each with a plain reason why.
+
+It is used for everyday complaints: a sore throat, hay fever, a night without sleep, an upset stomach.
+It is **not** used for diagnosing anything.
+
+### 2. What you need to know before you use it
+
+**Do not use the assistant** for chest pain, trouble breathing, or anything that feels like an emergency.
+It is built to notice: urgent warning signs are screened **on the server, before any AI sees your message**.
+When one matches, the assistant stops suggesting products, says to get help now, and makes no model call at all.
+
+**Take special care:**
+
+- 🧾 **It never invents a product.** The model only sees catalogue rows that its own search returned, and
+  recommends by id. The server checks every id, loads the product and drops anything unknown.
+- 🔒 **Prescription-only stays prescription-only.** Those products are shown apart, greyed out, never as the
+  best fit, and can't go in the cart.
+- 🤰 **Who it's for changes the answer.** Tell it the medicine is for a child, someone pregnant or someone over 65,
+  and cautions from the product's own warnings appear on the cards.
+- 🙈 **Your symptoms stay out of the logs.** What you type is health data, so the server never logs message text.
+- ⏱️ **It is rate-limited per account** (20 turns per 10 minutes, 200 per day), and you need to be signed in.
+
+### 3. How to use it
+
+| Step                   | What happens                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1. Say it**          | Type how you feel, tap a common reason (“Sore throat and fever”), or start from where it bothers you (Head, Chest, Skin…). The doctor in the corner of every page opens the chat, and a search that sounds like a symptom offers it too.                                                                                                                                                                                                                               |
+| **2. Answer two taps** | “How long has it been going on?” and “Who is it for?” appear as cards of big buttons. Each folds to a single ✓ line once answered. A progress strip shows **Symptoms → A few questions → Suggestions**.                                                                                                                                                                                                                                                                 |
+| **3. Read the advice** | A short explanation, a highlighted **When to see a doctor** box, then **My suggestions for …**: a best fit and alternatives, each with “Why this?”. Tap an ingredient to ask about it, or **Not for me** to rule a product out (it remembers why).                                                                                                                                                                                                                     |
+| **4. Decide**          | **Compare** puts the top picks side by side, and you can ask the table a question (“which is gentler on the stomach?”). **Talk to a pharmacist** is always one tap away. **Your consultation** on the side keeps the symptoms and answers; change any of them and the assistant answers again. Save the consultation to pick it up later.                                                                                                                              |
+
+| Questions                                                                        | Suggestions                                                                          |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| ![Question cards and progress](docs/screenshots/ui-refresh/desktop-assistant-questions.png) | ![When to see a doctor and the best fit](docs/screenshots/ui-refresh/desktop-assistant-suggestions.png) |
+
+### 4. Possible side effects
+
+Like all assistants, this one can get things wrong, although not everybody gets them.
+
+- **Common:** suggests something you've already tried. Use *Not for me → Already tried* and it steers away from it.
+- **Uncommon:** words its doctor advice so the **When to see a doctor** box doesn't pick it up, and it shows as a
+  normal paragraph instead.
+- **Rare:** declines to answer. It then tells you to ask a pharmacist, which is good advice anyway.
+- **Not known:** being right about what you have. It suggests products, it does not diagnose. If symptoms get worse
+  or don't settle, see a doctor.
+
+### 5. How it is made
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor You
+  participant Web as 🪟 Web app
+  participant API as 🧑‍⚕️ API (Express)
+  participant Claude as 🤖 Claude Haiku 5.5
+  participant DB as 🗄️ Catalogue (Postgres)
+
+  You->>Web: “Sore throat and fever”
+  Web->>API: POST /api/assistant/messages<br/>case file + history + your text
+  API->>API: sign-in, rate limit, zod check
+  API->>API: red-flag screen
+  alt urgent warning sign
+    API-->>Web: alert: get help now (no model call)
+  else everyday complaint
+    API->>Claude: prompt + tools (streamed)
+    Claude->>API: search_products("sore throat")
+    API->>DB: full-text search
+    DB-->>API: matching rows
+    Claude->>API: recommend_products([ids, reasons])
+    API->>DB: load + check every id
+    API->>API: prescription rule, cautions, ranking
+    API-->>Web: SSE: thinking · symptoms · text · questions · products
+  end
+  Web-->>You: reply streams in as it is written
+```
+
+- **One seam.** The browser renders a typed list of message parts (`text`, `thinking`, `symptoms`,
+  `quickReplies`, `products`, `alert`) and never free-form HTML. Everything model-shaped lives behind it.
+- **Stateless server.** Each request carries the case file and a trimmed history, so nothing about your
+  conversation is stored on the server.
+- **At most 4 tool rounds per turn**, using the plain Anthropic SDK in a small hand-written loop.
+- **Measured, not guessed.** `pnpm assistant:eval` replays scripted conversations against the real model and
+  checks the answers (it costs real money, so it isn't part of `verify`).
+
+### 6. Contents of the pack and further information
+
+- To run it locally, set `ANTHROPIC_API_KEY` in `apps/server/.env`. Without it, the rest of the shop works and the
+  chat says the assistant is not configured. `ASSISTANT_MODEL` picks another model.
+- Code: [`apps/web/src/features/assistant`](apps/web/src/features/assistant) (the chat) and
+  [`apps/server/src/services/assistant`](apps/server/src/services/assistant) (the counter).
+- Plans: [frontend](docs/plans/symptom-assistant/README.md) · [backend](docs/plans/symptom-assistant-backend/README.md).
+
+<sub>This leaflet was last revised when the assistant got its new face.</sub>
 
 ---
 
@@ -90,30 +201,23 @@ narrow down by brand and price, and see how prices are spread before you pick a 
 
 ![Autocomplete](docs/screenshots/search-autocomplete/desktop.png)
 
+The aisles sit in one row of pills above the results, with how many products each holds.
+
+![Products with the aisle pills](docs/screenshots/ui-refresh/desktop-products.png)
+
 ### 2. Read the label
 
-Every product has its own page: active ingredients, how to use it, warnings, pack size and PZN.
-Prescription-only medicines are clearly marked and can't be bought without a prescription.
+Every product has its own page. A small image sits next to the name and the facts on the pack (manufacturer, dosage
+form, pack size, PZN), with the price and **Add to cart** beside them. Warnings come first underneath, then the
+active ingredients and how to use it, all open, nothing to unfold. Prescription-only medicines are clearly marked
+and can't be bought without a prescription.
 
-![Product detail](docs/screenshots/blister-theme/detail-light-desktop.png)
+![Product detail](docs/screenshots/ui-refresh/desktop-product-detail.png)
 
 ### 3. Ask the pharmacist
 
-Not sure what you need? The **symptom assistant** at `/assistant` works like a short chat at the counter. Describe
-your symptoms, or tap where it hurts on the body map, and it suggests real products from the catalogue.
-
-- 🚨 Safety first: red-flag symptoms tell you to see a doctor instead of offering a product.
-- 🗂️ A case file remembers what you told it. Refine the answer or start over.
-- ⚖️ Compare suggestions side by side.
-
-| Body map                                                    | Compare                                                              |
-| ----------------------------------------------------------- | -------------------------------------------------------------------- |
-| ![Body map](docs/screenshots/body-map/body-map-desktop.png) | ![Compare](docs/screenshots/compare-mode/compare-drawer-desktop.png) |
-
-> The assistant needs you to be signed in. Claude Haiku 5.5 answers on the server, which streams each reply
-> and checks every suggested product against the catalogue. Set `ANTHROPIC_API_KEY` in `apps/server/.env` to
-> use it locally; without it the chat says the assistant is not configured. Questions in the compare
-> drawer are answered by the same model. Plan: [`docs/plans/symptom-assistant-backend/README.md`](docs/plans/symptom-assistant-backend/README.md).
+Not sure what you need? That's what the [MedDash assistant](#assistant) is for: the doctor in the
+corner of every page, and the “Not sure which medicine fits?” panel in the footer, both open it.
 
 ### 4. Become a regular
 
