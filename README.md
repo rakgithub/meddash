@@ -69,8 +69,8 @@ The server checks these at startup and stops with a readable message if one is w
 
 - Postgres runs on host port **5433**, so it doesn't fight with a Postgres you may already have on 5432.
 - It holds two databases: `meddash` for you, and `meddash_test`, which the server tests set up themselves.
-- `pnpm db:seed` throws out all products and restocks from the seed catalogue. It refuses to run in production or
-  against a database that isn't local.
+- `pnpm db:seed` throws out all products and restocks from the seed catalogue. It refuses to run in production, and
+  against a database that isn't local unless you set `ALLOW_REMOTE_SEED=1`.
 - `pnpm db:down` closes the stock room but keeps the data.
 
 </details>
@@ -220,7 +220,10 @@ One-time setup:
 4. Nothing to migrate by hand: [`apps/server/vercel.json`](apps/server/vercel.json) runs `db:migrate` before
    every API build. That matters for previews, because the Neon integration gives each Git branch its own
    database branch, copied from production when the branch first deploys. A PR's migrations therefore reach
-   production as soon as it merges. `db:seed` only runs against a local database.
+   production as soon as it merges.
+5. To fill an empty hosted database with the seed catalogue, run from the repo root (this replaces all products):
+   `read -s "url?Paste DATABASE_URL: "; DATABASE_URL="$url" ALLOW_REMOTE_SEED=1 pnpm db:seed; unset url`.
+   Preview databases are copied from production when a Git branch first deploys, so seed production first.
 
 ---
 

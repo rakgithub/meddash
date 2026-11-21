@@ -3,13 +3,11 @@ import { config } from "../config/env.js";
 import { db, pool } from "./client.js";
 import { products } from "./schema.js";
 import { seedProducts } from "./seed-data.js";
+import { seedRefusal } from "./seedGuard.js";
 
-// Seeding deletes every product, so only allow it against a local database.
-const host = new URL(config.databaseUrl).hostname;
-if (process.env.NODE_ENV === "production" || !["localhost", "127.0.0.1", "[::1]"].includes(host)) {
-  console.error(
-    `Refusing to seed: NODE_ENV=${process.env.NODE_ENV ?? ""}, database host "${host}".`,
-  );
+const refusal = seedRefusal(process.env, config.databaseUrl);
+if (refusal) {
+  console.error(`Refusing to seed: ${refusal}.`);
   process.exit(1);
 }
 
