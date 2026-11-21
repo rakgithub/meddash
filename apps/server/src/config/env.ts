@@ -22,6 +22,9 @@ const envSchema = z.object({
     emptyToUndefined,
     z.enum(["development", "test", "production"]).default("development"),
   ),
+  // Optional so the app runs without a key; the assistant endpoint answers 503 instead.
+  ANTHROPIC_API_KEY: z.preprocess(emptyToUndefined, z.string().optional()),
+  ASSISTANT_MODEL: z.preprocess(emptyToUndefined, z.string().default("claude-haiku-5-5")),
 });
 
 export type Config = {
@@ -29,11 +32,14 @@ export type Config = {
   databaseUrl: string;
   jwtSecret: string;
   isProduction: boolean;
+  anthropicApiKey: string | undefined;
+  assistantModel: string;
 };
 
 /**
  * Validates the environment once at startup. The error lists only variable names and
- * reasons, never values: DATABASE_URL contains the password and JWT_SECRET is a secret.
+ * reasons, never values: DATABASE_URL contains the password, and JWT_SECRET and
+ * ANTHROPIC_API_KEY are secrets.
  */
 export function parseEnv(env: NodeJS.ProcessEnv): Config {
   const result = envSchema.safeParse(env);
@@ -46,6 +52,8 @@ export function parseEnv(env: NodeJS.ProcessEnv): Config {
     databaseUrl: result.data.DATABASE_URL,
     jwtSecret: result.data.JWT_SECRET,
     isProduction: result.data.NODE_ENV === "production",
+    anthropicApiKey: result.data.ANTHROPIC_API_KEY,
+    assistantModel: result.data.ASSISTANT_MODEL,
   };
 }
 

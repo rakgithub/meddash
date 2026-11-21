@@ -12,7 +12,33 @@ describe("parseEnv", () => {
       databaseUrl: url,
       jwtSecret: secret,
       isProduction: false,
+      anthropicApiKey: undefined,
+      assistantModel: "claude-haiku-5-5",
     });
+  });
+
+  it.each([undefined, ""])("starts without ANTHROPIC_API_KEY when it is %j", (key) => {
+    expect(parseEnv({ ...base, ANTHROPIC_API_KEY: key }).anthropicApiKey).toBeUndefined();
+  });
+
+  it("reads ANTHROPIC_API_KEY when set", () => {
+    expect(parseEnv({ ...base, ANTHROPIC_API_KEY: "sk-test" }).anthropicApiKey).toBe("sk-test");
+  });
+
+  it.each([undefined, ""])("defaults ASSISTANT_MODEL to Haiku when it is %j", (model) => {
+    expect(parseEnv({ ...base, ASSISTANT_MODEL: model }).assistantModel).toBe("claude-haiku-5-5");
+  });
+
+  it("reads ASSISTANT_MODEL when set", () => {
+    expect(parseEnv({ ...base, ASSISTANT_MODEL: "claude-sonnet-5-5" }).assistantModel).toBe(
+      "claude-sonnet-5-5",
+    );
+  });
+
+  it("never echoes ANTHROPIC_API_KEY when another variable is invalid", () => {
+    expect(() => parseEnv({ ...base, ANTHROPIC_API_KEY: "sk-secret", PORT: "abc" })).not.toThrow(
+      /sk-secret/,
+    );
   });
 
   it.each([undefined, ""])("defaults PORT to 3001 when it is %j", (PORT) => {
