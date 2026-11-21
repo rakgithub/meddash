@@ -4,7 +4,7 @@
   gap: 24px;
   max-width: 1120px;
   margin: 0 auto;
-  padding: 40px 20px 64px;
+  padding: 28px 20px 64px;
 }
 
 .header {
@@ -30,7 +30,7 @@
 .resultsHead {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .body {

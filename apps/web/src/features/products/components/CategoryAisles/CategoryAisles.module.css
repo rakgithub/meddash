@@ -1,23 +1,26 @@
-/* Positioned, so each tile's offsetLeft is measured from the row when scrolling to it. */
+/* Positioned, so each pill's offsetLeft is measured from the row when scrolling to it. */
 .aisles {
   position: relative;
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .tile {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  padding: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  height: 40px;
+  padding: 0 14px 0 12px;
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 999px;
   background: var(--surface);
   color: var(--text);
   font: inherit;
-  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
   transition:
     border-color 0.15s ease,
@@ -28,49 +31,22 @@
   border-color: var(--border-strong);
 }
 
-/* An inset ring, so the picked tile doesn't shift its neighbours by a pixel. */
+/* An inset ring, so the picked pill doesn't shift its neighbours by a pixel. */
 .tile[aria-pressed="true"] {
   border-color: var(--accent);
   background: var(--accent-soft);
   box-shadow: inset 0 0 0 1px var(--accent);
+  color: var(--accent-hover);
 }
 
 .icon {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  margin-bottom: 8px;
-  border-radius: 50%;
-  background: var(--accent-soft);
-  transition: background 0.15s ease;
-}
-
-.tile[aria-pressed="true"] .icon {
-  background: var(--accent);
-}
-
-.icon svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   fill: none;
   stroke: var(--accent);
-  stroke-width: 1.6;
+  stroke-width: 1.7;
   stroke-linecap: round;
   stroke-linejoin: round;
-}
-
-.tile[aria-pressed="true"] .icon svg {
-  stroke: var(--on-accent);
-}
-
-.name {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  width: 100%;
-  font-size: 15px;
-  font-weight: 600;
 }
 
 .count {
@@ -79,24 +55,12 @@
   color: var(--text-muted);
 }
 
-.tile[aria-pressed="true"] .name {
-  color: var(--accent-hover);
-}
-
-.hint {
-  font-size: 13px;
-  line-height: 1.4;
-  color: var(--text-muted);
-}
-
-/* On narrow screens the aisles become a row you swipe through, like walking past the shelves. */
+/* On narrow screens the pills become a row you swipe through instead of wrapping onto more lines. */
 @media (max-width: 860px) {
   .aisles {
-    grid-template-columns: none;
-    grid-auto-columns: 168px;
-    grid-auto-flow: column;
+    flex-wrap: nowrap;
     overflow-x: auto;
-    scroll-snap-type: x mandatory;
+    scroll-snap-type: x proximity;
     scrollbar-width: none;
     margin: 0 -20px;
     padding: 2px 20px;
@@ -109,8 +73,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tile,
-  .icon {
+  .tile {
     transition: none;
   }
 }
