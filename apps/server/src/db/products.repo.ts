@@ -68,6 +68,9 @@ export function toProductDetail(row: ProductRow): ProductDetail {
   };
 }
 
+// Every column except the search vector, which is large and only used for matching.
+const { searchVector, ...productColumns } = getTableColumns(products);
+
 const contains = (term: string) => `%${escapeLike(term)}%`;
 
 function whereClause(f: ProductFilters): SQL | undefined {
@@ -121,7 +124,7 @@ export async function findProducts(
   const where = whereClause(filters);
   // The window count shares a snapshot with the rows and avoids a second scan.
   const rows = await db
-    .select({ ...getTableColumns(products), total: sql<number>`count(*) over()`.mapWith(Number) })
+    .select({ ...productColumns, total: sql<number>`count(*) over()`.mapWith(Number) })
     .from(products)
     .where(where)
     .orderBy(...orderBy(sort, filters.terms))
@@ -180,11 +183,91 @@ export async function findSuggestions(prefix: string, limit: number): Promise<Su
 export const LIST_LIMIT = 100;
 
 export async function listAllProducts(): Promise<Product[]> {
-  const rows = await db.select().from(products).orderBy(asc(products.id)).limit(LIST_LIMIT);
+  const rows = await db
+    .select(productColumns)
+    .from(products)
+    .orderBy(asc(products.id))
+    .limit(LIST_LIMIT);
   return rows.map(toProduct);
 }
 
 export async function findProductById(id: number): Promise<ProductDetail | null> {
-  const rows = await db.select().from(products).where(eq(products.id, id)).limit(1);
+  const rows = await db.select(productColumns).from(products).where(eq(products.id, id)).limit(1);
   return rows[0] ? toProductDetail(rows[0]) : null;
+}
+
+/** What the assistant model sees for a product: enough to choose, small enough to keep tool results cheap. */
+export interface CatalogueItem {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  dosageForm: string | null;
+  activeIngredients: string[];
+  packSize: string | null;
+  price: number;
+  requiresPrescription: boolean;
+  warnings: string | null;
+}
+
+export interface CatalogueSearch {
+  category?: string;
+  limit: number;
+}
+
+export const CATALOGUE_DESCRIPTION_MAX = 160;
+
+/** Cuts at a word boundary so the model never sees half a word. */
+export function shortDescription(text: string, max = CATALOGUE_DESCRIPTION_MAX): string {
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max - 1);
+  const lastSpace = cut.lastIndexOf(" ");
+  return `${(lastSpace > 0 ? cut.slice(0, lastSpace) : cut).trimEnd()}…`;
+}
+
+export function toCatalogueItem(row: ProductRow): CatalogueItem {
+  return {
+    id: String(row.id),
+    name: row.name,
+    category: row.category,
+    description: shortDescription(row.description),
+    dosageForm: row.dosageForm,
+    activeIngredients: row.activeIngredients,
+    packSize: row.packSize,
+    price: Number(row.price),
+    requiresPrescription: row.requiresPrescription,
+    warnings: row.warnings,
+  };
+}
+
+/**
+ * Full-text search over the catalogue for the assistant, best match first. Prescription-only
+ * products are included (flagged), because the server decides how to show them. If full-text
+ * search finds nothing, it falls back to the substring match that /search uses, since short words
+ * like "flu" can stem badly.
+ */
+export async function searchCatalogue(
+  text: string,
+  { category, limit }: CatalogueSearch,
+): Promise<CatalogueItem[]> {
+  const inCategory =
+    category === undefined ? undefined : sql`lower(${products.category}) = lower(${category})`;
+  const query = sql`websearch_to_tsquery('english', ${text})`;
+  const ranked = await db
+    .select(productColumns)
+    .from(products)
+    .where(and(sql`${searchVector} @@ ${query}`, inCategory))
+    .orderBy(desc(sql`ts_rank(${searchVector}, ${query})`), asc(products.id))
+    .limit(limit);
+  if (ranked.length > 0) return ranked.map(toCatalogueItem);
+
+  const terms = text.toLowerCase().split(/\s+/).filter(Boolean);
+  if (terms.length === 0) return [];
+  const fallback = await db
+    .select(productColumns)
+    .from(products)
+    .where(whereClause({ terms, category }))
+    .orderBy(...orderBy("relevance", terms))
+    .limit(limit);
+  return fallback.map(toCatalogueItem);
 }

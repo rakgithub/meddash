@@ -1,0 +1,2 @@
+ALTER TABLE "products" ADD COLUMN "search_vector" "tsvector" GENERATED ALWAYS AS (setweight(to_tsvector('english', name), 'A') || setweight(to_tsvector('english', text_array_to_string(active_ingredients)), 'A') || setweight(to_tsvector('english', brand || ' ' || category), 'B') || setweight(to_tsvector('english', description), 'C')) STORED;--> statement-breakpoint
+CREATE INDEX "products_search_vector_idx" ON "products" USING gin ("search_vector");
