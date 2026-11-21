@@ -267,6 +267,15 @@ describe("POST /assistant/compare", () => {
     expect(res.body.error.message).toBe("Product not found");
   });
 
+  it("does not count unknown products toward the rate limit", async () => {
+    const agent = await signedIn();
+    const unknown = { ...compareBody(), productIds: ["1", "999999"] };
+    for (let i = 0; i < 20; i++) {
+      expect((await agent.post(comparePath).send(unknown)).status).toBe(404);
+    }
+    expect((await agent.post(comparePath).send(compareBody())).status).toBe(200);
+  });
+
   it("returns 401 when signed out", async () => {
     const res = await request(app).post(comparePath).send(compareBody());
     expect(res.status).toBe(401);

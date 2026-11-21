@@ -1,4 +1,4 @@
-import { toApiError } from "../../../lib/apiClient";
+import { ApiError, apiPostStream } from "../../../lib/apiClient";
 import type { AssistantEngine, Message, MessagePart } from "../types";
 import { regionFromMessage } from "../utils/bodyRegions";
 import { messageText } from "../utils/consultationReducer";
@@ -139,25 +139,13 @@ export async function postAssistant(
   body: unknown,
   signal: AbortSignal,
 ): Promise<ReadableStream<Uint8Array>> {
-  let res: Response;
   try {
-    res = await fetch(path, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
-      body: JSON.stringify(body),
-      signal,
-    });
+    return await apiPostStream(path, body, { credentials: "include", signal });
   } catch (err) {
     signal.throwIfAborted();
-    throw err;
+    if (!(err instanceof ApiError)) throw err;
+    throw new AssistantError(err.status === 429 ? RATE_LIMIT_MESSAGE : err.message);
   }
-  if (!res.ok) {
-    const error = await toApiError(res);
-    throw new AssistantError(res.status === 429 ? RATE_LIMIT_MESSAGE : error.message);
-  }
-  if (!res.body) throw new AssistantError("The assistant could not answer. Please try again.");
-  return res.body;
 }
 
 /** The real assistant: posts the turn to the API and yields the parts it streams back as SSE. */
@@ -187,7 +175,7 @@ export const streamEngine: AssistantEngine = async function* ({
   }
 
   const body = await postAssistant(
-    "/api/assistant/messages",
+    "/assistant/messages",
     { caseFile, history: condenseHistory(history), userText },
     signal,
   );

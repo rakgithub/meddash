@@ -17,6 +17,7 @@ function showRow(row: HTMLElement | null) {
 }
 
 const ANSWER_ERROR = "The assistant could not answer. Please try again.";
+const NO_REPLY = "The assistant had no answer to that. Try asking another way.";
 
 interface CompareAnswer {
   text: string;
@@ -70,11 +71,20 @@ export function CompareDrawer({ products, onClose }: CompareDrawerProps) {
     setBusy(true);
     try {
       const ids = products.map((p) => p.id);
+      let answered = false;
       for await (const event of askCompare(ids, trimmed, abort.signal)) {
-        if (event.kind === "row") setAnswer((a) => ({ ...a, row: event.row }));
-        else if (event.kind === "text") setAnswer((a) => ({ ...a, text: a.text + event.text }));
+        // Events already received for a cancelled question would land in the new answer.
+        if (abort.signal.aborted) return;
+        if (event.kind === "row") {
+          setAnswer((a) => ({ ...a, row: event.row }));
+          continue;
+        }
+        answered = true;
+        if (event.kind === "text") setAnswer((a) => ({ ...a, text: a.text + event.text }));
         else setAnswer({ row: null, text: `${event.title}. ${event.body}` });
       }
+      // The model can end without any words (e.g. cut off); say so rather than show nothing.
+      if (!answered && !abort.signal.aborted) setError(NO_REPLY);
     } catch (err) {
       // A newer question or closing the drawer cancelled this one; nothing to show.
       if (abort.signal.aborted) return;

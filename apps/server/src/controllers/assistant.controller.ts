@@ -1,7 +1,7 @@
 import type Anthropic from "@anthropic-ai/sdk";
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { config } from "../config/env.js";
-import { findProductById, searchCatalogue } from "../db/products.repo.js";
+import { findProductById, findProductsByIds, searchCatalogue } from "../db/products.repo.js";
 import { AppError } from "../errors/AppError.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
 import {
@@ -10,6 +10,7 @@ import {
   type AssistantCompareBody,
   type AssistantMessageBody,
 } from "../schemas/assistant.schema.js";
+import type { ProductDetail } from "../schemas/product.schema.js";
 import { anthropicClient } from "../services/assistant/anthropicClient.js";
 import { runCompare } from "../services/assistant/compare.js";
 import {
@@ -91,17 +92,29 @@ export const sendMessage = asyncHandler(
   },
 );
 
-/** A question about a shortlist. The products are loaded here, so an unknown id is a 404 before the stream opens. */
-export const compare = asyncHandler(
-  async (_req: Request, res: Response<unknown, { body: AssistantCompareBody }>) => {
-    const stream = modelStream();
-    const { productIds, question } = res.locals.body;
-    const found = await Promise.all(productIds.map((id) => findProductById(Number(id))));
-    const products = found.filter((p) => p !== null);
-    if (products.length !== productIds.length) throw new AppError(404, "Product not found");
+type CompareLocals = { body: AssistantCompareBody; products: ProductDetail[] };
 
+/**
+ * Loads the compared products; an unknown id is a 404. It runs before the rate limit, so a request
+ * that can never reach the model doesn't use up the user's turns.
+ */
+export const loadCompareProducts = asyncHandler(
+  async (_req: Request, res: Response<unknown, CompareLocals>, next: NextFunction) => {
+    const { productIds } = res.locals.body;
+    const products = await findProductsByIds(productIds.map(Number));
+    if (products.length !== productIds.length) throw new AppError(404, "Product not found");
+    res.locals.products = products;
+    next();
+  },
+);
+
+/** A question about a shortlist, about the products `loadCompareProducts` found. */
+export const compare = asyncHandler(
+  async (_req: Request, res: Response<unknown, CompareLocals>) => {
+    const stream = modelStream();
+    const { body, products } = res.locals;
     await streamSse(res, compareEventSchema, (signal) =>
-      runCompare({ question }, products, {
+      runCompare({ question: body.question }, products, {
         stream,
         model: config.assistantModel,
         signal,

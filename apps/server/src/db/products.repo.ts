@@ -7,6 +7,7 @@ import {
   getTableColumns,
   gte,
   ilike,
+  inArray,
   lte,
   or,
   sql,
@@ -194,6 +195,17 @@ export async function listAllProducts(): Promise<Product[]> {
 export async function findProductById(id: number): Promise<ProductDetail | null> {
   const rows = await db.select(productColumns).from(products).where(eq(products.id, id)).limit(1);
   return rows[0] ? toProductDetail(rows[0]) : null;
+}
+
+/** The products with these ids, in the order given; unknown ids are left out. One query. */
+export async function findProductsByIds(ids: number[]): Promise<ProductDetail[]> {
+  if (ids.length === 0) return [];
+  const rows = await db.select(productColumns).from(products).where(inArray(products.id, ids));
+  const byId = new Map(rows.map((row) => [row.id, row]));
+  return ids.flatMap((id) => {
+    const row = byId.get(id);
+    return row ? [toProductDetail(row)] : [];
+  });
 }
 
 /** What the assistant model sees for a product: enough to choose, small enough to keep tool results cheap. */

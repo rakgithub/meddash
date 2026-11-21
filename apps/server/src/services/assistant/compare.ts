@@ -73,13 +73,16 @@ export const HIGHLIGHT_ROW_TOOL: Anthropic.Tool = {
 const LOW_STOCK_THRESHOLD = 5;
 const PACK_SIZE = /^(\d+(?:[.,]\d+)?)\s*(.+)$/;
 
-const euros = (amount: number, maxDigits = 2) =>
+const eurosFormat = (maxDigits: number) =>
   new Intl.NumberFormat("en-GB", {
     style: "currency",
     currency: "EUR",
     minimumFractionDigits: 2,
     maximumFractionDigits: maxDigits,
-  }).format(amount);
+  });
+const priceFormat = eurosFormat(2);
+// Unit prices are often a few cents, so they keep up to three decimals.
+const unitPriceFormat = eurosFormat(3);
 
 /** "€0.325 per tablet" from a pack size like "20 tablets"; null when it can't be read. Same rule as the web table. */
 export function unitPriceText(product: Pick<ProductDetail, "packSize" | "price">): string | null {
@@ -88,7 +91,7 @@ export function unitPriceText(product: Pick<ProductDetail, "packSize" | "price">
   const count = Number(match[1].replace(",", "."));
   if (count <= 0) return null;
   const unit = match[2].trim().replace(/s$/i, "");
-  return `${euros(product.price / count, 3)} per ${unit}`;
+  return `${unitPriceFormat.format(product.price / count)} per ${unit}`;
 }
 
 /** Same wording as the web's `formatStock`. */
@@ -106,7 +109,7 @@ export function compareItem(p: ProductDetail) {
     activeIngredients: p.activeIngredients,
     dosageForm: p.dosageForm,
     packSize: p.packSize,
-    price: euros(p.price),
+    price: priceFormat.format(p.price),
     unitPrice: unitPriceText(p),
     warnings: p.warnings,
     stock: stockText(p.stockQuantity),

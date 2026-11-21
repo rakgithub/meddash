@@ -25,6 +25,6 @@ export async function* askCompare(
     yield alert;
     return;
   }
-  const body = await postAssistant("/api/assistant/compare", { productIds, question }, signal);
+  const body = await postAssistant("/assistant/compare", { productIds, question }, signal);
   yield* readEvents(body, signal, isCompareEvent);
 }

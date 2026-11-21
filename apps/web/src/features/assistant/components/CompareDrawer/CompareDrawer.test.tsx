@@ -1,4 +1,4 @@
-import { cleanup, screen, within } from "@testing-library/react";
+import { cleanup, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ibuprofenDetail, paracetamolDetail } from "../../../../test/fixtures";
@@ -182,6 +182,43 @@ describe("CompareDrawer", () => {
     cleanup();
 
     expect(signal?.aborted).toBe(true);
+  });
+
+  it("drops what is still arriving for a question asked over", async () => {
+    let release = () => {};
+    vi.mocked(askCompare)
+      .mockImplementationOnce(async function* () {
+        yield { kind: "text", text: "Old start." };
+        await new Promise<void>((resolve) => (release = resolve));
+        // Already received before the cancel, so the stream still hands them over.
+        yield { kind: "text", text: " Old end." };
+        yield { kind: "row", row: "stock" };
+      })
+      .mockImplementationOnce(async function* () {
+        yield { kind: "text", text: "New answer." };
+        yield { kind: "row", row: "warnings" };
+      });
+    const { user } = setup();
+
+    await user.click(screen.getByRole("button", { name: "Which is cheapest?" }));
+    expect(await screen.findByText("Old start.")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Which is gentler on the stomach?" }));
+    release();
+
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("New answer."));
+    expect(screen.getByRole("status")).not.toHaveTextContent("Old");
+    expect(screen.getByRole("row", { name: /Warnings/ })).toHaveAttribute("aria-current", "true");
+    expect(screen.getByRole("row", { name: /Stock/ })).not.toHaveAttribute("aria-current");
+  });
+
+  it("says so when the answer ends without any words", async () => {
+    answers({ kind: "row", row: "price" });
+    const { user } = setup();
+
+    await user.click(screen.getByRole("button", { name: "Which is cheapest?" }));
+
+    expect(screen.getByRole("alert")).toHaveTextContent("had no answer to that");
+    expect(screen.getByRole("status")).toBeEmptyDOMElement();
   });
 
   it("ignores an empty question", async () => {

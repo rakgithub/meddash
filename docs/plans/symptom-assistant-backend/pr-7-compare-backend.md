@@ -27,7 +27,8 @@ Overview: [Phase B7](README.md#phase-b7--compare-mode-on-the-backend).
 - **The server loads the products itself** from the ids and gives the model what the table shows, with the
   unit price and stock worked out in code (the same rules as the web table), so the model doesn't do arithmetic.
 - **Red flags first:** an urgent symptom in the question gets the urgent alert and no model call.
-- **Same rate limit as a chat turn.** A compare question costs about as much, so it counts in the same window.
+- **Same rate limit as a chat turn.** A compare question costs about as much, so it counts in the same window. Unknown
+  products (404) are rejected before the limit, so they don't use up turns.
 - **The question is limited to 300 characters**; it's a question about a shortlist, not a consultation.
 - Compare questions stay out of the conversation, as in S5.
 

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { compare, sendMessage } from "../controllers/assistant.controller.js";
+import { compare, loadCompareProducts, sendMessage } from "../controllers/assistant.controller.js";
 import { recordAssistantTurn } from "../db/assistantTurns.repo.js";
 import { createRateLimiter } from "../middleware/rateLimit.js";
 import { requireAssistant } from "../middleware/requireAssistant.js";
@@ -30,12 +30,14 @@ assistantRouter.post(
   sendMessage,
 );
 
-// A compare question costs about as much as a turn, so it counts in the same window.
+// A compare question costs about as much as a turn, so it counts in the same window. Unknown
+// products are rejected before it is counted.
 assistantRouter.post(
   "/compare",
   requireAuth,
   requireAssistant,
   validateBody(assistantCompareBodySchema),
+  loadCompareProducts,
   createRateLimiter(ASSISTANT_RATE_LIMITS, recordAssistantTurn),
   compare,
 );
