@@ -116,4 +116,5 @@ export const messagePartSchema = z
 export type CaseFile = z.infer<typeof caseFileSchema>;
 export type AssistantMessageBody = z.infer<typeof assistantMessageBodySchema>;
 export type MessagePart = z.infer<typeof messagePartSchema>;
+export type Recommendation = z.infer<typeof recommendationSchema>;
 export type AlertPart = Extract<MessagePart, { kind: "alert" }>;

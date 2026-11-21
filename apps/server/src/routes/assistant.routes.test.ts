@@ -3,8 +3,9 @@ import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp } from "../createApp.js";
 import { STREAM_ERROR_MESSAGE } from "../controllers/assistant.controller.js";
-import { PLACEHOLDER_REPLY } from "../services/assistant/runTurn.js";
 import type * as RunTurnModule from "../services/assistant/runTurn.js";
+import type { TurnLog } from "../services/assistant/runTurn.js";
+import { fakeModel } from "../test/fakeModel.js";
 
 // Tests never have a real key; switch the client on and off per test.
 const client = vi.hoisted(() => {
@@ -19,10 +20,13 @@ vi.mock("../services/assistant/anthropicClient.js", () => ({
 
 // Lets a test make the turn fail after its first part, once the stream is open.
 const failing = vi.hoisted(() => ({ on: false }));
+// Collects the usage lines instead of printing them.
+const turnLogs = vi.hoisted((): TurnLog[] => []);
 vi.mock("../services/assistant/runTurn.js", async (importOriginal) => {
   const original = await importOriginal<typeof RunTurnModule>();
   return {
     ...original,
+    logTurnToStdout: (log: TurnLog) => turnLogs.push(log),
     async *runTurn(...args: Parameters<typeof original.runTurn>) {
       if (!failing.on) return yield* original.runTurn(...args);
       yield { kind: "text" as const, text: "Partial" };
@@ -66,9 +70,20 @@ function events(text: string) {
     });
 }
 
+/** A client whose every request gets the same short scripted answer. */
+const fakeClient = {
+  messages: {
+    stream: (
+      params: Parameters<ReturnType<typeof fakeModel>["stream"]>[0],
+      options: { signal: AbortSignal },
+    ) => fakeModel([{ text: ["Hello", " there."] }]).stream(params, options.signal),
+  },
+};
+
 beforeEach(() => {
-  client.current = {};
+  client.current = fakeClient;
   failing.on = false;
+  turnLogs.length = 0;
 });
 
 describe("POST /assistant/messages", () => {
@@ -84,8 +99,13 @@ describe("POST /assistant/messages", () => {
         name: "message",
         data: { kind: "thinking", steps: [{ label: "Checking for warning signs", done: true }] },
       },
-      { name: "message", data: { kind: "text", text: PLACEHOLDER_REPLY } },
+      { name: "message", data: { kind: "text", text: "Hello" } },
+      { name: "message", data: { kind: "text", text: " there." } },
       { name: "done", data: {} },
+    ]);
+    // Wired to the configured model, and logged without any message text.
+    expect(turnLogs).toEqual([
+      expect.objectContaining({ model: "claude-haiku-5-5", stopReason: "end_turn" }),
     ]);
   });
 

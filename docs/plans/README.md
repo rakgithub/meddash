@@ -4,12 +4,13 @@ One folder per piece of work. `README.md` in the folder is the overview plan; wh
 PRs that need their own detail, each gets a `pr-<n>-<kebab-name>.md` next to it. The roadmap is
 [`docs/PLAN.md`](../PLAN.md); every plan links the roadmap entry it belongs to.
 
-| Plan                                                                        | Roadmap                 | Status                       |
-| --------------------------------------------------------------------------- | ----------------------- | ---------------------------- |
-| [Postgres products DB](postgres-products-db/)                               | Phase 1                 | Done                         |
-| [Symptom assistant (frontend)](symptom-assistant/)                          | Symptom assistant track | S1–S6 done; S7 waits on cart |
-| [Product detail, cart, orders](cart-orders/)                                | Phase 5, Phase 6        | Draft                        |
-| ↳ [PR 1 — Header and account menu](cart-orders/pr-1-header-account-menu.md) |                         | Draft                        |
-| [Symptom assistant backend (LLM)](symptom-assistant-backend/)               | Symptom assistant track | Draft                        |
+| Plan                                                                              | Roadmap                 | Status                       |
+| --------------------------------------------------------------------------------- | ----------------------- | ---------------------------- |
+| [Postgres products DB](postgres-products-db/)                                     | Phase 1                 | Done                         |
+| [Symptom assistant (frontend)](symptom-assistant/)                                | Symptom assistant track | S1–S6 done; S7 waits on cart |
+| [Product detail, cart, orders](cart-orders/)                                      | Phase 5, Phase 6        | Draft                        |
+| ↳ [PR 1 — Header and account menu](cart-orders/pr-1-header-account-menu.md)       |                         | Draft                        |
+| [Symptom assistant backend (LLM)](symptom-assistant-backend/)                     | Symptom assistant track | Draft                        |
+| ↳ [PR 4 — LLM orchestration](symptom-assistant-backend/pr-4-llm-orchestration.md) |                         | In progress                  |
 
 Keep the status here in step with the `Status:` line at the top of each plan.
