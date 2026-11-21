@@ -156,3 +156,18 @@ export const orderItems = pgTable(
     check("order_items_quantity_positive", sql`${t.quantity} > 0`),
   ],
 );
+
+// One row per assistant turn that passed the rate limit. Postgres holds the counts so every
+// serverless instance sees the same ones; rows older than the longest window are pruned per user.
+export const assistantTurns = pgTable(
+  "assistant_turns",
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  // Matches the window counts: one user's turns since a point in time.
+  (t) => [index("assistant_turns_user_created_idx").on(t.userId, t.createdAt)],
+);

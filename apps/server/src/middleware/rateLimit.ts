@@ -6,55 +6,29 @@ export interface RateLimit {
   windowMs: number;
 }
 
-const HOUR = 60 * 60 * 1000;
+export type RateLimitDecision = { allowed: true } | { allowed: false; retryAfterMs: number };
 
 /**
- * In-memory sliding window per signed-in user (needs `requireAuth` first). Every request that reaches
- * it counts. One process only: each server instance keeps its own counts.
+ * Counts the user's request if every limit still allows it. It must decide and record in one atomic
+ * step shared by all server instances, or concurrent requests and separate instances each get the
+ * full allowance.
  */
-export function createRateLimiter(
-  limits: RateLimit[],
-  now: () => number = Date.now,
-): RequestHandler {
-  const longestWindow = Math.max(...limits.map((l) => l.windowMs));
-  const hits = new Map<number, number[]>();
-  let lastSweep = now();
+export type RateLimitStore = (userId: number, limits: RateLimit[]) => Promise<RateLimitDecision>;
 
-  const recent = (times: number[], at: number) => times.filter((t) => t > at - longestWindow);
-
-  // Users who stop sending never get pruned on access, so drop them now and then.
-  function sweep(at: number) {
-    if (at - lastSweep < HOUR) return;
-    lastSweep = at;
-    for (const [userId, times] of hits) {
-      const kept = recent(times, at);
-      if (kept.length) hits.set(userId, kept);
-      else hits.delete(userId);
-    }
-  }
-
+/**
+ * Sliding window per signed-in user (needs `requireAuth` first). Every request that reaches it
+ * counts; the store keeps the counts (Postgres in production, so they hold across instances).
+ */
+export function createRateLimiter(limits: RateLimit[], store: RateLimitStore): RequestHandler {
   return (_req, res, next) => {
     const userId: unknown = res.locals.userId;
     if (typeof userId !== "number") {
       return next(new Error("createRateLimiter needs requireAuth before it"));
     }
-    const at = now();
-    sweep(at);
-    const times = recent(hits.get(userId) ?? [], at);
-
-    for (const { max, windowMs } of limits) {
-      const inWindow = times.filter((t) => t > at - windowMs);
-      if (inWindow.length >= max) {
-        // The oldest hit in the window is the next one to drop out of it.
-        const retryAfterMs = inWindow[0] + windowMs - at;
-        res.set("Retry-After", String(Math.ceil(retryAfterMs / 1000)));
-        hits.set(userId, times);
-        return next(new AppError(429, "Too many messages. Please try again later."));
-      }
-    }
-
-    times.push(at);
-    hits.set(userId, times);
-    next();
+    store(userId, limits).then((decision) => {
+      if (decision.allowed) return next();
+      res.set("Retry-After", String(Math.ceil(decision.retryAfterMs / 1000)));
+      next(new AppError(429, "Too many messages. Please try again later."));
+    }, next);
   };
 }

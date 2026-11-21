@@ -1,0 +1,8 @@
+CREATE TABLE "assistant_turns" (
+	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "assistant_turns_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
+	"user_id" integer NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+ALTER TABLE "assistant_turns" ADD CONSTRAINT "assistant_turns_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "assistant_turns_user_created_idx" ON "assistant_turns" USING btree ("user_id","created_at");
