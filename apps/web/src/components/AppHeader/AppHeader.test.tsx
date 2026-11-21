@@ -46,12 +46,12 @@ describe("AppHeader", () => {
     expect(screen.getByRole("link", { name: "MedDash" })).toHaveAttribute("href", "/");
   });
 
-  it("has the search box and prescription upload", () => {
+  it("has the search box and no prescription upload", () => {
     renderHeader("/");
 
     expect(screen.getByRole("search")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Search" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Upload prescription" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Upload prescription" })).not.toBeInTheDocument();
   });
 
   it("links to the cart with the item count when signed in", async () => {
@@ -86,7 +86,6 @@ describe("AppHeader", () => {
     expect(screen.getByRole("link", { name: "MedDash" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Dark mode" })).toBeInTheDocument();
     expect(screen.queryByRole("search")).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Upload prescription" })).not.toBeInTheDocument();
     // Let the session check settle, then make sure no account control appeared.
     await vi.waitFor(() => expect(authApi.fetchCurrentUser).toHaveBeenCalled());
     expect(screen.queryByRole("link", { name: "Log in" })).not.toBeInTheDocument();

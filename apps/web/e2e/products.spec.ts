@@ -181,14 +181,6 @@ test.describe("Search and filters", () => {
     await expect(cards(page)).toHaveCount(10);
     await expect(page.getByRole("button", { name: "Clear filters" })).toBeHidden();
   });
-
-  test("Upload prescription says it is coming soon", async ({ page }) => {
-    await page.goto("/");
-
-    await page.getByRole("button", { name: "Upload prescription" }).click();
-
-    await expect(page.getByText("Prescription upload is coming soon.")).toBeVisible();
-  });
 });
 
 test.describe("Search suggestions", () => {
