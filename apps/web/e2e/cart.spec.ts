@@ -26,7 +26,7 @@ test.describe("Add to cart", () => {
 
     await buy.getByRole("link", { name: "View cart" }).click();
     await expect(page.getByRole("heading", { name: "Your cart", level: 1 })).toBeVisible();
-    await expect(page.getByRole("listitem")).toContainText("Ibuprofen 400mg");
+    await expect(page.getByRole("main").getByRole("listitem")).toContainText("Ibuprofen 400mg");
   });
 
   test("a signed-out visitor is sent to log in and comes back to the product", async ({ page }) => {
