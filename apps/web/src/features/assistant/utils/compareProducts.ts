@@ -1,7 +1,17 @@
 import { formatPrice, formatStock, type ProductDetail } from "../../products";
 
-export type CompareRowKey =
-  "ingredients" | "form" | "packSize" | "price" | "unitPrice" | "warnings" | "stock";
+/** The table's rows; the server's `COMPARE_ROWS` lists the same keys. */
+export const COMPARE_ROW_KEYS = [
+  "ingredients",
+  "form",
+  "packSize",
+  "price",
+  "unitPrice",
+  "warnings",
+  "stock",
+] as const;
+
+export type CompareRowKey = (typeof COMPARE_ROW_KEYS)[number];
 
 export interface CompareRow {
   key: CompareRowKey;

@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { assistantMessageBodySchema, messagePartSchema } from "./assistant.schema.js";
+import {
+  assistantCompareBodySchema,
+  assistantMessageBodySchema,
+  compareEventSchema,
+  messagePartSchema,
+} from "./assistant.schema.js";
 
 const valid = {
   caseFile: { symptoms: ["Sore throat"], duration: "2-3 days", forWhom: "me", avoid: [] },
@@ -72,5 +77,29 @@ describe("messagePartSchema", () => {
 
   it("rejects an unknown kind", () => {
     expect(messagePartSchema.safeParse({ kind: "html", html: "<b>" }).success).toBe(false);
+  });
+});
+
+describe("assistantCompareBodySchema", () => {
+  it("trims the question", () => {
+    expect(
+      assistantCompareBodySchema.parse({ productIds: ["1", "2"], question: "  Cheapest? " }),
+    ).toEqual({ productIds: ["1", "2"], question: "Cheapest?" });
+  });
+});
+
+describe("compareEventSchema", () => {
+  it("accepts text, a table row and an alert", () => {
+    for (const event of [
+      { kind: "text", text: "Hi" },
+      { kind: "row", row: "unitPrice" },
+      { kind: "alert", level: "urgent", title: "t", body: "b" },
+    ]) {
+      expect(compareEventSchema.safeParse(event).success).toBe(true);
+    }
+  });
+
+  it("rejects a row that is not in the table", () => {
+    expect(compareEventSchema.safeParse({ kind: "row", row: "colour" }).success).toBe(false);
   });
 });

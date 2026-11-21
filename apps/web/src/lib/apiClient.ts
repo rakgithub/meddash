@@ -11,7 +11,7 @@ export class ApiError extends Error {
 }
 
 /** Prefers the server's `{ error: { message } }` so callers can show why a request failed. */
-async function toApiError(res: Response): Promise<ApiError> {
+export async function toApiError(res: Response): Promise<ApiError> {
   let body: unknown = null;
   try {
     body = await res.json();
@@ -71,4 +71,20 @@ export async function apiPatch<T>(path: string, body: unknown, init?: RequestIni
 export async function apiDelete<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await send(path, { ...init, method: "DELETE" });
   return res.json() as Promise<T>;
+}
+
+/** For endpoints that stream their answer as Server-Sent Events: returns the body to read. */
+export async function apiPostStream(
+  path: string,
+  body: unknown,
+  init?: RequestInit,
+): Promise<ReadableStream<Uint8Array>> {
+  const res = await send(path, {
+    ...init,
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
+    body: JSON.stringify(body),
+  });
+  if (!res.body) throw new ApiError(res.status, "The response had no body");
+  return res.body;
 }

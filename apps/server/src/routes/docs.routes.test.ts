@@ -163,4 +163,17 @@ describe("OpenAPI docs", () => {
       expect(res.body.components.schemas).toHaveProperty(name);
     }
   });
+
+  it("documents /assistant/compare as a cookie-auth SSE stream with its error codes", async () => {
+    const res = await request(app).get("/openapi.json");
+    const op = res.body.paths["/assistant/compare"].post;
+    expect(op.security).toEqual([{ cookieAuth: [] }]);
+    expect(Object.keys(op.responses)).toEqual(["200", "400", "401", "404", "429", "503"]);
+    expect(op.responses["200"].content).toHaveProperty("text/event-stream");
+    expect(op.requestBody.content["application/json"].schema.required).toEqual([
+      "productIds",
+      "question",
+    ]);
+    expect(res.body.components.schemas).toHaveProperty("AssistantCompareEvent");
+  });
 });

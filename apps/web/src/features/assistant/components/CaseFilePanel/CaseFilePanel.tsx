@@ -23,7 +23,8 @@ function labelOf(options: QuickReply[], value: string | null) {
 function summary({ symptoms, duration, forWhom }: CaseFile) {
   const parts = [
     symptoms.join(", "),
-    labelOf(DURATION_OPTIONS, duration),
+    // The assistant can word the duration its own way, e.g. "1 to 3 days".
+    labelOf(DURATION_OPTIONS, duration) ?? duration,
     labelOf(FOR_WHOM_OPTIONS, forWhom),
   ];
   return parts.filter(Boolean).join(" · ") || "Nothing noted yet";
@@ -87,6 +88,10 @@ export function CaseFilePanel({ caseFile, onRefine, footer }: CaseFilePanelProps
               <option value="" disabled>
                 Not asked yet
               </option>
+            )}
+            {/* The assistant's own wording, so the select shows it instead of falling back to the first option. */}
+            {duration !== null && !labelOf(DURATION_OPTIONS, duration) && (
+              <option value={duration}>{duration}</option>
             )}
             {DURATION_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>

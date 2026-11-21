@@ -86,6 +86,13 @@ export const recommendationSchema = z
   })
   .openapi("AssistantRecommendation");
 
+const alertPartSchema = z.object({
+  kind: z.literal("alert"),
+  level: z.enum(["urgent", "caution"]),
+  title: z.string(),
+  body: z.string(),
+});
+
 /** Mirrors `MessagePart` in apps/web/src/features/assistant/types.ts, minus the client-only `ruledOut`. */
 export const messagePartSchema = z
   .discriminatedUnion("kind", [
@@ -104,16 +111,51 @@ export const messagePartSchema = z
       loading: z.number().int().nonnegative().optional(),
       unavailable: z.number().int().nonnegative().optional(),
     }),
-    z.object({
-      kind: z.literal("alert"),
-      level: z.enum(["urgent", "caution"]),
-      title: z.string(),
-      body: z.string(),
-    }),
+    alertPartSchema,
   ])
   .openapi("AssistantMessagePart");
 
+export const MAX_COMPARE_QUESTION = 300;
+
+/** The rows of the web compare table (`CompareRowKey` in apps/web/.../utils/compareProducts.ts). */
+export const COMPARE_ROWS = [
+  "ingredients",
+  "form",
+  "packSize",
+  "price",
+  "unitPrice",
+  "warnings",
+  "stock",
+] as const;
+
+export const assistantCompareBodySchema = z
+  .object({
+    productIds: z
+      .array(productId)
+      .min(2)
+      .max(4)
+      .refine((ids) => new Set(ids).size === ids.length, "Product ids must be different")
+      .openapi({ description: "The products being compared, in table order", example: ["1", "2"] }),
+    question: label(MAX_COMPARE_QUESTION).openapi({ example: "Which is gentler on the stomach?" }),
+  })
+  .strict();
+
+/** Mirrors `CompareEvent` in apps/web/src/features/assistant/api/askCompare.ts. */
+export const compareEventSchema = z
+  .discriminatedUnion("kind", [
+    z.object({ kind: z.literal("text"), text: z.string() }),
+    z.object({
+      kind: z.literal("row"),
+      row: z.enum(COMPARE_ROWS).openapi({ description: "The table row the answer is about" }),
+    }),
+    alertPartSchema,
+  ])
+  .openapi("AssistantCompareEvent");
+
 export type CaseFile = z.infer<typeof caseFileSchema>;
+export type AssistantCompareBody = z.infer<typeof assistantCompareBodySchema>;
+export type CompareEvent = z.infer<typeof compareEventSchema>;
+export type CompareRow = (typeof COMPARE_ROWS)[number];
 export type AssistantMessageBody = z.infer<typeof assistantMessageBodySchema>;
 export type MessagePart = z.infer<typeof messagePartSchema>;
 export type Recommendation = z.infer<typeof recommendationSchema>;

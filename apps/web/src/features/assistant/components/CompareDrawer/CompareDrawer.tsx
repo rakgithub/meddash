@@ -1,8 +1,9 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import type { ProductDetail } from "../../../products";
-import { answerCompareQuestion, type CompareAnswer } from "../../api/mockCompare";
-import { compareProducts } from "../../utils/compareProducts";
+import { askCompare } from "../../api/askCompare";
+import { AssistantError } from "../../api/streamEngine";
+import { compareProducts, type CompareRowKey } from "../../utils/compareProducts";
 import styles from "./CompareDrawer.module.css";
 
 interface CompareDrawerProps {
@@ -15,6 +16,17 @@ function showRow(row: HTMLElement | null) {
   row?.scrollIntoView({ block: "nearest" });
 }
 
+const ANSWER_ERROR = "The assistant could not answer. Please try again.";
+const NO_REPLY = "The assistant had no answer to that. Try asking another way.";
+
+interface CompareAnswer {
+  text: string;
+  /** The table row the answer is about; the drawer highlights it. */
+  row: CompareRowKey | null;
+}
+
+const NO_ANSWER: CompareAnswer = { text: "", row: null };
+
 const SUGGESTED_QUESTIONS = ["Which is gentler on the stomach?", "Which is cheapest?"];
 
 /**
@@ -26,7 +38,13 @@ export function CompareDrawer({ products, onClose }: CompareDrawerProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState<CompareAnswer | null>(null);
+  const [answer, setAnswer] = useState<CompareAnswer>(NO_ANSWER);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  // The question being answered, so a new question or closing the drawer can cancel it.
+  const pending = useRef<AbortController | null>(null);
+
+  useEffect(() => () => pending.current?.abort(), []);
 
   // showModal makes the page inert, keeps Tab inside and closes on Escape (which fires "close").
   useEffect(() => {
@@ -41,16 +59,44 @@ export function CompareDrawer({ products, onClose }: CompareDrawerProps) {
     };
   }, []);
 
-  function ask(text: string) {
+  async function ask(text: string) {
     const trimmed = text.trim();
     if (!trimmed) return;
-    setAnswer(answerCompareQuestion(trimmed, products));
+    pending.current?.abort();
+    const abort = new AbortController();
+    pending.current = abort;
     setQuestion("");
+    setAnswer(NO_ANSWER);
+    setError(null);
+    setBusy(true);
+    try {
+      const ids = products.map((p) => p.id);
+      let answered = false;
+      for await (const event of askCompare(ids, trimmed, abort.signal)) {
+        // Events already received for a cancelled question would land in the new answer.
+        if (abort.signal.aborted) return;
+        if (event.kind === "row") {
+          setAnswer((a) => ({ ...a, row: event.row }));
+          continue;
+        }
+        answered = true;
+        if (event.kind === "text") setAnswer((a) => ({ ...a, text: a.text + event.text }));
+        else setAnswer({ row: null, text: `${event.title}. ${event.body}` });
+      }
+      // The model can end without any words (e.g. cut off); say so rather than show nothing.
+      if (!answered && !abort.signal.aborted) setError(NO_REPLY);
+    } catch (err) {
+      // A newer question or closing the drawer cancelled this one; nothing to show.
+      if (abort.signal.aborted) return;
+      setError(err instanceof AssistantError ? err.message : ANSWER_ERROR);
+    } finally {
+      if (pending.current === abort) setBusy(false);
+    }
   }
 
   function submit(event: FormEvent) {
     event.preventDefault();
-    ask(question);
+    void ask(question);
   }
 
   return (
@@ -98,7 +144,7 @@ export function CompareDrawer({ products, onClose }: CompareDrawerProps) {
             </thead>
             <tbody>
               {compareProducts(products).map((row) => {
-                const asked = answer?.row === row.key;
+                const asked = answer.row === row.key;
                 return (
                   <tr
                     key={row.key}
@@ -124,12 +170,17 @@ export function CompareDrawer({ products, onClose }: CompareDrawerProps) {
 
         <div className={styles.ask}>
           <p className={styles.answer} role="status">
-            {answer?.text}
+            {busy && !answer.text ? "Thinking…" : answer.text}
           </p>
+          {error && (
+            <p className={styles.error} role="alert">
+              {error}
+            </p>
+          )}
           <ul className={styles.suggestions} aria-label="Suggested questions">
             {SUGGESTED_QUESTIONS.map((suggested) => (
               <li key={suggested}>
-                <button className={styles.pill} type="button" onClick={() => ask(suggested)}>
+                <button className={styles.pill} type="button" onClick={() => void ask(suggested)}>
                   {suggested}
                 </button>
               </li>

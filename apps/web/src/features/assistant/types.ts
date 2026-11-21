@@ -1,4 +1,5 @@
 import type { ProductDetail } from "../products";
+import type { CompareRowKey } from "./utils/compareProducts";
 
 /**
  * The message protocol between the chat UI and the assistant engine. The UI renders only these typed
@@ -44,8 +45,8 @@ export interface Recommendation {
 
 /**
  * While streaming, consecutive `text` parts are deltas appended to the previous text. A `thinking` part
- * after another `thinking` part, or a `products` part after another `products` part, is a newer snapshot
- * that replaces it.
+ * replaces the reply's earlier `thinking` part, and a `products` part after another `products` part
+ * replaces it: both are newer snapshots.
  */
 export type MessagePart =
   | { kind: "text"; text: string }
@@ -65,6 +66,15 @@ export type MessagePart =
   /** `urgent` = this needs a doctor now; the conversation stops recommending until it starts over. */
   | { kind: "alert"; level: "urgent" | "caution"; title: string; body: string };
 
+/**
+ * One event of an answer in the compare drawer (`AssistantCompareEvent` on the server): the answer's
+ * text, the table row it is about, or the urgent alert for a red flag in the question.
+ */
+export type CompareEvent =
+  | { kind: "text"; text: string }
+  | { kind: "row"; row: CompareRowKey }
+  | Extract<MessagePart, { kind: "alert" }>;
+
 /** `stopped` = the user pressed Stop; `error` = the engine threw. */
 export type MessageStatus = "streaming" | "done" | "stopped" | "error";
 
@@ -73,6 +83,8 @@ export interface Message {
   role: Role;
   parts: MessagePart[];
   status: MessageStatus;
+  /** Why the reply failed, when there is something useful to say, e.g. the rate limit. */
+  error?: string;
 }
 
 /** The single seam between the UI and the AI. */

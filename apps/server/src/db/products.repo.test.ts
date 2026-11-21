@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   CATALOGUE_DESCRIPTION_MAX,
   escapeLike,
+  findProductsByIds,
   searchCatalogue,
   shortDescription,
   toCatalogueItem,
@@ -179,5 +180,24 @@ describe("searchCatalogue", () => {
   it("returns only the slim model view", async () => {
     const [item] = await searchCatalogue("headache", { limit: 1 });
     expect(Object.keys(item).sort()).toEqual(Object.keys(toCatalogueItem(row)).sort());
+  });
+});
+
+describe("findProductsByIds", () => {
+  it("returns the products in the order asked for", async () => {
+    const found = await findProductsByIds([2, 1]);
+    expect(found.map((p) => [p.id, p.name])).toEqual([
+      ["2", "Paracetamol 500mg"],
+      ["1", "Ibuprofen 400mg"],
+    ]);
+    expect(found[0]).toHaveProperty("warnings");
+  });
+
+  it("leaves out unknown ids", async () => {
+    expect((await findProductsByIds([1, 999_999])).map((p) => p.id)).toEqual(["1"]);
+  });
+
+  it("returns nothing for no ids", async () => {
+    expect(await findProductsByIds([])).toEqual([]);
   });
 });

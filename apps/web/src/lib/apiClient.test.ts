@@ -1,5 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ApiError, apiDelete, apiGet, apiPatch, apiPost, apiPostNoContent } from "./apiClient";
+import {
+  ApiError,
+  apiDelete,
+  apiGet,
+  apiPatch,
+  apiPost,
+  apiPostNoContent,
+  apiPostStream,
+} from "./apiClient";
 
 function mockFetch(response: Partial<Response>) {
   const fn = vi.fn().mockResolvedValue(response);
@@ -150,5 +158,41 @@ describe("apiDelete", () => {
     mockFetch({ ok: false, status: 404, statusText: "Not Found" });
 
     await expect(apiDelete("/cart/items/1")).rejects.toBeInstanceOf(ApiError);
+  });
+});
+
+describe("apiPostStream", () => {
+  it("posts JSON asking for an event stream and returns the body", async () => {
+    // A real response body, so the stream has the type fetch gives it.
+    const { body } = new Response("data: {}\n\n");
+    const fetchMock = mockFetch({ ok: true, status: 200, body });
+    const signal = new AbortController().signal;
+
+    expect(await apiPostStream("/assistant/compare", { q: 1 }, { signal })).toBe(body);
+    expect(fetchMock).toHaveBeenCalledWith("/api/assistant/compare", {
+      signal,
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
+      body: '{"q":1}',
+    });
+  });
+
+  it("throws an ApiError with the server message", async () => {
+    mockFetch({
+      ok: false,
+      status: 429,
+      statusText: "Too Many Requests",
+      json: async () => ({ error: { message: "Too many" } }),
+    });
+
+    await expect(apiPostStream("/assistant/compare", {})).rejects.toEqual(
+      new ApiError(429, "Too many"),
+    );
+  });
+
+  it("throws when the response has no body", async () => {
+    mockFetch({ ok: true, status: 200, body: null });
+
+    await expect(apiPostStream("/assistant/compare", {})).rejects.toBeInstanceOf(ApiError);
   });
 });
