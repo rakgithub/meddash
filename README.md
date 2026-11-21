@@ -69,8 +69,8 @@ The server checks these at startup and stops with a readable message if one is w
 
 - Postgres runs on host port **5433**, so it doesn't fight with a Postgres you may already have on 5432.
 - It holds two databases: `meddash` for you, and `meddash_test`, which the server tests set up themselves.
-- `pnpm db:seed` throws out all products and restocks from the seed catalogue. It refuses to run in production or
-  against a database that isn't local.
+- `pnpm db:seed` throws out all products and restocks from the seed catalogue. It refuses to run in production, and
+  against a database that isn't local unless you set `ALLOW_REMOTE_SEED=1`.
 - `pnpm db:down` closes the stock room but keeps the data.
 
 </details>
@@ -199,20 +199,34 @@ The full roadmap is in [`docs/PLAN.md`](docs/PLAN.md). The next one up is
 ## 🚀 Deployment (Vercel)
 
 A merge to `main` goes to production, and every PR gets a preview, through Vercel's GitHub integration.
-[`vercel.json`](vercel.json) runs two services in one project on one domain:
+The site and the API are two Vercel projects built from this one repo:
 
-- `web` (`apps/web`, Vite) serves the site.
-- `server` (`apps/server`, Express) answers `/api/*`. It strips the `/api` prefix, just like the Vite dev proxy,
-  so the web app and the session cookie work unchanged.
+- `meddash` (Root Directory `apps/web`, Vite) serves the site. [`apps/web/vercel.json`](apps/web/vercel.json)
+  rewrites `/api/*` to the API project and every other path except `/assets/*` to `index.html`, so the
+  browser stays on one domain and the session cookie works unchanged.
+- `meddash-api` (Root Directory `apps/server`, Express, domain `meddash-q724.vercel.app`) answers `/api/*`. It strips the `/api` prefix, just
+  like the Vite dev proxy. It runs in `fra1`, next to the Neon database in `eu-central-1`.
+
+> **Web previews use production data.** The `/api` rewrite always points at the production API, so signing
+> up, filling a cart or placing an order on a web preview writes to the production database. Test changes
+> that write data locally. API previews get their own Neon database branch, but the web previews don't call
+> them.
 
 One-time setup:
 
 1. Create a hosted Postgres (for example Neon from the Vercel Marketplace).
-2. Import the repo in Vercel (root directory = repo root, production branch = `main`).
-3. Set `DATABASE_URL` and `JWT_SECRET` (`openssl rand -hex 32`) in the project's environment variables. Use
-   different values for Production and Preview, so previews never touch production data.
-4. Migrate and seed from your machine: `DATABASE_URL=<url> pnpm db:migrate && DATABASE_URL=<url> pnpm db:seed`.
-   Deploys don't migrate, so run `db:migrate` again before merging a PR that changes the schema.
+2. Import the repo in Vercel twice, production branch = `main`: once with Root Directory `apps/web`, once
+   with `apps/server`. Point the `/api` rewrite in `apps/web/vercel.json` at the API project's production
+   domain.
+3. Connect the Neon database to the API project, which sets `DATABASE_URL`, and set `JWT_SECRET`
+   (`openssl rand -hex 32`) in its environment variables.
+4. Nothing to migrate by hand: [`apps/server/vercel.json`](apps/server/vercel.json) runs `db:migrate` after
+   every API build compiles, so code that doesn't compile never changes the schema. That matters for previews, because the Neon integration gives each Git branch its own
+   database branch, copied from production when the branch first deploys. A PR's migrations therefore reach
+   production as soon as it merges.
+5. To fill an empty hosted database with the seed catalogue, run from the repo root (this replaces all products):
+   `read -s "url?Paste DATABASE_URL: "; DATABASE_URL="$url" ALLOW_REMOTE_SEED=1 pnpm db:seed; unset url`.
+   Preview databases are copied from production when a Git branch first deploys, so seed production first.
 
 ---
 

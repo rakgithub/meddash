@@ -15,7 +15,7 @@ export default defineConfig({
       // Entry points, seed data and test infrastructure, not app code.
       exclude: [
         "src/**/*.test.ts",
-        "src/index.ts",
+        "src/index.mts",
         "src/db/migrate.ts",
         "src/db/seed.ts",
         "src/db/seed-data.ts",

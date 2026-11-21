@@ -17,7 +17,7 @@ export default tseslint.config(
   },
   {
     // The entrypoint may log startup.
-    files: ["src/index.ts"],
+    files: ["src/index.mts"],
     rules: { "no-console": "off" },
   },
   prettier,
