@@ -11,7 +11,7 @@ export class ApiError extends Error {
 }
 
 /** Prefers the server's `{ error: { message } }` so callers can show why a request failed. */
-async function toApiError(res: Response): Promise<ApiError> {
+export async function toApiError(res: Response): Promise<ApiError> {
   let body: unknown = null;
   try {
     body = await res.json();

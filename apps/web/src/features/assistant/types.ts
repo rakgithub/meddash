@@ -44,8 +44,8 @@ export interface Recommendation {
 
 /**
  * While streaming, consecutive `text` parts are deltas appended to the previous text. A `thinking` part
- * after another `thinking` part, or a `products` part after another `products` part, is a newer snapshot
- * that replaces it.
+ * replaces the reply's earlier `thinking` part, and a `products` part after another `products` part
+ * replaces it: both are newer snapshots.
  */
 export type MessagePart =
   | { kind: "text"; text: string }
@@ -73,6 +73,8 @@ export interface Message {
   role: Role;
   parts: MessagePart[];
   status: MessageStatus;
+  /** Why the reply failed, when there is something useful to say, e.g. the rate limit. */
+  error?: string;
 }
 
 /** The single seam between the UI and the AI. */

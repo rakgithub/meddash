@@ -112,6 +112,13 @@ describe("MessageList", () => {
     expect(onRetry).toHaveBeenCalledOnce();
   });
 
+  it("says why a reply failed when it knows", () => {
+    const failed: Message = { ...answer("error", ""), error: "Please try again in a few minutes." };
+    render(<MessageList messages={[question, failed]} onRetry={() => {}} />);
+
+    expect(screen.getByRole("alert")).toHaveTextContent("Please try again in a few minutes.");
+  });
+
   it("offers no Retry on an older failed reply", () => {
     const later: Message[] = [
       { ...question, id: "u2" },

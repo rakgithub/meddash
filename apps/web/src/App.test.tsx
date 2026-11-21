@@ -93,6 +93,24 @@ describe("App routes", () => {
     expect(await screen.findByRole("heading", { name: "Log in", level: 1 })).toBeInTheDocument();
   });
 
+  it("sends a signed-out visitor from /assistant to log in and back to the chat", async () => {
+    vi.mocked(authApi.login).mockResolvedValue(ana);
+    const user = userEvent.setup();
+    renderWithRouter(<App />, "/assistant?q=sore%20throat");
+
+    expect(await screen.findByRole("heading", { name: "Log in", level: 1 })).toBeInTheDocument();
+    await user.type(screen.getByLabelText("Email"), ana.email);
+    await user.type(screen.getByLabelText("Password"), "secret123");
+    await user.click(screen.getByRole("button", { name: "Log in" }));
+
+    expect(
+      await screen.findByRole("heading", { name: "What’s bothering you?" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Describe your symptoms" })).toHaveValue(
+      "sore throat",
+    );
+  });
+
   it("shows the cart at /cart when signed in", async () => {
     vi.mocked(authApi.fetchCurrentUser).mockResolvedValue(ana);
     renderWithRouter(<App />, "/cart");
