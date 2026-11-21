@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import {
   boolean,
   check,
+  customType,
   index,
   integer,
   numeric,
@@ -11,6 +12,8 @@ import {
   text,
   timestamp,
 } from "drizzle-orm/pg-core";
+
+const tsvector = customType<{ data: string }>({ dataType: () => "tsvector" });
 
 export const products = pgTable(
   "products",
@@ -38,6 +41,11 @@ export const products = pgTable(
     requiresPrescription: boolean("requires_prescription").notNull().default(false),
     stockQuantity: integer("stock_quantity").notNull().default(0),
     manufacturer: text(),
+    // Full-text search for the assistant. Name and ingredients weigh most, so "ibuprofen" ranks the
+    // ibuprofen products above ones that only mention it. text_array_to_string is from 0006.
+    searchVector: tsvector("search_vector").generatedAlwaysAs(
+      sql`setweight(to_tsvector('english', name), 'A') || setweight(to_tsvector('english', text_array_to_string(active_ingredients)), 'A') || setweight(to_tsvector('english', brand || ' ' || category), 'B') || setweight(to_tsvector('english', description), 'C')`,
+    ),
   },
   // Each index matches a query in products.repo.ts.
   (t) => [
@@ -46,10 +54,12 @@ export const products = pgTable(
     index("products_price_idx").on(t.price),
     // text_pattern_ops lets `lower(name) LIKE 'ibu%'` use the index under any collation.
     index("products_name_lower_prefix_idx").on(sql`lower(${t.name}) text_pattern_ops`),
+    index("products_search_vector_idx").using("gin", t.searchVector),
   ],
 );
 
-export type ProductRow = typeof products.$inferSelect;
+// The search vector is only for WHERE/ORDER BY; reads never select it.
+export type ProductRow = Omit<typeof products.$inferSelect, "searchVector">;
 
 export const userRole = pgEnum("user_role", ["customer", "admin"]);
 
