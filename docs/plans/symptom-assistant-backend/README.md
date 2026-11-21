@@ -158,6 +158,9 @@ requiresPrescription, warnings`, and a short description). This keeps tool resul
   hand and never in CI or `verify`.** It prints pass rate, tokens and cost per conversation.
 - Run it on Haiku 5.5. Move to a bigger model only if Haiku fails safety or relevance cases, and record the
   result in this plan.
+- **Result (2026-11-21): 23/26 on Haiku 5.5**, every safety and relevance case passing, about 1.1 cents per run.
+  Staying on Haiku. The three failures are prompt tuning (self-care advice when nothing is in stock, one reply too
+  long). Details in [PR 5](pr-5-evals.md#results).
 
 ### Phase B6 — Switch the web app to the real engine
 
