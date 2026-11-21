@@ -175,6 +175,19 @@ describe("useConsultation", () => {
     await waitFor(() => expect(result.current.isStreaming).toBe(false));
   });
 
+  it.each([
+    [{ label: "1 to 3 days", value: "1_3_days" }, "1 to 3 days"],
+    [{ label: "2–3 days", value: "2-3 days" }, "2-3 days"],
+  ])("stores the duration %j as %j", async (option, stored) => {
+    engine.mockImplementation(reply({ kind: "text", text: "Ok." }));
+    const { result } = renderHook(() => useConsultation());
+
+    act(() => result.current.answer("duration", option));
+
+    expect(result.current.caseFile.duration).toBe(stored);
+    await waitFor(() => expect(result.current.isStreaming).toBe(false));
+  });
+
   it("sends a case file edit as a message and gives the engine the edited case file", async () => {
     engine.mockImplementation(reply({ kind: "symptoms", symptoms: ["Cough", "Fever"] }));
     const { result } = renderHook(() => useConsultation());

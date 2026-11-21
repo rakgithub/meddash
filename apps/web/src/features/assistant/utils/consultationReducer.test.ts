@@ -64,6 +64,23 @@ describe("consultationReducer", () => {
     ]);
   });
 
+  it("replaces an earlier thinking snapshot in place when other parts came between", () => {
+    const parts: MessagePart[] = [
+      { kind: "thinking", steps: [{ label: "Checking", done: true }] },
+      { kind: "symptoms", symptoms: ["Fever"] },
+      { kind: "thinking", steps: [{ label: "Searching", done: true }] },
+    ];
+    const state = parts.reduce(
+      (s, part) => consultationReducer(s, { type: "part", id: "a1", part }),
+      sent,
+    );
+
+    expect(reply(state).parts).toEqual([
+      { kind: "thinking", steps: [{ label: "Searching", done: true }] },
+      { kind: "symptoms", symptoms: ["Fever"] },
+    ]);
+  });
+
   it("ignores parts that arrive after the reply finished", () => {
     const stopped = consultationReducer(sent, { type: "finish", id: "a1", status: "stopped" });
     const late = consultationReducer(stopped, {

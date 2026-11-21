@@ -41,8 +41,13 @@ function addPart(parts: MessagePart[], part: MessagePart): MessagePart[] {
   if (last?.kind === "text" && part.kind === "text") {
     return [...parts.slice(0, -1), { kind: "text", text: last.text + part.text }];
   }
-  const isSnapshot = part.kind === "thinking" || part.kind === "products";
-  if (isSnapshot && last?.kind === part.kind) {
+  // The server can send other parts between two thinking snapshots (e.g. the noted symptoms), so a
+  // newer one replaces the earlier one in place instead of showing the steps twice.
+  const thinkingAt = parts.findIndex((p) => p.kind === "thinking");
+  if (part.kind === "thinking" && thinkingAt !== -1) {
+    return parts.map((p, i) => (i === thinkingAt ? part : p));
+  }
+  if (part.kind === "products" && last?.kind === "products") {
     return [...parts.slice(0, -1), part];
   }
   return [...parts, part];

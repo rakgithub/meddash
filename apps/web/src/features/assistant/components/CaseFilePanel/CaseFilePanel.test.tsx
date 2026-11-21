@@ -31,6 +31,15 @@ describe("CaseFilePanel", () => {
     expect(toggle).toHaveAttribute("aria-expanded", "true");
   });
 
+  it("shows a duration in the assistant's own wording as it is", () => {
+    render(<CaseFilePanel caseFile={{ ...caseFile, duration: "1 to 3 days" }} />);
+
+    expect(screen.getByRole("combobox", { name: "How long" })).toHaveDisplayValue("1 to 3 days");
+    expect(screen.getByRole("button", { name: /Case file/ })).toHaveTextContent(
+      "Sore throat, Fever · 1 to 3 days · Me",
+    );
+  });
+
   it("says so when nothing is known yet", () => {
     render(<CaseFilePanel caseFile={{ symptoms: [], duration: null, forWhom: null, avoid: [] }} />);
 
