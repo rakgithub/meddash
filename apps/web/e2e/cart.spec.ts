@@ -127,7 +127,7 @@ test.describe("Orders", () => {
     ).toBeVisible();
 
     await page.getByRole("button", { name: "Account menu" }).click();
-    await page.getByRole("link", { name: "Orders", exact: true }).click();
+    await page.getByRole("banner").getByRole("link", { name: "Orders", exact: true }).click();
     const orders = page.getByRole("list", { name: "Orders" });
     await expect(orders.getByRole("link")).toHaveCount(1);
     await expect(orders).toContainText("2 items");
