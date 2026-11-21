@@ -199,18 +199,24 @@ The full roadmap is in [`docs/PLAN.md`](docs/PLAN.md). The next one up is
 ## 🚀 Deployment (Vercel)
 
 A merge to `main` goes to production, and every PR gets a preview, through Vercel's GitHub integration.
-[`vercel.json`](vercel.json) runs two services in one project on one domain:
+The site and the API are two Vercel projects built from this one repo:
 
-- `web` (`apps/web`, Vite) serves the site.
-- `server` (`apps/server`, Express) answers `/api/*`. It strips the `/api` prefix, just like the Vite dev proxy,
-  so the web app and the session cookie work unchanged.
+- `meddash` (Root Directory `apps/web`, Vite) serves the site. [`apps/web/vercel.json`](apps/web/vercel.json)
+  rewrites `/api/*` to the API project and every other path to `index.html`, so the browser stays on one
+  domain and the session cookie works unchanged.
+- `meddash-api` (Root Directory `apps/server`, Express) answers `/api/*`. It strips the `/api` prefix, just
+  like the Vite dev proxy.
+
+Previews of the web project call the production API.
 
 One-time setup:
 
 1. Create a hosted Postgres (for example Neon from the Vercel Marketplace).
-2. Import the repo in Vercel (root directory = repo root, production branch = `main`).
-3. Set `DATABASE_URL` and `JWT_SECRET` (`openssl rand -hex 32`) in the project's environment variables. Use
-   different values for Production and Preview, so previews never touch production data.
+2. Import the repo in Vercel twice, production branch = `main`: once with Root Directory `apps/web`, once
+   with `apps/server`. If the API's domain isn't `meddash-api.vercel.app`, update the rewrite in
+   `apps/web/vercel.json`.
+3. Set `DATABASE_URL` and `JWT_SECRET` (`openssl rand -hex 32`) in the API project's environment variables.
+   Use different values for Production and Preview, so previews never touch production data.
 4. Migrate and seed from your machine: `DATABASE_URL=<url> pnpm db:migrate && DATABASE_URL=<url> pnpm db:seed`.
    Deploys don't migrate, so run `db:migrate` again before merging a PR that changes the schema.
 
