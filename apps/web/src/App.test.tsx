@@ -104,7 +104,7 @@ describe("App routes", () => {
     await user.click(screen.getByRole("button", { name: "Log in" }));
 
     expect(
-      await screen.findByRole("heading", { name: "What’s bothering you?" }),
+      await screen.findByRole("heading", { name: "What’s bothering you today?" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "Describe your symptoms" })).toHaveValue(
       "sore throat",

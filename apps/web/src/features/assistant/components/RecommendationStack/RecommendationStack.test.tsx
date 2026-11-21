@@ -11,15 +11,20 @@ const items = [
 ];
 
 describe("RecommendationStack", () => {
-  it("lists the suggested products in order", () => {
-    renderWithRouter(<RecommendationStack items={items} />);
+  it("lists the suggestions under a heading, with prescription-only products set apart", () => {
+    renderWithRouter(<RecommendationStack title="My suggestions for a cough" items={items} />);
 
+    expect(screen.getByRole("heading", { name: "My suggestions for a cough" })).toBeInTheDocument();
     const list = screen.getByRole("list", { name: "Suggested products" });
     expect(
       within(list)
         .getAllByRole("article")
         .map((a) => a.getAttribute("aria-label")),
-    ).toEqual(["Ibuprofen 400mg", "Cough Syrup"]);
+    ).toEqual(["Ibuprofen 400mg"]);
+    const prescription = screen.getByRole("region", {
+      name: "Also used for this, with a prescription",
+    });
+    expect(within(prescription).getByRole("article", { name: "Cough Syrup" })).toBeInTheDocument();
   });
 
   it("offers to talk to a pharmacist under the suggestions", () => {

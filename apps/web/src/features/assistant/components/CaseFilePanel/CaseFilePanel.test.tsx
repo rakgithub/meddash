@@ -24,7 +24,7 @@ describe("CaseFilePanel", () => {
   it("summarises the case in the bar that opens it on a phone", async () => {
     render(<CaseFilePanel caseFile={caseFile} />);
 
-    const toggle = screen.getByRole("button", { name: /Case file/ });
+    const toggle = screen.getByRole("button", { name: /Your consultation/ });
     expect(toggle).toHaveTextContent("Sore throat, Fever · 2–3 days · Me");
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     await userEvent.click(toggle);
@@ -35,7 +35,7 @@ describe("CaseFilePanel", () => {
     render(<CaseFilePanel caseFile={{ ...caseFile, duration: "1 to 3 days" }} />);
 
     expect(screen.getByRole("combobox", { name: "How long" })).toHaveDisplayValue("1 to 3 days");
-    expect(screen.getByRole("button", { name: /Case file/ })).toHaveTextContent(
+    expect(screen.getByRole("button", { name: /Your consultation/ })).toHaveTextContent(
       "Sore throat, Fever · 1 to 3 days · Me",
     );
   });
@@ -43,7 +43,7 @@ describe("CaseFilePanel", () => {
   it("says so when nothing is known yet", () => {
     render(<CaseFilePanel caseFile={{ symptoms: [], duration: null, forWhom: null, avoid: [] }} />);
 
-    expect(screen.getByRole("button", { name: /Case file/ })).toHaveTextContent(
+    expect(screen.getByRole("button", { name: /Your consultation/ })).toHaveTextContent(
       "Nothing noted yet",
     );
     expect(screen.getByRole("combobox", { name: "How long" })).toHaveDisplayValue("Not asked yet");

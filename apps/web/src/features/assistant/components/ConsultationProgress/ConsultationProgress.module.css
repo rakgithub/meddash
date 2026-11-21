@@ -1,0 +1,68 @@
+.steps {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.steps li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* A short rule between steps; it fills in once the step before it is done. */
+.steps li + li::before {
+  content: "";
+  width: 20px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--border-strong);
+}
+
+.steps li.done + li::before {
+  background: var(--accent);
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  border: 2px solid var(--border-strong);
+  border-radius: 50%;
+}
+
+.done .dot {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.current {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.current .dot {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+/* On a phone only the current step keeps its name; the others are dots. */
+@media (max-width: 720px) {
+  .steps li:not(.current) .label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .steps li + li::before {
+    width: 12px;
+  }
+}

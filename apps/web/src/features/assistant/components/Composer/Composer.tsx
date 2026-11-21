@@ -3,6 +3,8 @@ import styles from "./Composer.module.css";
 
 interface ComposerProps {
   initialValue?: string;
+  /** Changes with the stage of the consultation, e.g. "Ask about these suggestions…". */
+  placeholder?: string;
   isStreaming: boolean;
   onSend: (text: string) => void;
   onStop: () => void;
@@ -15,7 +17,13 @@ interface ComposerProps {
 /** The API rejects longer messages (`MAX_USER_TEXT` on the server). */
 const MAX_MESSAGE_LENGTH = 1000;
 
-export function Composer({ initialValue = "", isStreaming, onSend, onStop }: ComposerProps) {
+export function Composer({
+  initialValue = "",
+  placeholder = "Describe how you feel…",
+  isStreaming,
+  onSend,
+  onStop,
+}: ComposerProps) {
   // A ?q= prefill can be longer than typing allows.
   const [value, setValue] = useState(initialValue.slice(0, MAX_MESSAGE_LENGTH));
   const canSend = !isStreaming && value.trim() !== "";
@@ -45,7 +53,7 @@ export function Composer({ initialValue = "", isStreaming, onSend, onStop }: Com
         <textarea
           className={styles.input}
           aria-label="Describe your symptoms"
-          placeholder="Describe how you feel…"
+          placeholder={placeholder}
           rows={1}
           maxLength={MAX_MESSAGE_LENGTH}
           value={value}
@@ -61,8 +69,10 @@ export function Composer({ initialValue = "", isStreaming, onSend, onStop }: Com
           Stop
         </button>
       ) : (
-        <button className={styles.send} type="submit" disabled={!canSend}>
-          Send
+        <button className={styles.send} type="submit" disabled={!canSend} aria-label="Send">
+          <svg className={styles.arrow} viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M10 16V4M5 9l5-5 5 5" />
+          </svg>
         </button>
       )}
     </form>

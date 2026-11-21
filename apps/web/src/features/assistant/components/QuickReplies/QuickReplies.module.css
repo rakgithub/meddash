@@ -1,7 +1,11 @@
+/* The open question: its own tinted card inside the reply, so it's clear something is being asked. */
 .root {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--accent-soft) 60%, var(--surface));
 }
 
 .question {
@@ -22,8 +26,8 @@
 .answered {
   display: inline-flex;
   align-items: center;
-  height: 40px;
-  padding: 0 16px;
+  height: 44px;
+  padding: 0 18px;
   border: 1.5px solid var(--accent);
   border-radius: var(--radius-control);
   font-size: 15px;
@@ -32,6 +36,7 @@
 
 .option {
   background: var(--surface);
+  box-shadow: var(--shadow);
   color: var(--accent-hover);
   font-family: inherit;
   cursor: pointer;
@@ -52,4 +57,30 @@
   border-color: var(--accent);
   background: var(--accent-soft);
   color: var(--text);
+}
+
+/* An answered question: one line with a tick, the question muted and the answer in bold. */
+.folded {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  font-size: 14px;
+}
+
+.foldedQuestion {
+  color: var(--text-muted);
+}
+
+.tick {
+  width: 16px;
+  height: 16px;
+  padding: 3px;
+  border-radius: 50%;
+  background: var(--accent);
+  fill: none;
+  stroke: var(--on-accent);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }

@@ -87,7 +87,7 @@ test.describe("Symptom assistant", () => {
     await page.getByRole("button", { name: "Log in" }).click();
 
     await expect(page).toHaveURL(/\/assistant$/);
-    await expect(page.getByRole("heading", { name: "What’s bothering you?" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "What’s bothering you today?" })).toBeVisible();
   });
 
   test("opens from the products page with the search text and answers a starter prompt", async ({
@@ -113,7 +113,7 @@ test.describe("Symptom assistant", () => {
 
     await page.getByRole("button", { name: "Nose and throat" }).click();
     await page.getByRole("button", { name: "Sore throat" }).click();
-    await expect(page.getByRole("complementary", { name: "Case file" })).toContainText(
+    await expect(page.getByRole("complementary", { name: "Your consultation" })).toContainText(
       "Sore throat",
     );
     await page.getByRole("button", { name: "2–3 days" }).click();
@@ -138,9 +138,12 @@ test.describe("Symptom assistant", () => {
       "Best fit",
       { timeout: 15_000 },
     );
-    await expect(suggestions.getByRole("article", { name: "Cough Syrup" })).toContainText(
-      "Needs a prescription",
-    );
+    // Prescription-only products sit apart from the real options.
+    await expect(
+      page
+        .getByRole("region", { name: "Also used for this, with a prescription" })
+        .getByRole("article", { name: "Cough Syrup" }),
+    ).toContainText("Needs a prescription");
 
     await suggestions.getByRole("link", { name: "Ibuprofen 400mg" }).click();
 
@@ -223,7 +226,7 @@ test.describe("Symptom assistant", () => {
     await page.getByRole("button", { name: "Start over" }).click();
     await page.getByRole("button", { name: "Yes, clear it" }).click();
 
-    await expect(page.getByRole("heading", { name: "What’s bothering you?" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "What’s bothering you today?" })).toBeVisible();
   });
 
   test("stops a reply that is streaming", async ({ page }) => {

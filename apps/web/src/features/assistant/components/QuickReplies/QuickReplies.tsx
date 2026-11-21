@@ -14,6 +14,19 @@ interface QuickRepliesProps {
 export function QuickReplies({ question, options, selected, onAnswer }: QuickRepliesProps) {
   const questionId = useId();
 
+  // Once answered, the question folds to one line: the options have done their job.
+  if (!onAnswer && selected) {
+    return (
+      <p className={styles.folded}>
+        <svg className={styles.tick} viewBox="0 0 12 12" aria-hidden="true">
+          <path d="M2.5 6.2 5 8.5l4.5-5" />
+        </svg>
+        <span className={styles.foldedQuestion}>{question}</span>
+        <strong>{selected}</strong>
+      </p>
+    );
+  }
+
   return (
     <div className={styles.root}>
       <p className={styles.question} id={questionId}>
