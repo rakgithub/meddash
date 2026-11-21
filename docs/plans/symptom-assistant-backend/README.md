@@ -24,7 +24,7 @@ Nothing above the engine seam changes. The UI keeps rendering the same typed `Me
 | Streaming to the browser              | SSE with plain Express `res.write`                                                  | No                 |
 | Retrieval                             | Postgres full-text search through Drizzle (generated `tsvector` column + GIN index) | No                 |
 | Red flags, prescription rule, ranking | Plain TypeScript functions on the server                                            | No                 |
-| Rate limiting                         | Small in-memory limiter per user                                                    | No                 |
+| Rate limiting                         | Per-user sliding window in a Postgres table (`assistant_turns`)                     | No                 |
 | Tests                                 | Vitest + supertest, SDK mocked at the boundary                                      | No                 |
 
 ## Decisions to make first
@@ -112,8 +112,9 @@ requiresPrescription, warnings`, and a short description). This keeps tool resul
   message, because the status code has already been sent.
 - `services/assistant/redFlags.ts`: server copy of the S3 rule list and the urgent alert text.
   It runs before anything else.
-- `middleware/rateLimit.ts`: in-memory sliding window keyed by user id (for example 20 turns per 10 minutes and
-  200 per day) → `429` through `AppError`. One process only; see Later for multiple instances.
+- `middleware/rateLimit.ts`: sliding window keyed by user id (for example 20 turns per 10 minutes and
+  200 per day) → `429` through `AppError`. The counts live in Postgres (`db/assistantTurns.repo.ts`), so they
+  hold across Vercel instances; see Later.
 - Returns `503` when no key is configured (decision 2).
 - In this phase, a turn without a red flag streams a fixed placeholder reply, so the SSE path is tested end to end.
 - OpenAPI: document the request, the `text/event-stream` response with the `MessagePart` schema, and the
@@ -219,7 +220,10 @@ A short list to look at once this plan is done. None of these is needed now.
   and server, instead of two copies of the red flags.
 - **Moving up a model for hard turns:** send only complex cases (several symptoms, pregnancy plus chronic
   illness) to Sonnet 5.5 and keep Haiku for the rest.
-- **Shared rate limit:** Redis (or a Postgres table) when the server runs on more than one instance.
+- **Shared rate limit:** done with a Postgres table, `assistant_turns`. Each turn locks the user's row, prunes
+  their turns older than a day, counts each window and records the turn only if every count is under its max,
+  all in one transaction, so concurrent requests on different instances can't both pass. Move to Redis only if
+  this ever shows up as database load.
 - **Saving consultations on the server:** replace the `localStorage` history, with a retention policy for health data.
 - **Evals in CI:** a nightly run on a small sample through the Batch API (half price), with alerts on regressions.
 - **Usage dashboard:** tokens and cost per day from the usage logs, with a monthly budget alert.

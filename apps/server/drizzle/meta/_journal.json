@@ -57,6 +57,13 @@
       "when": 1795254601624,
       "tag": "0007_product_search_vector",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1795257967384,
+      "tag": "0008_assistant_turns",
+      "breakpoints": true
     }
   ]
 }

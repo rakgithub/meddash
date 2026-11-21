@@ -15,7 +15,8 @@ export function createApp() {
   });
 
   app.use(cors());
-  app.use(express.json());
+  // Room for a full assistant request (20 history messages cut to their limits, in any script).
+  app.use(express.json({ limit: "200kb" }));
   app.use(cookieParser());
 
   app.use(router);
