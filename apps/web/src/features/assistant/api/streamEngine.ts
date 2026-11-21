@@ -1,5 +1,5 @@
 import { ApiError, apiPostStream } from "../../../lib/apiClient";
-import type { AssistantEngine, Message, MessagePart } from "../types";
+import type { AssistantEngine, HistoryMessage, Message, MessagePart } from "../types";
 import { regionFromMessage } from "../utils/bodyRegions";
 import { messageText } from "../utils/consultationReducer";
 import { redFlagAlert } from "../utils/redFlags";
@@ -10,23 +10,32 @@ const MAX_PRODUCT_IDS = 10;
 
 export const RATE_LIMIT_MESSAGE =
   "You’ve sent a lot of messages in a short time. Please try again in a few minutes.";
+export const SESSION_ENDED_MESSAGE = "Your session has ended. Please log in again.";
 
-/** A failure whose message is safe and useful to show in the chat. */
+/** A failure whose message is safe and useful to show in the chat; `status` when the API refused. */
 export class AssistantError extends Error {
-  constructor(message: string) {
+  constructor(
+    message: string,
+    public readonly status?: number,
+  ) {
     super(message);
     this.name = "AssistantError";
   }
 }
 
-export type HistoryMessage =
-  { role: "user"; text: string } | { role: "assistant"; text: string; productIds: string[] };
+function friendlyMessage(err: ApiError): string {
+  if (err.status === 429) return RATE_LIMIT_MESSAGE;
+  if (err.status === 401) return SESSION_ENDED_MESSAGE;
+  return err.message;
+}
 
 /** What the server needs of the conversation so far: who said what, and which products were shown. */
 export function condenseHistory(messages: Message[]): HistoryMessage[] {
   return messages.slice(-MAX_HISTORY_MESSAGES).map((message) => {
-    const text = messageText(message);
-    if (message.role === "user") return { role: "user", text };
+    if (message.role === "user") return { role: "user", text: messageText(message) };
+    // A reply can be only a question with tap-to-answer options; the model needs to see what it asked.
+    const question = message.parts.flatMap((p) => (p.kind === "quickReplies" ? [p.question] : []));
+    const text = [messageText(message), ...question].filter(Boolean).join("\n");
     // A later products part replaces an earlier one, so the last one holds what was shown.
     const productIds =
       message.parts
@@ -43,8 +52,13 @@ export interface SseEvent {
 
 /** Splits complete events off the front of `buffer`; `rest` is an event still being received. */
 export function parseSseEvents(buffer: string): { events: SseEvent[]; rest: string } {
-  const blocks = buffer.replace(/\r\n?/g, "\n").split("\n\n");
-  const rest = blocks.pop() ?? "";
+  // A chunk can end between the \r and \n of a CRLF; keep that \r back so it isn't read as a line end.
+  const heldCr = buffer.endsWith("\r") ? "\r" : "";
+  const blocks = buffer
+    .slice(0, buffer.length - heldCr.length)
+    .replace(/\r\n?/g, "\n")
+    .split("\n\n");
+  const rest = (blocks.pop() ?? "") + heldCr;
   const events = blocks.flatMap((block) => {
     let event = "message";
     const data: string[] = [];
@@ -89,6 +103,16 @@ export function isMessagePart(value: unknown): value is MessagePart {
   }
 }
 
+/** A malformed event is skipped like an unknown one, instead of failing the whole reply. */
+function parseJson(data: string): unknown {
+  try {
+    return JSON.parse(data);
+  } catch {
+    console.warn("Skipped an assistant event that is not JSON");
+    return undefined;
+  }
+}
+
 function errorMessage(data: string): string {
   try {
     const body: unknown = JSON.parse(data);
@@ -120,7 +144,7 @@ export async function* readEvents<T>(
       for (const { event, data } of events) {
         if (event === "done") return;
         if (event === "error") throw new AssistantError(errorMessage(data));
-        const parsed: unknown = JSON.parse(data);
+        const parsed = parseJson(data);
         if (isEvent(parsed)) yield parsed;
       }
     }
@@ -144,7 +168,7 @@ export async function postAssistant(
   } catch (err) {
     signal.throwIfAborted();
     if (!(err instanceof ApiError)) throw err;
-    throw new AssistantError(err.status === 429 ? RATE_LIMIT_MESSAGE : err.message);
+    throw new AssistantError(friendlyMessage(err), err.status);
   }
 }
 

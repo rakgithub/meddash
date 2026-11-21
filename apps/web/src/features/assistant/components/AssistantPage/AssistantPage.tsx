@@ -15,7 +15,7 @@ const STARTERS = ["Sore throat and fever", "Can't sleep", "Hay fever", "Upset st
 /** `/assistant?q=…` pre-fills the message box, e.g. with the search text from the products page. */
 export function AssistantPage() {
   const [searchParams] = useSearchParams();
-  const { state: auth } = useAuth();
+  const { state: auth, sessionEnded } = useAuth();
   const userId = auth.status === "signed-in" ? auth.user.id : null;
   const {
     snapshot,
@@ -31,7 +31,7 @@ export function AssistantPage() {
     retry,
     startOver,
     restore,
-  } = useConsultation();
+  } = useConsultation({ onSessionEnded: sessionEnded });
 
   const started = messages.length > 0;
 

@@ -111,6 +111,27 @@ describe("App routes", () => {
     );
   });
 
+  it("sends the user to log in when the session ends mid-chat", async () => {
+    vi.mocked(authApi.fetchCurrentUser).mockResolvedValue(ana);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        Response.json({ error: { message: "Not authenticated" } }, { status: 401 }),
+      ),
+    );
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const user = userEvent.setup();
+    renderWithRouter(<App />, "/assistant");
+
+    await user.type(
+      await screen.findByRole("textbox", { name: "Describe your symptoms" }),
+      "Cough{Enter}",
+    );
+
+    expect(await screen.findByRole("heading", { name: "Log in", level: 1 })).toBeInTheDocument();
+    vi.unstubAllGlobals();
+  });
+
   it("shows the cart at /cart when signed in", async () => {
     vi.mocked(authApi.fetchCurrentUser).mockResolvedValue(ana);
     renderWithRouter(<App />, "/cart");

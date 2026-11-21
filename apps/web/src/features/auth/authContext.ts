@@ -10,6 +10,8 @@ export interface AuthContextValue {
   signIn: (user: User) => void;
   /** Ends the session on the server and goes home; rejects if that fails, so the user stays signed in. */
   signOut: () => Promise<void>;
+  /** Call when the API answers 401: the session is gone, so signed-in pages send the user to log in. */
+  sessionEnded: () => void;
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null);

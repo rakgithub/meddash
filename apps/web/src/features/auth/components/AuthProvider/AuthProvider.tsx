@@ -35,5 +35,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  return <AuthContext.Provider value={{ state, signIn, signOut }}>{children}</AuthContext.Provider>;
+  const sessionEnded = () => setState({ status: "signed-out" });
+
+  return (
+    <AuthContext.Provider value={{ state, signIn, signOut, sessionEnded }}>
+      {children}
+    </AuthContext.Provider>
+  );
 }

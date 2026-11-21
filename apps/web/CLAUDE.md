@@ -27,7 +27,7 @@ Feature-first under `src/features/<feature>/`:
 - Every component, hook, api module and util gets a colocated `*.test.ts(x)`.
 - Query by role/label/text (`getByRole`, `getByLabelText`); never by test id or class name.
 - Use `userEvent`, not `fireEvent`. Reuse `src/test/fixtures.ts`; mock `fetch`/the api module at the boundary.
-- e2e (`e2e/*.spec.ts`) runs against the real API and Vite server; add one only for a user-visible flow. Use role-based locators and web-first assertions (`await expect(...)`), no fixed sleeps.
+- e2e (`e2e/*.spec.ts`) runs against the real API and Vite server; add one only for a user-visible flow. The one exception is `POST /api/assistant/*`: it calls a paid model and needs an API key, so e2e fakes it with `page.route` in the real SSE format. Use role-based locators and web-first assertions (`await expect(...)`), no fixed sleeps.
 - Coverage floor is in `vite.config.ts` (80% lines/functions, 75% branches); new code should not lower it.
 
 ## UI work

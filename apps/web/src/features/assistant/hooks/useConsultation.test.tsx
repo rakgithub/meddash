@@ -175,17 +175,19 @@ describe("useConsultation", () => {
     await waitFor(() => expect(result.current.isStreaming).toBe(false));
   });
 
-  it.each([
-    [{ label: "1 to 3 days", value: "1_3_days" }, "1 to 3 days"],
-    [{ label: "2–3 days", value: "2-3 days" }, "2-3 days"],
-  ])("stores the duration %j as %j", async (option, stored) => {
-    engine.mockImplementation(reply({ kind: "text", text: "Ok." }));
-    const { result } = renderHook(() => useConsultation());
+  it("reports an ended session so the page can send the user to log in", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    engine.mockImplementationOnce(async function* () {
+      yield* [];
+      throw new engineModule.AssistantError("Your session has ended.", 401);
+    });
+    const onSessionEnded = vi.fn();
+    const { result } = renderHook(() => useConsultation({ onSessionEnded }));
 
-    act(() => result.current.answer("duration", option));
+    act(() => result.current.send("Cough"));
 
-    expect(result.current.caseFile.duration).toBe(stored);
-    await waitFor(() => expect(result.current.isStreaming).toBe(false));
+    await waitFor(() => expect(onSessionEnded).toHaveBeenCalledOnce());
+    expect(lastMessage(result).error).toBe("Your session has ended.");
   });
 
   it("sends a case file edit as a message and gives the engine the edited case file", async () => {

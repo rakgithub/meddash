@@ -2,7 +2,7 @@ import { useEffect, useReducer, useRef } from "react";
 import { AssistantError, streamEngine } from "../api/streamEngine";
 import type { ProductDetail } from "../../products";
 import type { CaseField, CaseFile, Message, QuickReply } from "../types";
-import { applyAnswer, avoidFor, DURATION_OPTIONS, type DismissReason } from "../utils/caseFile";
+import { applyAnswer, avoidFor, type DismissReason } from "../utils/caseFile";
 import {
   consultationReducer,
   type ConsultationState,
@@ -15,8 +15,11 @@ function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-/** Holds the whole conversation and runs the assistant engine for each turn. */
-export function useConsultation() {
+/**
+ * Holds the whole conversation and runs the assistant engine for each turn. `onSessionEnded` is called
+ * when the server no longer accepts the session (401), so the page can send the user to log in.
+ */
+export function useConsultation({ onSessionEnded }: { onSessionEnded?: () => void } = {}) {
   const [state, dispatch] = useReducer(consultationReducer, initialConsultation);
   const controllerRef = useRef<AbortController | null>(null);
 
@@ -60,6 +63,7 @@ export function useConsultation() {
       if (status === "error") console.error("Assistant reply failed", err);
       const error = status === "error" && err instanceof AssistantError ? err.message : undefined;
       dispatch({ type: "finish", id: assistantId, status, error });
+      if (err instanceof AssistantError && err.status === 401) onSessionEnded?.();
     } finally {
       if (controllerRef.current === controller) controllerRef.current = null;
     }
@@ -90,11 +94,7 @@ export function useConsultation() {
 
   /** A tapped quick reply: echoed as the user's message and stored in the case file. */
   function answer(field: CaseField, option: QuickReply) {
-    // The assistant words its own duration options, with ids like "1_3_days" as values; the label reads
-    // better in the case file and tells the model more on the next turn.
-    const known = DURATION_OPTIONS.some((o) => o.value === option.value);
-    const value = field === "duration" && !known ? option.label : option.value;
-    start(option.label, applyAnswer(caseFile, field, value));
+    start(option.label, applyAnswer(caseFile, field, option.value));
   }
 
   /**

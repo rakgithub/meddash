@@ -11,7 +11,7 @@ import {
   type TurnLog,
 } from "./runTurn.js";
 import { SYSTEM } from "./prompt.js";
-import { TOOLS } from "./tools.js";
+import { FIXED_OPTIONS, TOOLS } from "./tools.js";
 
 const lozenge = product({ id: "1", name: "Throat Lozenges" });
 const rx = product({ id: "3", name: "Antibiotic", requiresPrescription: true });
@@ -200,8 +200,28 @@ describe("runTurn", () => {
       { text: ["One question."], tools: [{ name: "ask_question", input: question }] },
     ]);
     const parts = await collect(runTurn(input("Sore throat"), deps));
-    expect(parts.at(-1)).toEqual({ kind: "quickReplies", ...question });
+    // The model's duration options are replaced with the fixed ones the case file can hold.
+    expect(parts.at(-1)).toEqual({
+      kind: "quickReplies",
+      field: "duration",
+      question: "How long has it been?",
+      options: FIXED_OPTIONS.duration,
+    });
     expect(model.requests).toHaveLength(1);
+  });
+
+  it("keeps the model's own options for a symptoms question", async () => {
+    const question = {
+      field: "symptoms",
+      question: "Anything else?",
+      options: [
+        { label: "Cough", value: "Cough" },
+        { label: "Fever", value: "Fever" },
+      ],
+    };
+    const { deps } = setup([{ tools: [{ name: "ask_question", input: question }] }]);
+    const parts = await collect(runTurn(input("Sore throat"), deps));
+    expect(parts.at(-1)).toEqual({ kind: "quickReplies", ...question });
   });
 
   it("returns an invalid tool input to the model as an error instead of running it", async () => {
@@ -213,10 +233,8 @@ describe("runTurn", () => {
             input: {
               field: "forWhom",
               question: "Who is it for?",
-              options: [
-                { label: "My dog", value: "dog" },
-                { label: "Me", value: "me" },
-              ],
+              // One option is too few.
+              options: [{ label: "Me", value: "me" }],
             },
           },
           { name: "made_up_tool", input: {} },
@@ -228,7 +246,7 @@ describe("runTurn", () => {
     expect(parts.some((p) => p.kind === "quickReplies")).toBe(false);
     expect(model.requests[1].messages.at(-1)).toMatchObject({
       content: [
-        { is_error: true, content: expect.stringMatching(/forWhom option values/) },
+        { is_error: true, content: expect.stringMatching(/at least 2/i) },
         { is_error: true, content: "Unknown tool: made_up_tool" },
       ],
     });

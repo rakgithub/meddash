@@ -1,7 +1,7 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import type { CatalogueItem, CatalogueSearch } from "../../db/products.repo.js";
-import { FOR_WHOM, type CaseFile, type MessagePart } from "../../schemas/assistant.schema.js";
+import { type CaseFile, type MessagePart } from "../../schemas/assistant.schema.js";
 import type { ProductDetail } from "../../schemas/product.schema.js";
 import { resolveSuggestions } from "./recommendations.js";
 
@@ -22,19 +22,34 @@ export const noteSymptomsInput = z.object({
   symptoms: z.array(z.string().trim().min(1).max(60)).min(1).max(10),
 });
 
-export const askQuestionInput = z
-  .object({
-    field: z.enum(QUESTION_FIELDS),
-    question: z.string().trim().min(1).max(200),
-    options: z
-      .array(z.object({ label: z.string().trim().min(1).max(60), value: z.string().trim().min(1) }))
-      .min(2)
-      .max(6),
-  })
-  .refine(
-    (q) => q.field !== "forWhom" || q.options.every((o) => FOR_WHOM.some((f) => f === o.value)),
-    { message: `forWhom option values must be one of: ${FOR_WHOM.join(", ")}` },
-  );
+export const askQuestionInput = z.object({
+  field: z.enum(QUESTION_FIELDS),
+  question: z.string().trim().min(1).max(200),
+  options: z
+    .array(z.object({ label: z.string().trim().min(1).max(60), value: z.string().trim().min(1) }))
+    .min(2)
+    .max(6),
+});
+
+/**
+ * The answers the case file can hold for these fields, as the web app's case file panel offers them
+ * (apps/web/src/features/assistant/utils/caseFile.ts). The model's own options for these fields are
+ * replaced, so the case file never gets values like "1_3_days" that the panel can't show.
+ */
+export const FIXED_OPTIONS = {
+  duration: [
+    { label: "Since today", value: "today" },
+    { label: "2–3 days", value: "2-3 days" },
+    { label: "About a week", value: "a week" },
+    { label: "Longer", value: "longer" },
+  ],
+  forWhom: [
+    { label: "Me", value: "me" },
+    { label: "A child", value: "child" },
+    { label: "Someone pregnant", value: "pregnant" },
+    { label: "Someone over 65", value: "senior" },
+  ],
+} satisfies Record<"duration" | "forWhom", { label: string; value: string }[]>;
 
 export const recommendProductsInput = z.object({
   items: z
@@ -90,8 +105,9 @@ export const TOOLS: Anthropic.Tool[] = [
     name: "ask_question",
     description:
       "Ask the user one follow-up question with tap-to-answer options. Use it for how long the symptoms " +
-      "have lasted (field 'duration'), who the product is for (field 'forWhom', values: " +
-      `${FOR_WHOM.join(", ")}), or which other symptoms they have (field 'symptoms'). ` +
+      "have lasted (field 'duration'), who the product is for (field 'forWhom'), or which other symptoms " +
+      "they have (field 'symptoms'). For 'duration' and 'forWhom' the pharmacy shows its own fixed " +
+      "options, so the options you give for those are replaced. " +
       "Ask at most one question per turn, then wait for the answer.",
     strict: true,
     input_schema: {
@@ -193,8 +209,10 @@ export async function runTool(
     case "ask_question": {
       const parsed = askQuestionInput.safeParse(input);
       if (!parsed.success) return failed(parsed.error.issues[0].message);
+      const { field, question, options } = parsed.data;
+      const shown = field === "symptoms" ? options : FIXED_OPTIONS[field];
       return ok("Shown to the user. End your turn and wait for the answer.", [
-        { kind: "quickReplies", ...parsed.data },
+        { kind: "quickReplies", field, question, options: shown },
       ]);
     }
     case "recommend_products": {

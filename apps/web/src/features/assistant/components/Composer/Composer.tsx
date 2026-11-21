@@ -12,8 +12,12 @@ interface ComposerProps {
  * The message box. Typing stays possible while a reply streams (so focus is never lost), but sending
  * waits until the reply ends or is stopped.
  */
+/** The API rejects longer messages (`MAX_USER_TEXT` on the server). */
+const MAX_MESSAGE_LENGTH = 1000;
+
 export function Composer({ initialValue = "", isStreaming, onSend, onStop }: ComposerProps) {
-  const [value, setValue] = useState(initialValue);
+  // A ?q= prefill can be longer than typing allows.
+  const [value, setValue] = useState(initialValue.slice(0, MAX_MESSAGE_LENGTH));
   const canSend = !isStreaming && value.trim() !== "";
 
   function send() {
@@ -43,8 +47,7 @@ export function Composer({ initialValue = "", isStreaming, onSend, onStop }: Com
           aria-label="Describe your symptoms"
           placeholder="Describe how you feel…"
           rows={1}
-          // The API rejects longer messages.
-          maxLength={1000}
+          maxLength={MAX_MESSAGE_LENGTH}
           value={value}
           onChange={(event) => setValue(event.target.value)}
           onKeyDown={handleKeyDown}
