@@ -202,12 +202,15 @@ A merge to `main` goes to production, and every PR gets a preview, through Verce
 The site and the API are two Vercel projects built from this one repo:
 
 - `meddash` (Root Directory `apps/web`, Vite) serves the site. [`apps/web/vercel.json`](apps/web/vercel.json)
-  rewrites `/api/*` to the API project and every other path to `index.html`, so the browser stays on one
-  domain and the session cookie works unchanged.
+  rewrites `/api/*` to the API project and every other path except `/assets/*` to `index.html`, so the
+  browser stays on one domain and the session cookie works unchanged.
 - `meddash-api` (Root Directory `apps/server`, Express, domain `meddash-q724.vercel.app`) answers `/api/*`. It strips the `/api` prefix, just
-  like the Vite dev proxy.
+  like the Vite dev proxy. It runs in `fra1`, next to the Neon database in `eu-central-1`.
 
-Previews of the web project call the production API.
+> **Web previews use production data.** The `/api` rewrite always points at the production API, so signing
+> up, filling a cart or placing an order on a web preview writes to the production database. Test changes
+> that write data locally. API previews get their own Neon database branch, but the web previews don't call
+> them.
 
 One-time setup:
 
@@ -215,10 +218,10 @@ One-time setup:
 2. Import the repo in Vercel twice, production branch = `main`: once with Root Directory `apps/web`, once
    with `apps/server`. Point the `/api` rewrite in `apps/web/vercel.json` at the API project's production
    domain.
-3. Set `DATABASE_URL` and `JWT_SECRET` (`openssl rand -hex 32`) in the API project's environment variables.
-   Use different values for Production and Preview, so previews never touch production data.
-4. Nothing to migrate by hand: [`apps/server/vercel.json`](apps/server/vercel.json) runs `db:migrate` before
-   every API build. That matters for previews, because the Neon integration gives each Git branch its own
+3. Connect the Neon database to the API project, which sets `DATABASE_URL`, and set `JWT_SECRET`
+   (`openssl rand -hex 32`) in its environment variables.
+4. Nothing to migrate by hand: [`apps/server/vercel.json`](apps/server/vercel.json) runs `db:migrate` after
+   every API build compiles, so code that doesn't compile never changes the schema. That matters for previews, because the Neon integration gives each Git branch its own
    database branch, copied from production when the branch first deploys. A PR's migrations therefore reach
    production as soon as it merges.
 5. To fill an empty hosted database with the seed catalogue, run from the repo root (this replaces all products):
