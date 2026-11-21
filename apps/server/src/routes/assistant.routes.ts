@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { sendMessage } from "../controllers/assistant.controller.js";
+import { recordAssistantTurn } from "../db/assistantTurns.repo.js";
 import { createRateLimiter } from "../middleware/rateLimit.js";
 import { requireAssistant } from "../middleware/requireAssistant.js";
 import { requireAuth } from "../middleware/requireAuth.js";
@@ -22,6 +23,6 @@ assistantRouter.post(
   requireAuth,
   requireAssistant,
   validateBody(assistantMessageBodySchema),
-  createRateLimiter(ASSISTANT_RATE_LIMITS),
+  createRateLimiter(ASSISTANT_RATE_LIMITS, recordAssistantTurn),
   sendMessage,
 );
