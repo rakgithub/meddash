@@ -8,6 +8,7 @@ import {
   isMessagePart,
   parseSseEvents,
   RATE_LIMIT_MESSAGE,
+  SESSION_ENDED_MESSAGE,
   streamEngine,
 } from "./streamEngine";
 
@@ -57,6 +58,14 @@ describe("parseSseEvents", () => {
     });
   });
 
+  it("holds back a \\r that may be the start of a CRLF split across chunks", () => {
+    const first = parseSseEvents("data: a\r");
+    expect(first.events).toEqual([]);
+    expect(parseSseEvents(first.rest + "\ndata: b\r\n\r\n").events).toEqual([
+      { event: "message", data: "a\nb" },
+    ]);
+  });
+
   it("accepts CRLF line endings and joins multi-line data", () => {
     expect(parseSseEvents("data: one\r\ndata: two\r\n\r\n").events).toEqual([
       { event: "message", data: "one\ntwo" },
@@ -85,7 +94,7 @@ describe("isMessagePart", () => {
 });
 
 describe("condenseHistory", () => {
-  it("keeps the role, the text and the ids of the last products shown", () => {
+  it("keeps the role, the text with any question asked, and the ids of the last products shown", () => {
     const history: Message[] = [
       { id: "u", role: "user", status: "done", parts: [{ kind: "text", text: "Cough" }] },
       {
@@ -105,7 +114,7 @@ describe("condenseHistory", () => {
 
     expect(condenseHistory(history)).toEqual([
       { role: "user", text: "Cough" },
-      { role: "assistant", text: "Try this.", productIds: ["1"] },
+      { role: "assistant", text: "Try this.\nWho?", productIds: ["1"] },
       { role: "assistant", text: "", productIds: [] },
     ]);
   });
@@ -182,6 +191,19 @@ describe("streamEngine", () => {
     stubFetch(Response.json({ error: { message: "Too many requests" } }, { status: 429 }));
 
     await expect(collect()).rejects.toEqual(new AssistantError(RATE_LIMIT_MESSAGE));
+  });
+
+  it("asks to log in again when the session has ended", async () => {
+    stubFetch(Response.json({ error: { message: "Not authenticated" } }, { status: 401 }));
+
+    await expect(collect()).rejects.toEqual(new AssistantError(SESSION_ENDED_MESSAGE, 401));
+  });
+
+  it("skips an event that is not JSON and keeps the rest of the reply", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    stubFetch(sseResponse(["data: {oops\n\n", data({ kind: "text", text: "Ok" }), DONE]));
+
+    await expect(collect()).resolves.toEqual([{ kind: "text", text: "Ok" }]);
   });
 
   it("throws the server's message for another non-2xx response", async () => {

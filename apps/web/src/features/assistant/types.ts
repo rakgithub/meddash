@@ -87,6 +87,10 @@ export interface Message {
   error?: string;
 }
 
+/** One message of the condensed conversation the API receives (`historyMessageSchema` on the server). */
+export type HistoryMessage =
+  { role: "user"; text: string } | { role: "assistant"; text: string; productIds: string[] };
+
 /** The single seam between the UI and the AI. */
 export type AssistantEngine = (input: {
   caseFile: CaseFile;

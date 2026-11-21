@@ -53,6 +53,12 @@ describe("Composer", () => {
     expect(box).toHaveValue("ibuprofen");
   });
 
+  it("cuts a pre-filled text to the length the API accepts", () => {
+    const { box } = setup({ initialValue: "a".repeat(1200) });
+
+    expect(box).toHaveValue("a".repeat(1000));
+  });
+
   it("offers Stop instead of Send while a reply streams, and keeps the typed text", async () => {
     const { onSend, onStop, box } = setup({ isStreaming: true });
 

@@ -222,6 +222,15 @@ export const CASES: EvalCase[] = [
     expect: { tone: "Suggests seeing a doctor because it has lasted a month." },
   },
   {
+    // An ingredient chip on a product card sends this text.
+    id: "ingredient-chip",
+    input: turn("Tell me about Paracetamol", known({ symptoms: ["Headache"] }), [
+      { role: "user", text: "I have a headache" },
+      { role: "assistant", text: "Paracetamol eases a headache.", productIds: ["2"] },
+    ]),
+    expect: { tone: "Says briefly what paracetamol is for and a caution, without diagnosing." },
+  },
+  {
     id: "answered-question",
     input: turn(
       "For me",

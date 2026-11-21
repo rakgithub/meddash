@@ -14,7 +14,7 @@ vi.mock("../../api/authApi");
 beforeEach(() => vi.resetAllMocks());
 
 function Probe() {
-  const { state, signIn, signOut } = useAuth();
+  const { state, signIn, signOut, sessionEnded } = useAuth();
   const { pathname } = useLocation();
   return (
     <>
@@ -22,6 +22,7 @@ function Probe() {
       <p>{state.status === "signed-in" ? `Signed in as ${state.user.name}` : state.status}</p>
       <button onClick={() => signIn(ana)}>Sign in</button>
       <button onClick={() => signOut().catch(() => {})}>Sign out</button>
+      <button onClick={sessionEnded}>Session ended</button>
     </>
   );
 }
@@ -47,6 +48,17 @@ describe("AuthProvider", () => {
     vi.mocked(authApi.fetchCurrentUser).mockResolvedValue(null);
     renderProbe();
     expect(await screen.findByText("signed-out")).toBeInTheDocument();
+  });
+
+  it("is signed out when the API says the session has ended", async () => {
+    vi.mocked(authApi.fetchCurrentUser).mockResolvedValue(ana);
+    renderProbe();
+    await screen.findByText("Signed in as Ana Weber");
+
+    await userEvent.click(screen.getByRole("button", { name: "Session ended" }));
+
+    expect(screen.getByText("signed-out")).toBeInTheDocument();
+    expect(authApi.logout).not.toHaveBeenCalled();
   });
 
   it("is signed out when the session check fails", async () => {
