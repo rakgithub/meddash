@@ -181,6 +181,8 @@ requiresPrescription, warnings`, and a short description). This keeps tool resul
   table row the answer is about (`CompareAnswer` shape).
 - The server loads the products itself and passes them to the model as data. No search tool is needed.
 - Swap `api/mockCompare.ts` for a real call, with the same tests as B3 and B6 for the new route.
+- In progress 2026-11-21: [PR 7](pr-7-compare-backend.md). The model points at the row with a
+  `highlight_row` tool; red flags are screened first; it shares the turn rate limit.
 
 ## Cost guardrails
 

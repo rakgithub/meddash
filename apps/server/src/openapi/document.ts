@@ -1,6 +1,11 @@
 import { OpenAPIRegistry, OpenApiGeneratorV3 } from "@asteasolutions/zod-to-openapi";
 import "./extend.js";
-import { assistantMessageBodySchema, messagePartSchema } from "../schemas/assistant.schema.js";
+import {
+  assistantCompareBodySchema,
+  assistantMessageBodySchema,
+  compareEventSchema,
+  messagePartSchema,
+} from "../schemas/assistant.schema.js";
 import {
   addCartItemBodySchema,
   cartItemParamsSchema,
@@ -56,6 +61,32 @@ registry.registerPath({
     413: { description: "Body over 200 kB", ...json(errorResponseSchema) },
     429: {
       description: "Too many turns; `Retry-After` says how many seconds to wait",
+      headers: { "Retry-After": { description: "Seconds", schema: { type: "integer" as const } } },
+      ...json(errorResponseSchema),
+    },
+    503: { description: "No ANTHROPIC_API_KEY is configured", ...json(errorResponseSchema) },
+  },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/assistant/compare",
+  summary: "A question about a few products side by side",
+  description:
+    "Streams the answer as Server-Sent Events, like `/assistant/messages`: `data: <AssistantCompareEvent JSON>` events (`text` deltas and at most one `row`, the table row the answer is about), then `event: done`; an error after the stream has opened is one `event: error`. An urgent red flag in the question gets a single urgent `alert` and no answer. Counts toward the same per-user rate limit as a turn.",
+  tags: ["Assistant"],
+  security: [{ [cookieAuth.name]: [] }],
+  request: { body: { required: true, ...json(assistantCompareBodySchema) } },
+  responses: {
+    200: {
+      description: "A stream of compare events",
+      content: { "text/event-stream": { schema: compareEventSchema } },
+    },
+    400: { description: "Invalid body", ...json(errorResponseSchema) },
+    401: { description: "Not signed in or session expired", ...json(errorResponseSchema) },
+    404: { description: "A product id does not exist", ...json(errorResponseSchema) },
+    429: {
+      description: "Too many questions; `Retry-After` says how many seconds to wait",
       headers: { "Retry-After": { description: "Seconds", schema: { type: "integer" as const } } },
       ...json(errorResponseSchema),
     },

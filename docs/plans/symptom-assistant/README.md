@@ -42,7 +42,12 @@ type MessagePart =
   | { kind: "text"; text: string }
   | { kind: "thinking"; steps: { label: string; done: boolean }[] }
   | { kind: "symptoms"; symptoms: Symptom[] } // editable chips
-  | { kind: "quickReplies"; question: string; field: CaseField; options: QuickReply[] }
+  | {
+      kind: "quickReplies";
+      question: string;
+      field: CaseField;
+      options: QuickReply[];
+    }
   | { kind: "products"; items: Recommendation[] }
   | { kind: "alert"; level: "urgent" | "caution"; title: string; body: string };
 
@@ -228,6 +233,7 @@ Notes from the build (2026-11-20):
   They are answered by `api/mockCompare.ts` from the real product data (stomach-related warnings, cheapest per
   unit, stock, pack size, ingredients, form) and do not go through the engine or into the conversation. At the
   backend handoff this is a second seam to replace, or to route through the engine with the compared products.
+  Replaced in backend Phase B7 by `api/askCompare.ts` and `POST /api/assistant/compare`.
 
 ## Phase S6 — Body map entry
 

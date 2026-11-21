@@ -1,4 +1,5 @@
 import type { ProductDetail } from "../products";
+import type { CompareRowKey } from "./utils/compareProducts";
 
 /**
  * The message protocol between the chat UI and the assistant engine. The UI renders only these typed
@@ -64,6 +65,15 @@ export type MessagePart =
     }
   /** `urgent` = this needs a doctor now; the conversation stops recommending until it starts over. */
   | { kind: "alert"; level: "urgent" | "caution"; title: string; body: string };
+
+/**
+ * One event of an answer in the compare drawer (`AssistantCompareEvent` on the server): the answer's
+ * text, the table row it is about, or the urgent alert for a red flag in the question.
+ */
+export type CompareEvent =
+  | { kind: "text"; text: string }
+  | { kind: "row"; row: CompareRowKey }
+  | Extract<MessagePart, { kind: "alert" }>;
 
 /** `stopped` = the user pressed Stop; `error` = the engine threw. */
 export type MessageStatus = "streaming" | "done" | "stopped" | "error";

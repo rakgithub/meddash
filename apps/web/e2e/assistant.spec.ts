@@ -10,7 +10,7 @@ const sse = (parts: unknown[]) =>
   parts.map((part) => `data: ${JSON.stringify(part)}\n\n`).join("") + "event: done\ndata: {}\n\n";
 
 /**
- * Stands in for the model behind POST /api/assistant/messages, which costs money per turn and needs an
+ * Stands in for the model behind POST /api/assistant/messages and /compare, which cost money per call and need an
  * API key. It answers in the real SSE format with real catalogue products, so everything from the
  * browser's stream parsing to the cards is exercised; the server's own turn logic has its own tests.
  */
@@ -55,6 +55,15 @@ async function fakeAssistant(page: Page) {
         },
       ];
     }
+    await route.fulfill({ contentType: "text/event-stream", body: sse(parts) });
+  });
+  // Compare questions go to the model too; this answers the stomach question as it would.
+  await page.route("**/api/assistant/compare", async (route) => {
+    const parts = [
+      { kind: "text", text: "Paracetamol 500mg is gentler. " },
+      { kind: "text", text: "Ibuprofen 400mg has a stomach warning." },
+      { kind: "row", row: "warnings" },
+    ];
     await route.fulfill({ contentType: "text/event-stream", body: sse(parts) });
   });
 }

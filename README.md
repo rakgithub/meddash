@@ -112,8 +112,8 @@ your symptoms, or tap where it hurts on the body map, and it suggests real produ
 
 > The assistant needs you to be signed in. Claude Haiku 5.5 answers on the server, which streams each reply
 > and checks every suggested product against the catalogue. Set `ANTHROPIC_API_KEY` in `apps/server/.env` to
-> use it locally; without it the chat says the assistant is not configured. Compare answers are still
-> scripted in the browser. Plan: [`docs/plans/symptom-assistant-backend/README.md`](docs/plans/symptom-assistant-backend/README.md).
+> use it locally; without it the chat says the assistant is not configured. Questions in the compare
+> drawer are answered by the same model. Plan: [`docs/plans/symptom-assistant-backend/README.md`](docs/plans/symptom-assistant-backend/README.md).
 
 ### 4. Become a regular
 
@@ -142,6 +142,7 @@ Interactive docs live at **<http://localhost:3001/docs>** (raw spec: `/openapi.j
 | `PATCH /cart/items/:productId`  | Set a line's `quantity` (1–10, not above stock); 404 if the product is not in the cart                                                                        |
 | `DELETE /cart/items/:productId` | Remove a line; succeeds if it was not in the cart                                                                                                             |
 | `POST /assistant/messages`      | One symptom-assistant turn (`caseFile`, `history`, `userText`) streamed as SSE; signed in, 20 per 10 minutes and 200 per day, 503 without `ANTHROPIC_API_KEY` |
+| `POST /assistant/compare`       | A question about 2–4 products (`productIds`, `question`), answered as SSE text plus the table row it is about; same sign-in, limits and 503                   |
 
 Bad input gets a `400` with `{ error: { message, details } }`.
 

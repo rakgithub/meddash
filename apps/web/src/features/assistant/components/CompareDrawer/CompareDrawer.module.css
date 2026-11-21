@@ -186,6 +186,15 @@
   display: none;
 }
 
+.error {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 14px;
+}
+
 .suggestions {
   display: flex;
   flex-wrap: wrap;

@@ -99,10 +99,12 @@ function errorMessage(data: string): string {
   return "The assistant could not answer. Please try again.";
 }
 
-async function* readParts(
+/** Yields the `data` events of an SSE body that pass `isEvent`, until `event: done`. */
+export async function* readEvents<T>(
   body: ReadableStream<Uint8Array>,
   signal: AbortSignal,
-): AsyncGenerator<MessagePart> {
+  isEvent: (value: unknown) => value is T,
+): AsyncGenerator<T> {
   const reader = body.getReader();
   const decoder = new TextDecoder();
   // Leaving the loop early (Stop, or the consumer breaks) cancels the response body.
@@ -118,8 +120,8 @@ async function* readParts(
       for (const { event, data } of events) {
         if (event === "done") return;
         if (event === "error") throw new AssistantError(errorMessage(data));
-        const part: unknown = JSON.parse(data);
-        if (isMessagePart(part)) yield part;
+        const parsed: unknown = JSON.parse(data);
+        if (isEvent(parsed)) yield parsed;
       }
     }
     signal.throwIfAborted();
@@ -129,6 +131,33 @@ async function* readParts(
     signal.removeEventListener("abort", cancel);
     cancel();
   }
+}
+
+/** POSTs JSON to an assistant endpoint and returns the SSE body, or throws an `AssistantError`. */
+export async function postAssistant(
+  path: string,
+  body: unknown,
+  signal: AbortSignal,
+): Promise<ReadableStream<Uint8Array>> {
+  let res: Response;
+  try {
+    res = await fetch(path, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
+      body: JSON.stringify(body),
+      signal,
+    });
+  } catch (err) {
+    signal.throwIfAborted();
+    throw err;
+  }
+  if (!res.ok) {
+    const error = await toApiError(res);
+    throw new AssistantError(res.status === 429 ? RATE_LIMIT_MESSAGE : error.message);
+  }
+  if (!res.body) throw new AssistantError("The assistant could not answer. Please try again.");
+  return res.body;
 }
 
 /** The real assistant: posts the turn to the API and yields the parts it streams back as SSE. */
@@ -157,23 +186,10 @@ export const streamEngine: AssistantEngine = async function* ({
     return;
   }
 
-  let res: Response;
-  try {
-    res = await fetch("/api/assistant/messages", {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
-      body: JSON.stringify({ caseFile, history: condenseHistory(history), userText }),
-      signal,
-    });
-  } catch (err) {
-    signal.throwIfAborted();
-    throw err;
-  }
-  if (!res.ok) {
-    const error = await toApiError(res);
-    throw new AssistantError(res.status === 429 ? RATE_LIMIT_MESSAGE : error.message);
-  }
-  if (!res.body) throw new AssistantError("The assistant could not answer. Please try again.");
-  yield* readParts(res.body, signal);
+  const body = await postAssistant(
+    "/api/assistant/messages",
+    { caseFile, history: condenseHistory(history), userText },
+    signal,
+  );
+  yield* readEvents(body, signal, isMessagePart);
 };

@@ -56,7 +56,27 @@ const searching = (done: boolean): MessagePart => ({
   steps: [WARNING_STEP, { label: "Searching the catalogue", done }],
 });
 
-const isToolUse = (block: Anthropic.ContentBlock): block is Anthropic.ToolUseBlock =>
+export const emptyLog = (model: string): TurnLog => ({
+  model,
+  inputTokens: 0,
+  outputTokens: 0,
+  cacheReadTokens: 0,
+  cacheWriteTokens: 0,
+  toolRounds: 0,
+  durationMs: 0,
+  stopReason: null,
+});
+
+/** Adds one model reply's tokens to the log and keeps its stop reason. */
+export function addUsage(log: TurnLog, reply: ModelReply): void {
+  log.inputTokens += reply.usage.input_tokens;
+  log.outputTokens += reply.usage.output_tokens;
+  log.cacheReadTokens += reply.usage.cache_read_input_tokens ?? 0;
+  log.cacheWriteTokens += reply.usage.cache_creation_input_tokens ?? 0;
+  log.stopReason = reply.stop_reason;
+}
+
+export const isToolUse = (block: Anthropic.ContentBlock): block is Anthropic.ToolUseBlock =>
   block.type === "tool_use";
 
 /**
@@ -87,16 +107,7 @@ export async function* runTurn(
   };
   const messages = buildMessages(input);
   const started = Date.now();
-  const log: TurnLog = {
-    model: deps.model,
-    inputTokens: 0,
-    outputTokens: 0,
-    cacheReadTokens: 0,
-    cacheWriteTokens: 0,
-    toolRounds: 0,
-    durationMs: 0,
-    stopReason: null,
-  };
+  const log = emptyLog(deps.model);
 
   try {
     for (let round = 0; ; round++) {
@@ -119,11 +130,7 @@ export async function* runTurn(
         }
       }
       const reply = await stream.finalMessage();
-      log.inputTokens += reply.usage.input_tokens;
-      log.outputTokens += reply.usage.output_tokens;
-      log.cacheReadTokens += reply.usage.cache_read_input_tokens ?? 0;
-      log.cacheWriteTokens += reply.usage.cache_creation_input_tokens ?? 0;
-      log.stopReason = reply.stop_reason;
+      addUsage(log, reply);
 
       if (reply.stop_reason === "refusal") {
         yield { kind: "text", text: REFUSAL_REPLY };
@@ -168,4 +175,9 @@ export async function* runTurn(
 /** Production logger: one JSON line on stdout, picked up by the host's log drain. */
 export function logTurnToStdout(log: TurnLog): void {
   process.stdout.write(`${JSON.stringify({ event: "assistant_turn", ...log })}\n`);
+}
+
+/** The same line for a compare question, under its own event name so costs can be told apart. */
+export function logCompareToStdout(log: TurnLog): void {
+  process.stdout.write(`${JSON.stringify({ event: "assistant_compare", ...log })}\n`);
 }

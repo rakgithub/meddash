@@ -27,6 +27,7 @@ vi.mock("../services/assistant/runTurn.js", async (importOriginal) => {
   return {
     ...original,
     logTurnToStdout: (log: TurnLog) => turnLogs.push(log),
+    logCompareToStdout: (log: TurnLog) => turnLogs.push(log),
     async *runTurn(...args: Parameters<typeof original.runTurn>) {
       if (!failing.on) return yield* original.runTurn(...args);
       yield { kind: "text" as const, text: "Partial" };
@@ -203,5 +204,109 @@ describe("POST /assistant/messages", () => {
     const res = await agent.post(path).send(body());
     expect(res.status).toBe(429);
     expect(Number(res.headers["retry-after"])).toBeGreaterThan(0);
+  });
+});
+
+describe("POST /assistant/compare", () => {
+  const comparePath = "/assistant/compare";
+  const compareBody = (question = "Which is gentler on the stomach?") => ({
+    productIds: ["1", "2"],
+    question,
+  });
+
+  it("streams the answer as SSE and ends with a done event", async () => {
+    const agent = await signedIn();
+    const res = await agent.post(comparePath).send(compareBody());
+
+    expect(res.status).toBe(200);
+    expect(res.headers["content-type"]).toMatch(/^text\/event-stream/);
+    expect(events(res.text)).toEqual([
+      { name: "message", data: { kind: "text", text: "Hello" } },
+      { name: "message", data: { kind: "text", text: " there." } },
+      { name: "done", data: {} },
+    ]);
+    expect(turnLogs).toEqual([expect.objectContaining({ model: "claude-haiku-5-5" })]);
+  });
+
+  it("gives the model the products it loaded, by id", async () => {
+    let sent = "";
+    client.current = {
+      messages: {
+        stream: (
+          params: Parameters<ReturnType<typeof fakeModel>["stream"]>[0],
+          options: { signal: AbortSignal },
+        ) => {
+          sent = JSON.stringify(params.messages);
+          return fakeModel([{ text: ["Ok."] }]).stream(params, options.signal);
+        },
+      },
+    };
+    const agent = await signedIn();
+    await agent.post(comparePath).send(compareBody()).expect(200);
+
+    expect(sent).toContain("Ibuprofen 400mg");
+    expect(sent).toContain("Paracetamol 500mg");
+  });
+
+  it("answers an urgent red flag with the alert and nothing else", async () => {
+    const agent = await signedIn();
+    const res = await agent.post(comparePath).send(compareBody("Which one for my chest pain?"));
+
+    expect(events(res.text)).toEqual([
+      { name: "message", data: expect.objectContaining({ kind: "alert", level: "urgent" }) },
+      { name: "done", data: {} },
+    ]);
+  });
+
+  it("returns 404 for an unknown product before opening the stream", async () => {
+    const agent = await signedIn();
+    const res = await agent
+      .post(comparePath)
+      .send({ ...compareBody(), productIds: ["1", "999999"] });
+    expect(res.status).toBe(404);
+    expect(res.body.error.message).toBe("Product not found");
+  });
+
+  it("returns 401 when signed out", async () => {
+    const res = await request(app).post(comparePath).send(compareBody());
+    expect(res.status).toBe(401);
+  });
+
+  it("returns 503 when no API key is configured", async () => {
+    client.current = null;
+    const agent = await signedIn();
+    const res = await agent.post(comparePath).send(compareBody());
+    expect(res.status).toBe(503);
+  });
+
+  it.each([
+    ["productIds", { productIds: ["1"] }],
+    ["productIds", { productIds: ["1", "2", "3", "4", "5"] }],
+    ["productIds", { productIds: ["1", "1"] }],
+    ["productIds.1", { productIds: ["1", "abc"] }],
+    ["question", { question: "" }],
+    ["question", { question: "a".repeat(301) }],
+  ])("returns 400 for an invalid %s", async (field, change) => {
+    const agent = await signedIn();
+    const res = await agent.post(comparePath).send({ ...compareBody(), ...change });
+    expect(res.status).toBe(400);
+    expect(res.body.error.details).toEqual(
+      expect.arrayContaining([expect.objectContaining({ field })]),
+    );
+  });
+
+  it("returns 400 for an unknown field", async () => {
+    const agent = await signedIn();
+    const res = await agent.post(comparePath).send({ ...compareBody(), model: "claude-opus-5-5" });
+    expect(res.status).toBe(400);
+  });
+
+  it("counts toward the same rate limit as chat turns", async () => {
+    const agent = await signedIn();
+    for (let i = 0; i < 20; i++) {
+      expect((await agent.post(path).send(body())).status).toBe(200);
+    }
+    const res = await agent.post(comparePath).send(compareBody());
+    expect(res.status).toBe(429);
   });
 });
