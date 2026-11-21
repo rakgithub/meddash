@@ -1,5 +1,6 @@
 import { OpenAPIRegistry, OpenApiGeneratorV3 } from "@asteasolutions/zod-to-openapi";
 import "./extend.js";
+import { assistantMessageBodySchema, messagePartSchema } from "../schemas/assistant.schema.js";
 import {
   addCartItemBodySchema,
   cartItemParamsSchema,
@@ -35,6 +36,31 @@ const json = <T>(schema: T) => ({ content: { "application/json": { schema } } })
 const sessionCookie = {
   "Set-Cookie": { description: "The `session` cookie", schema: { type: "string" as const } },
 };
+
+registry.registerPath({
+  method: "post",
+  path: "/assistant/messages",
+  summary: "One turn of the symptom assistant",
+  description:
+    'Streams the reply as Server-Sent Events. Each event is `data: <AssistantMessagePart JSON>`; the stream ends with `event: done`. An error after the stream has opened is sent as one `event: error` with `data: {"message": ...}`, because the status is already 200. Urgent red flags in `userText` end the turn with a single urgent `alert`. Rate limited per user: 20 turns per 10 minutes and 200 per day.',
+  tags: ["Assistant"],
+  security: [{ [cookieAuth.name]: [] }],
+  request: { body: { required: true, ...json(assistantMessageBodySchema) } },
+  responses: {
+    200: {
+      description: "A stream of message parts",
+      content: { "text/event-stream": { schema: messagePartSchema } },
+    },
+    400: { description: "Invalid body", ...json(errorResponseSchema) },
+    401: { description: "Not signed in or session expired", ...json(errorResponseSchema) },
+    429: {
+      description: "Too many turns; `Retry-After` says how many seconds to wait",
+      headers: { "Retry-After": { description: "Seconds", schema: { type: "integer" as const } } },
+      ...json(errorResponseSchema),
+    },
+    503: { description: "No ANTHROPIC_API_KEY is configured", ...json(errorResponseSchema) },
+  },
+});
 
 registry.registerPath({
   method: "post",

@@ -142,4 +142,25 @@ describe("OpenAPI docs", () => {
     expect(res.status).toBe(200);
     expect(res.text).toContain("swagger-ui");
   });
+  it("documents /assistant/messages as a cookie-auth SSE stream with its error codes", async () => {
+    const res = await request(app).get("/openapi.json");
+    const op = res.body.paths["/assistant/messages"].post;
+    expect(op.security).toEqual([{ cookieAuth: [] }]);
+    expect(Object.keys(op.responses)).toEqual(["200", "400", "401", "429", "503"]);
+    expect(op.responses["200"].content).toHaveProperty("text/event-stream");
+    expect(op.responses["429"].headers).toHaveProperty("Retry-After");
+    expect(op.requestBody.content["application/json"].schema.required).toEqual([
+      "caseFile",
+      "history",
+      "userText",
+    ]);
+    for (const name of [
+      "AssistantMessagePart",
+      "AssistantCaseFile",
+      "AssistantHistoryMessage",
+      "AssistantRecommendation",
+    ]) {
+      expect(res.body.components.schemas).toHaveProperty(name);
+    }
+  });
 });
