@@ -217,8 +217,10 @@ One-time setup:
    domain.
 3. Set `DATABASE_URL` and `JWT_SECRET` (`openssl rand -hex 32`) in the API project's environment variables.
    Use different values for Production and Preview, so previews never touch production data.
-4. Migrate and seed from your machine: `DATABASE_URL=<url> pnpm db:migrate && DATABASE_URL=<url> pnpm db:seed`.
-   Deploys don't migrate, so run `db:migrate` again before merging a PR that changes the schema.
+4. Nothing to migrate by hand: [`apps/server/vercel.json`](apps/server/vercel.json) runs `db:migrate` before
+   every API build. That matters for previews, because the Neon integration gives each Git branch its own
+   database branch, copied from production when the branch first deploys. A PR's migrations therefore reach
+   production as soon as it merges. `db:seed` only runs against a local database.
 
 ---
 
