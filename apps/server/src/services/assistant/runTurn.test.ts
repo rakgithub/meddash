@@ -20,6 +20,19 @@ describe("runTurn", () => {
     expect(parts).toEqual([expect.objectContaining({ kind: "alert", level: "urgent" })]);
   });
 
+  it("repeats the alert on later turns once an earlier user message raised a red flag", async () => {
+    const parts = await collect(
+      runTurn({
+        ...input("ok, anything for a cough?"),
+        history: [
+          { role: "user", text: "I have chest pain" },
+          { role: "assistant", text: "", productIds: [] },
+        ],
+      }),
+    );
+    expect(parts).toEqual([expect.objectContaining({ kind: "alert", level: "urgent" })]);
+  });
+
   it("answers everything else with the placeholder after the safety check", async () => {
     expect(await collect(runTurn(input("Sore throat")))).toEqual([
       { kind: "thinking", steps: [{ label: "Checking for warning signs", done: true }] },

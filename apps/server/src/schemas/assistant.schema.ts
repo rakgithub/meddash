@@ -10,32 +10,46 @@ export const MAX_ASSISTANT_TEXT = 2000;
 export const FOR_WHOM = ["me", "child", "pregnant", "senior"] as const;
 
 const label = (max: number) => z.string().trim().min(1).max(max);
+/**
+ * For context the server only needs the gist of: cut to `max` instead of rejecting, so one long
+ * symptom or reply can't make every later turn fail. Still bounded overall by the JSON body limit.
+ */
+const clipped = (max: number) =>
+  z
+    .string()
+    .trim()
+    .transform((s) => s.slice(0, max));
+const clippedList = (max: number, items: number) =>
+  z.array(clipped(max)).transform((list) => list.filter(Boolean).slice(0, items));
 const productId = z.string().regex(/^[1-9]\d{0,8}$/, "Must be a product id");
 
 export const caseFileSchema = z
   .object({
-    symptoms: z
-      .array(label(60))
-      .max(20)
-      .openapi({ example: ["Sore throat", "Fever"] }),
-    duration: label(40).nullable().openapi({ example: "2-3 days" }),
+    symptoms: clippedList(60, 20).openapi({
+      description: "Each cut to 60 characters, at most 20 kept",
+      example: ["Sore throat", "Fever"],
+    }),
+    duration: clipped(40).nullable().openapi({ example: "2-3 days" }),
     forWhom: z.enum(FOR_WHOM).nullable().openapi({ example: "me" }),
-    avoid: z
-      .array(label(60))
-      .max(20)
-      .openapi({ description: "What the user wants to steer away from", example: ["Tablets"] }),
+    avoid: clippedList(60, 20).openapi({
+      description:
+        "What the user wants to steer away from; each cut to 60 characters, at most 20 kept",
+      example: ["Tablets"],
+    }),
   })
   .strict()
   .openapi("AssistantCaseFile");
 
 const historyMessageSchema = z
   .discriminatedUnion("role", [
-    z.object({ role: z.literal("user"), text: label(MAX_USER_TEXT) }).strict(),
+    z.object({ role: z.literal("user"), text: clipped(MAX_USER_TEXT) }).strict(),
     z
       .object({
         role: z.literal("assistant"),
-        // Empty when the reply was only cards or an alert.
-        text: z.string().trim().max(MAX_ASSISTANT_TEXT),
+        // Empty when the reply was only cards or an alert. A full reply can be longer than this.
+        text: clipped(MAX_ASSISTANT_TEXT).openapi({
+          description: `Cut to ${MAX_ASSISTANT_TEXT} characters`,
+        }),
         productIds: z
           .array(productId)
           .max(10)

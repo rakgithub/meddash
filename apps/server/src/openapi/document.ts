@@ -42,7 +42,7 @@ registry.registerPath({
   path: "/assistant/messages",
   summary: "One turn of the symptom assistant",
   description:
-    'Streams the reply as Server-Sent Events. Each event is `data: <AssistantMessagePart JSON>`; the stream ends with `event: done`. An error after the stream has opened is sent as one `event: error` with `data: {"message": ...}`, because the status is already 200. Urgent red flags in `userText` end the turn with a single urgent `alert`. Rate limited per user: 20 turns per 10 minutes and 200 per day.',
+    'Streams the reply as Server-Sent Events. Each event is `data: <AssistantMessagePart JSON>`; the stream ends with `event: done`. An error after the stream has opened is sent as one `event: error` with `data: {"message": ...}`, because the status is already 200. An urgent red flag in `userText` or an earlier user message ends the turn with a single urgent `alert`. Case-file entries and history text are cut to their limits rather than rejected. Rate limited per user: 20 turns per 10 minutes and 200 per day.',
   tags: ["Assistant"],
   security: [{ [cookieAuth.name]: [] }],
   request: { body: { required: true, ...json(assistantMessageBodySchema) } },
@@ -53,6 +53,7 @@ registry.registerPath({
     },
     400: { description: "Invalid body", ...json(errorResponseSchema) },
     401: { description: "Not signed in or session expired", ...json(errorResponseSchema) },
+    413: { description: "Body over 200 kB", ...json(errorResponseSchema) },
     429: {
       description: "Too many turns; `Retry-After` says how many seconds to wait",
       headers: { "Retry-After": { description: "Seconds", schema: { type: "integer" as const } } },

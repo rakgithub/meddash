@@ -9,8 +9,8 @@ export interface RateLimit {
 const HOUR = 60 * 60 * 1000;
 
 /**
- * In-memory sliding window per signed-in user (needs `requireAuth` first). Every request counts,
- * including invalid ones. One process only: each server instance keeps its own counts.
+ * In-memory sliding window per signed-in user (needs `requireAuth` first). Every request that reaches
+ * it counts. One process only: each server instance keeps its own counts.
  */
 export function createRateLimiter(
   limits: RateLimit[],

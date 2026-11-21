@@ -15,12 +15,13 @@ export const ASSISTANT_RATE_LIMITS = [
 
 export const assistantRouter = Router();
 
-// Every turn costs money, so: signed in, configured, then rate limited before validation.
+// Every turn costs money, so: signed in, configured, then rate limited. Only valid turns count,
+// because only they reach the model; an invalid request is rejected before it is counted.
 assistantRouter.post(
   "/messages",
   requireAuth,
   requireAssistant,
-  createRateLimiter(ASSISTANT_RATE_LIMITS),
   validateBody(assistantMessageBodySchema),
+  createRateLimiter(ASSISTANT_RATE_LIMITS),
   sendMessage,
 );

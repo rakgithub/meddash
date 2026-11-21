@@ -21,11 +21,30 @@ describe("assistantMessageBodySchema", () => {
     expect(assistantMessageBodySchema.safeParse({ ...valid, history }).success).toBe(true);
   });
 
+  it("cuts long context instead of rejecting it", () => {
+    const result = assistantMessageBodySchema.parse({
+      ...valid,
+      caseFile: {
+        symptoms: [...Array(25).fill("s"), "x".repeat(100)],
+        duration: "d".repeat(50),
+        forWhom: null,
+        avoid: ["  ", "Tablets"],
+      },
+      history: [
+        { role: "user", text: "u".repeat(1500) },
+        { role: "assistant", text: "a".repeat(5000), productIds: [] },
+      ],
+    });
+    expect(result.caseFile.symptoms).toHaveLength(20);
+    expect(result.caseFile.duration).toHaveLength(40);
+    expect(result.caseFile.avoid).toEqual(["Tablets"]);
+    expect(result.history.map((m) => m.text.length)).toEqual([1000, 2000]);
+  });
+
   it.each([
     ["empty user text", { userText: "   " }],
     ["user text over 1,000 characters", { userText: "a".repeat(1001) }],
     ["more than 20 history messages", { history: Array(21).fill(valid.history[0]) }],
-    ["a long user message in history", { history: [{ role: "user", text: "a".repeat(1001) }] }],
     ["an unknown role", { history: [{ role: "system", text: "hi" }] }],
     ["a bad product id", { history: [{ role: "assistant", text: "", productIds: ["abc"] }] }],
     ["an unknown forWhom", { caseFile: { ...valid.caseFile, forWhom: "dog" } }],

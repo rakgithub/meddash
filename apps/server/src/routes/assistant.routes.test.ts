@@ -160,6 +160,21 @@ describe("POST /assistant/messages", () => {
     expect(res.body.error.details[0].message).toMatch(/Unrecognized key.*model/);
   });
 
+  it("returns 413 for a body over the JSON limit", async () => {
+    const agent = await signedIn();
+    const res = await agent.post(path).send({ ...body(), userText: "a".repeat(250_000) });
+    expect(res.status).toBe(413);
+    expect(res.body.error.message).toBe("Request body too large");
+  });
+
+  it("does not count invalid requests toward the rate limit", async () => {
+    const agent = await signedIn();
+    for (let i = 0; i < 20; i++) {
+      expect((await agent.post(path).send(body(""))).status).toBe(400);
+    }
+    expect((await agent.post(path).send(body())).status).toBe(200);
+  });
+
   it("returns 429 with Retry-After after 20 turns in 10 minutes", async () => {
     const agent = await signedIn();
     for (let i = 0; i < 20; i++) {
