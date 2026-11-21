@@ -1,12 +1,16 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import * as engineModule from "../api/mockEngine";
+import * as engineModule from "../api/streamEngine";
 import { ibuprofenDetail } from "../../../test/fixtures";
 import type { MessagePart } from "../types";
 import { useConsultation } from "./useConsultation";
 
-vi.mock("../api/mockEngine");
-const engine = vi.mocked(engineModule.mockEngine);
+// Keeps the real AssistantError so the hook can recognise it; only the engine is faked.
+vi.mock("../api/streamEngine", async (importOriginal) => ({
+  ...(await importOriginal<typeof engineModule>()),
+  streamEngine: vi.fn(),
+}));
+const engine = vi.mocked(engineModule.streamEngine);
 
 beforeEach(() => vi.resetAllMocks());
 
@@ -83,6 +87,20 @@ describe("useConsultation", () => {
     await waitFor(() => expect(lastMessage(result).status).toBe("stopped"));
     expect(lastMessage(result).parts).toEqual([{ kind: "text", text: "Partial " }]);
     expect(engine.mock.lastCall?.[0].signal.aborted).toBe(true);
+  });
+
+  it("keeps the message of an AssistantError to show with the failure", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    engine.mockImplementationOnce(async function* () {
+      yield* [];
+      throw new engineModule.AssistantError("Please try again in a few minutes.");
+    });
+    const { result } = renderHook(() => useConsultation());
+
+    act(() => result.current.send("Cough"));
+
+    await waitFor(() => expect(lastMessage(result).status).toBe("error"));
+    expect(lastMessage(result).error).toBe("Please try again in a few minutes.");
   });
 
   it("marks the reply as failed when the engine throws, and retries the same question", async () => {

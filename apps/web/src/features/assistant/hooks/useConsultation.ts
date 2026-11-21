@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useRef } from "react";
-import { mockEngine } from "../api/mockEngine";
+import { AssistantError, streamEngine } from "../api/streamEngine";
 import type { ProductDetail } from "../../products";
 import type { CaseField, CaseFile, Message, QuickReply } from "../types";
 import { applyAnswer, avoidFor, type DismissReason } from "../utils/caseFile";
@@ -42,7 +42,7 @@ export function useConsultation() {
     };
 
     try {
-      for await (const part of mockEngine({ caseFile, history, userText, signal })) {
+      for await (const part of streamEngine({ caseFile, history, userText, signal })) {
         if (signal.aborted) break;
         if (buffer && part.kind === "text") {
           pending += part.text;
@@ -58,7 +58,8 @@ export function useConsultation() {
       // An abort surfaces as a rejection from the engine; that is a stop, not a failure.
       const status = signal.aborted ? "stopped" : "error";
       if (status === "error") console.error("Assistant reply failed", err);
-      dispatch({ type: "finish", id: assistantId, status });
+      const error = status === "error" && err instanceof AssistantError ? err.message : undefined;
+      dispatch({ type: "finish", id: assistantId, status, error });
     } finally {
       if (controllerRef.current === controller) controllerRef.current = null;
     }

@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import * as engineModule from "../../api/mockEngine";
+import * as engineModule from "../../api/streamEngine";
 import { AuthProvider } from "../../../auth";
 import { ana, ibuprofenDetail } from "../../../../test/fixtures";
 import { renderWithRouter } from "../../../../test/renderWithRouter";
@@ -9,8 +9,8 @@ import type { MessagePart } from "../../types";
 import { BODY_REGIONS } from "../../utils/bodyRegions";
 import { AssistantPage } from "./AssistantPage";
 
-vi.mock("../../api/mockEngine");
-const engine = vi.mocked(engineModule.mockEngine);
+vi.mock("../../api/streamEngine");
+const engine = vi.mocked(engineModule.streamEngine);
 
 /** Answers the session check (GET /api/auth/me), the only request the page makes with the engine mocked. */
 function signedIn(user: typeof ana | null) {

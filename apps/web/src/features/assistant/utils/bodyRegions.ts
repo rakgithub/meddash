@@ -2,8 +2,8 @@ export interface BodyRegion {
   id: "head" | "eyes" | "throat" | "chest" | "stomach" | "skin" | "joints" | "mind";
   label: string;
   /**
-   * The common symptoms offered once the region is chosen. They use the mock engine's own symptom names,
-   * so a picked symptom isn't stored twice. "Chest pain" is there on purpose: it is a red flag.
+   * The common symptoms offered once the region is chosen, without a model call. "Chest pain" is there on
+   * purpose: it is a red flag.
    */
   symptoms: string[];
 }

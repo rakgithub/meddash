@@ -104,7 +104,7 @@ function AssistantMessage({
       {message.status === "stopped" && <p className={styles.note}>Stopped</p>}
       {message.status === "error" && (
         <div className={styles.error} role="alert">
-          <p>Something went wrong and the reply didn’t finish.</p>
+          <p>{message.error ?? "Something went wrong and the reply didn’t finish."}</p>
           {isLast && (
             <button className={styles.retry} type="button" onClick={onRetry}>
               Retry

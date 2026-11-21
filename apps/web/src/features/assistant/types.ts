@@ -73,6 +73,8 @@ export interface Message {
   role: Role;
   parts: MessagePart[];
   status: MessageStatus;
+  /** Why the reply failed, when there is something useful to say, e.g. the rate limit. */
+  error?: string;
 }
 
 /** The single seam between the UI and the AI. */

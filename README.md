@@ -110,8 +110,10 @@ your symptoms, or tap where it hurts on the body map, and it suggests real produ
 | ----------------------------------------------------------- | -------------------------------------------------------------------- |
 | ![Body map](docs/screenshots/body-map/body-map-desktop.png) | ![Compare](docs/screenshots/compare-mode/compare-drawer-desktop.png) |
 
-> The assistant runs on a scripted mock engine in the browser for now. The real AI backend plugs in later by
-> replacing one file. Plan: [`docs/plans/symptom-assistant/README.md`](docs/plans/symptom-assistant/README.md).
+> The assistant needs you to be signed in. Claude Haiku 5.5 answers on the server, which streams each reply
+> and checks every suggested product against the catalogue. Set `ANTHROPIC_API_KEY` in `apps/server/.env` to
+> use it locally; without it the chat says the assistant is not configured. Compare answers are still
+> scripted in the browser. Plan: [`docs/plans/symptom-assistant-backend/README.md`](docs/plans/symptom-assistant-backend/README.md).
 
 ### 4. Become a regular
 

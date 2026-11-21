@@ -43,6 +43,8 @@ export function Composer({ initialValue = "", isStreaming, onSend, onStop }: Com
           aria-label="Describe your symptoms"
           placeholder="Describe how you feel…"
           rows={1}
+          // The API rejects longer messages.
+          maxLength={1000}
           value={value}
           onChange={(event) => setValue(event.target.value)}
           onKeyDown={handleKeyDown}

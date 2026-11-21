@@ -16,7 +16,7 @@ export type ConsultationAction =
   /** `caseFile` is set when the text comes with a case-file change: a quick reply or a panel edit. */
   | { type: "send"; userId: string; assistantId: string; text: string; caseFile?: CaseFile }
   | { type: "part"; id: string; part: MessagePart }
-  | { type: "finish"; id: string; status: Exclude<MessageStatus, "streaming"> }
+  | { type: "finish"; id: string; status: Exclude<MessageStatus, "streaming">; error?: string }
   /** Replaces the last assistant message (the failed one) with a fresh streaming one. */
   | { type: "retry"; assistantId: string }
   /** "Not for me": the product is dropped everywhere and `avoid` is added to the case file. */
@@ -130,7 +130,9 @@ export function consultationReducer(
     }
     case "finish":
       return updateMessage(state, action.id, (m) =>
-        m.status === "streaming" ? { ...m, status: action.status } : m,
+        m.status === "streaming"
+          ? { ...m, status: action.status, ...(action.error ? { error: action.error } : {}) }
+          : m,
       );
     case "retry": {
       const last = state.messages.at(-1);
