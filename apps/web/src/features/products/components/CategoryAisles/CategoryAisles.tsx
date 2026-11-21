@@ -12,14 +12,6 @@ interface CategoryAislesProps {
   counts?: FacetValue[];
 }
 
-// What people come to each aisle for, so the tile reads like the sign above a pharmacy shelf.
-const HINTS: Record<Category, string> = {
-  "cold-flu": "Cough, sore throat, blocked nose",
-  "pain-relief": "Headache, fever, back pain",
-  "skin-care": "Dry skin, sun, eczema",
-  vitamins: "Immunity, energy, minerals",
-};
-
 const ICONS: Record<Category | "", ReactNode> = {
   "": (
     <>
@@ -51,11 +43,11 @@ const ICONS: Record<Category | "", ReactNode> = {
 };
 
 const AISLES = [
-  { slug: "", name: "All products", hint: "Browse the whole range" },
-  ...CATEGORIES.map((slug) => ({ slug, name: formatCategory(slug), hint: HINTS[slug] })),
+  { slug: "", name: "All products" },
+  ...CATEGORIES.map((slug) => ({ slug, name: formatCategory(slug) })),
 ] as const;
 
-/** Categories as big tiles you can see at a glance, instead of a dropdown. One is always picked. */
+/** Categories as one row of pills you can see at a glance, instead of a dropdown. One is always picked. */
 export function CategoryAisles({ value, onChange, counts }: CategoryAislesProps) {
   const idPrefix = useId();
   const groupRef = useRef<HTMLDivElement>(null);
@@ -78,7 +70,7 @@ export function CategoryAisles({ value, onChange, counts }: CategoryAislesProps)
 
   return (
     <div ref={groupRef} role="group" aria-label="Category" className={styles.aisles}>
-      {AISLES.map(({ slug, name, hint }) => (
+      {AISLES.map(({ slug, name }) => (
         <button
           key={slug}
           type="button"
@@ -87,20 +79,15 @@ export function CategoryAisles({ value, onChange, counts }: CategoryAislesProps)
           aria-describedby={counts ? `${idPrefix}-${slug || "all"}` : undefined}
           onClick={() => onChange(slug)}
         >
-          <span className={styles.icon}>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              {ICONS[slug]}
-            </svg>
-          </span>
-          <span className={styles.name}>
-            {name}
-            {counts && (
-              <span id={`${idPrefix}-${slug || "all"}`} className={styles.count}>
-                {countOf(slug)}
-              </span>
-            )}
-          </span>
-          <span className={styles.hint}>{hint}</span>
+          <svg className={styles.icon} viewBox="0 0 24 24" aria-hidden="true">
+            {ICONS[slug]}
+          </svg>
+          {name}
+          {counts && (
+            <span id={`${idPrefix}-${slug || "all"}`} className={styles.count}>
+              {countOf(slug)}
+            </span>
+          )}
         </button>
       ))}
     </div>

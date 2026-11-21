@@ -1,7 +1,45 @@
 .root {
   display: flex;
   flex-direction: column;
+  gap: 10px;
+}
+
+.title {
+  margin-top: 4px;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* Prescription-only products: kept for reference, set back from the real options. */
+.locked {
+  display: flex;
+  flex-direction: column;
   gap: 8px;
+  margin-top: 6px;
+  opacity: 0.85;
+}
+
+.lockedTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* Compare and Talk to a pharmacist as one bar under the shortlist. */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 6px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+/* The pharmacist card takes the whole row once it's open. */
+.actions > details[open] {
+  flex-basis: 100%;
 }
 
 .stack {
@@ -101,25 +139,11 @@
   }
 }
 
-/* On a phone the shortlist becomes a row to swipe through; the next card peeks in from the edge. */
+/* On a phone the shortlist is a plain list of compact rows, so every option is visible without swiping. */
 @media (max-width: 639px) {
   .stack {
-    display: flex;
-    gap: 10px;
-    margin-right: -20px;
-    padding: 0 20px 6px 0;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scroll-padding-left: 0;
-  }
-
-  .stack > * {
-    flex: 0 0 78%;
-    scroll-snap-align: start;
-  }
-
-  .stack > .wide {
-    flex-basis: 86%;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
   }
 }
 
@@ -133,7 +157,9 @@
 }
 
 .compare {
-  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   min-height: 36px;
   padding: 0 14px;
   border: 1.5px solid var(--border-strong);
@@ -149,4 +175,13 @@
 .compare:hover {
   border-color: var(--accent);
   background: var(--accent-soft);
+}
+
+.compare svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
 }

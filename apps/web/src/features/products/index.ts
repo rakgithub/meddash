@@ -13,5 +13,7 @@ export type {
   SearchResponse,
 } from "./types";
 export { fetchProduct } from "./api/fetchProduct";
+export { CATEGORIES } from "./filterOptions";
+export { formatCategory } from "./utils/formatCategory";
 export { formatPrice } from "./utils/formatPrice";
 export { formatStock } from "./utils/formatStock";

@@ -70,4 +70,9 @@ describe("Composer", () => {
     await userEvent.click(screen.getByRole("button", { name: "Stop" }));
     expect(onStop).toHaveBeenCalledOnce();
   });
+
+  it("shows the hint it is given, e.g. for the stage of the consultation", () => {
+    const { box } = setup({ placeholder: "Ask about these suggestions…" });
+    expect(box).toHaveAttribute("placeholder", "Ask about these suggestions…");
+  });
 });

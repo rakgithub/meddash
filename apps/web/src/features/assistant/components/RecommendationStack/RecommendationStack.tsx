@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { ProductDetail } from "../../../products";
 import type { Recommendation } from "../../types";
 import type { DismissReason } from "../../utils/caseFile";
@@ -8,6 +8,8 @@ import { PharmacistContact } from "../PharmacistContact/PharmacistContact";
 import styles from "./RecommendationStack.module.css";
 
 interface RecommendationStackProps {
+  /** The heading over the shortlist, e.g. "My suggestions for a sore throat". */
+  title?: string;
   items: Recommendation[];
   /** Cards still loading, shown as skeletons. */
   loading?: number;
@@ -28,6 +30,7 @@ const LEAVE_MS = 220;
 
 /** The suggested products under a reply: a grid on desktop, a swipeable row on mobile. */
 export function RecommendationStack({
+  title = "My suggestions",
   items,
   loading = 0,
   unavailable = 0,
@@ -38,6 +41,7 @@ export function RecommendationStack({
   const [leavingId, setLeavingId] = useState<string | null>(null);
   const [comparing, setComparing] = useState(false);
   const timerRef = useRef<number>();
+  const lockedId = useId();
 
   // Starting over while a card is leaving must not dismiss it in the fresh conversation.
   useEffect(() => () => window.clearTimeout(timerRef.current), []);
@@ -75,29 +79,46 @@ export function RecommendationStack({
     .map((item) => item.product);
   const allRuledOut = items.length === 0 && ruledOut > 0;
 
+  // Prescription-only products can't be bought here yet, so they sit apart from the real options.
+  const options = items.filter((item) => item.fit !== "locked");
+  const locked = items.filter((item) => item.fit === "locked");
+
+  function card(item: Recommendation) {
+    return (
+      <li
+        key={item.product.id}
+        className={[
+          styles.item,
+          item.fit === "best" && styles.wide,
+          item.product.id === leavingId && styles.leaving,
+        ]
+          .filter(Boolean)
+          .join(" ")}
+      >
+        <ChatProductCard
+          recommendation={item}
+          onAskIngredient={onAskIngredient}
+          onDismiss={onDismiss && ((reason) => dismiss(item.product, reason))}
+        />
+      </li>
+    );
+  }
+
   return (
     <div className={styles.root}>
-      {items.length > 0 && (
+      {items.length > 0 && <h3 className={styles.title}>{title}</h3>}
+      {options.length > 0 && (
         <ol className={styles.stack} aria-label="Suggested products">
-          {items.map((item) => (
-            <li
-              key={item.product.id}
-              className={[
-                styles.item,
-                item.fit === "best" && styles.wide,
-                item.product.id === leavingId && styles.leaving,
-              ]
-                .filter(Boolean)
-                .join(" ")}
-            >
-              <ChatProductCard
-                recommendation={item}
-                onAskIngredient={onAskIngredient}
-                onDismiss={onDismiss && ((reason) => dismiss(item.product, reason))}
-              />
-            </li>
-          ))}
+          {options.map(card)}
         </ol>
+      )}
+      {locked.length > 0 && (
+        <section className={styles.locked} aria-labelledby={lockedId}>
+          <h4 id={lockedId} className={styles.lockedTitle}>
+            Also used for this, with a prescription
+          </h4>
+          <ul className={styles.stack}>{locked.map(card)}</ul>
+        </section>
       )}
       {note && <p className={styles.note}>{note}</p>}
       {allRuledOut && (
@@ -105,13 +126,20 @@ export function RecommendationStack({
           You’ve ruled out every suggestion here. A pharmacist can suggest others.
         </p>
       )}
-      {comparable.length >= 2 && (
-        <button className={styles.compare} type="button" onClick={() => setComparing(true)}>
-          Compare
-        </button>
+      {(comparable.length >= 2 || items.length > 0 || allRuledOut) && (
+        <div className={styles.actions}>
+          {comparable.length >= 2 && (
+            <button className={styles.compare} type="button" onClick={() => setComparing(true)}>
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M2 4h8M2 8h12M2 12h6" />
+              </svg>
+              Compare
+            </button>
+          )}
+          {(items.length > 0 || allRuledOut) && <PharmacistContact />}
+        </div>
       )}
       {comparing && <CompareDrawer products={comparable} onClose={() => setComparing(false)} />}
-      {(items.length > 0 || allRuledOut) && <PharmacistContact />}
     </div>
   );
 }

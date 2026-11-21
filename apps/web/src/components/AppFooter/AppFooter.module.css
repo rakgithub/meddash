@@ -1,0 +1,254 @@
+.footer {
+  margin-top: 48px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* The one loud thing in the footer: a tinted panel pulled up over the border, with a giant capsule. */
+.ask {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 32px;
+  max-width: 1080px;
+  margin: -40px auto 0;
+  padding: 32px 220px 32px 36px;
+  overflow: hidden;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+}
+
+.askText {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 46ch;
+}
+
+.askText h2 {
+  color: var(--text);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.askText p {
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.askButton {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 22px;
+  border-radius: var(--radius-control);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.askButton:hover {
+  background: var(--accent-hover);
+}
+
+.askCapsule {
+  position: absolute;
+  right: -48px;
+  bottom: -72px;
+  width: 260px;
+  height: 260px;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.capsuleLeft {
+  fill: var(--accent);
+}
+
+.capsuleRight {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+
+.inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 32px 48px;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 40px 20px 32px;
+}
+
+.about {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 40ch;
+  line-height: 1.5;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.mark {
+  width: 26px;
+  height: 26px;
+}
+
+.promises {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+}
+
+/* A small capsule as the bullet, like the buy box. */
+.promises li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.promises li::before {
+  content: "";
+  width: 12px;
+  height: 6px;
+  flex-shrink: 0;
+  border: 1.5px solid var(--accent);
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent) 50%, transparent 50%);
+}
+
+.links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.links h2 {
+  margin-bottom: 12px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.links ul {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.links a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+/* Each aisle keeps its capsule colour from the product cards. */
+.dot {
+  --cat: var(--text-muted);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cat);
+}
+
+.dot[data-category="pain-relief"] {
+  --cat: var(--cat-pain-relief);
+}
+
+.dot[data-category="cold-flu"] {
+  --cat: var(--cat-cold-flu);
+}
+
+.dot[data-category="vitamins"] {
+  --cat: var(--cat-vitamins);
+}
+
+.dot[data-category="skin-care"] {
+  --cat: var(--cat-skin-care);
+}
+
+/* The safety note and copyright: the small print under everything. */
+.legal {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 32px;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 16px 20px 24px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.legal p:first-child {
+  max-width: 72ch;
+}
+
+/* Below the page width the panel keeps a gutter instead of touching the window edges. */
+@media (max-width: 1120px) {
+  .ask {
+    margin-inline: 20px;
+  }
+}
+
+@media (max-width: 720px) {
+  .ask {
+    padding: 24px 20px 88px;
+  }
+
+  .askText h2 {
+    font-size: 20px;
+  }
+
+  .askCapsule {
+    right: -36px;
+    bottom: -84px;
+    width: 180px;
+    height: 180px;
+  }
+
+  .inner {
+    grid-template-columns: minmax(0, 1fr);
+    padding-top: 32px;
+  }
+
+  .buyBar {
+    padding-bottom: 72px;
+  }
+}

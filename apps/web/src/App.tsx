@@ -1,4 +1,5 @@
 import { Link, Route, Routes } from "react-router-dom";
+import { AppFooter } from "./components/AppFooter/AppFooter";
 import { AppHeader } from "./components/AppHeader/AppHeader";
 import { AssistantPage } from "./features/assistant";
 import { AuthProvider, LoginPage, ProfilePage, RegisterPage, RequireAuth } from "./features/auth";
@@ -68,6 +69,7 @@ export default function App() {
             />
           </Routes>
         </main>
+        <AppFooter />
       </CartProvider>
     </AuthProvider>
   );

@@ -4,16 +4,16 @@ import { describe, expect, it, vi } from "vitest";
 import { CategoryAisles } from "./CategoryAisles";
 
 describe("CategoryAisles", () => {
-  it("shows every category with what it is for, and marks the picked one", () => {
+  it("shows every category and marks the picked one", () => {
     render(<CategoryAisles value="pain-relief" onChange={vi.fn()} />);
 
     const tiles = screen.getAllByRole("button");
     expect(tiles.map((t) => t.textContent)).toEqual([
-      "All productsBrowse the whole range",
-      "Cold and fluCough, sore throat, blocked nose",
-      "Pain reliefHeadache, fever, back pain",
-      "Skin careDry skin, sun, eczema",
-      "VitaminsImmunity, energy, minerals",
+      "All products",
+      "Cold and flu",
+      "Pain relief",
+      "Skin care",
+      "Vitamins",
     ]);
     expect(screen.getByRole("button", { name: /^Pain relief/ })).toHaveAttribute(
       "aria-pressed",

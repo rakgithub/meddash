@@ -32,11 +32,18 @@ describe("QuickReplies", () => {
     expect(onAnswer).toHaveBeenCalledWith({ label: "2–3 days", value: "2-3 days" });
   });
 
-  it("shows the options read-only once answered, marking the answer", () => {
+  it("folds into the question and the answer once answered", () => {
     render(<QuickReplies question="How long?" options={options} selected="2–3 days" />);
 
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
-    expect(screen.getByText("(your answer)")).toBeInTheDocument();
-    expect(screen.getByText("2–3 days")).toHaveTextContent("2–3 days (your answer)");
+    expect(screen.queryByText("Longer")).not.toBeInTheDocument();
+    expect(screen.getByText("How long?").closest("p")).toHaveTextContent("How long?2–3 days");
+  });
+
+  it("shows the options read-only when the question was passed over", () => {
+    render(<QuickReplies question="How long?" options={options} />);
+
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(screen.getByText("Since today")).toBeInTheDocument();
   });
 });

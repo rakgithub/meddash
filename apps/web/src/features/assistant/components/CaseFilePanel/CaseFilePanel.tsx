@@ -49,7 +49,7 @@ export function CaseFilePanel({ caseFile, onRefine, footer }: CaseFilePanelProps
   }
 
   return (
-    <aside className={styles.panel} aria-label="Case file">
+    <aside className={styles.panel} aria-label="Your consultation">
       <button
         className={styles.toggle}
         type="button"
@@ -57,7 +57,7 @@ export function CaseFilePanel({ caseFile, onRefine, footer }: CaseFilePanelProps
         aria-controls={bodyId}
         onClick={() => setOpen(!open)}
       >
-        <span className={styles.toggleTitle}>Case file</span>
+        <span className={styles.toggleTitle}>Your consultation</span>
         <span className={styles.summary}>{summary(caseFile)}</span>
         <svg className={styles.chevron} viewBox="0 0 12 12" aria-hidden="true">
           <path d="M2.5 4.5l3.5 3.5 3.5-3.5" />
@@ -65,7 +65,7 @@ export function CaseFilePanel({ caseFile, onRefine, footer }: CaseFilePanelProps
       </button>
 
       <div id={bodyId} className={open ? `${styles.body} ${styles.open}` : styles.body}>
-        <h2 className={styles.heading}>Case file</h2>
+        <h2 className={styles.heading}>Your consultation</h2>
 
         <SymptomChips symptoms={symptoms} label="Symptoms" onChange={onRefine && changeSymptoms} />
 
@@ -162,7 +162,7 @@ export function CaseFilePanel({ caseFile, onRefine, footer }: CaseFilePanelProps
           </ul>
         </div>
 
-        {footer}
+        {footer && <div className={styles.footer}>{footer}</div>}
       </div>
     </aside>
   );

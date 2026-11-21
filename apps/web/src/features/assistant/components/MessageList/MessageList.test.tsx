@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ibuprofenDetail } from "../../../../test/fixtures";
@@ -257,7 +257,7 @@ describe("MessageList", () => {
       expect(onAnswer).toHaveBeenCalledWith("duration", { label: "Longer", value: "longer" });
     });
 
-    it("shows an answered question read-only with the user's answer marked", () => {
+    it("folds an answered question into one line with the answer, and hides the echoed answer", () => {
       render(
         <MessageList
           messages={[
@@ -272,8 +272,30 @@ describe("MessageList", () => {
       );
 
       expect(screen.queryByRole("button", { name: "Longer" })).not.toBeInTheDocument();
-      expect(screen.getByText("Longer", { selector: "span" })).toHaveTextContent(
-        "Longer (your answer)",
+      expect(screen.getByText("How long?").closest("p")).toHaveTextContent("How long?Longer");
+      // The tapped answer is already on the question, so its own bubble is only for screen readers.
+      const [, , echoed] = within(screen.getByRole("list", { name: "Conversation" })).getAllByRole(
+        "listitem",
+      );
+      expect(echoed).toHaveClass("visually-hidden");
+      expect(echoed).toHaveTextContent("You said:Longer");
+    });
+
+    it("sets the advice on when to see a doctor apart from the rest of the reply", () => {
+      render(
+        <MessageList
+          messages={[
+            question,
+            reply("a1", [
+              { kind: "text", text: "Rest helps.\n\nSee a doctor if it lasts more than a week." },
+            ]),
+          ]}
+          onRetry={() => {}}
+        />,
+      );
+
+      expect(screen.getByText("When to see a doctor").parentElement).toHaveTextContent(
+        "See a doctor if it lasts more than a week.",
       );
     });
 

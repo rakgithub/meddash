@@ -327,3 +327,23 @@ button.pill:hover {
 .locked .why {
   color: var(--text-muted);
 }
+
+/* On a phone each suggestion is a compact row: a small image beside the details. */
+@media (max-width: 639px) {
+  .card {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .media {
+    flex: 0 0 84px;
+    aspect-ratio: 1;
+    margin: 12px 0 12px 12px;
+    border-radius: 16px;
+  }
+
+  .body {
+    gap: 4px;
+    padding: 12px 14px 12px 12px;
+  }
+}

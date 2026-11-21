@@ -54,6 +54,10 @@ function ProductDetails({ product }: { product: ProductDetail }) {
   ].filter((fact): fact is [string, string] => fact[1] !== null);
 
   const inStock = product.stockQuantity > 0;
+  const hasInfo =
+    Boolean(product.warnings) ||
+    product.activeIngredients.length > 0 ||
+    Boolean(product.usageInstructions);
 
   return (
     <article className={styles.detail}>
@@ -75,7 +79,7 @@ function ProductDetails({ product }: { product: ProductDetail }) {
         )}
       </div>
 
-      <div className={styles.aside}>
+      <div className={styles.summary}>
         <div className={styles.top}>
           <span className={styles.category}>
             <span className={styles.capsule} data-category={product.category} aria-hidden="true" />
@@ -86,69 +90,9 @@ function ProductDetails({ product }: { product: ProductDetail }) {
         <h1 className={styles.name}>{product.name}</h1>
         <p className={styles.description}>{product.description}</p>
 
-        <section className={styles.buyBox} aria-label="Buy">
-          <div className={styles.priceRow}>
-            <p className={styles.price}>{formatPrice(product.price)}</p>
-            <p className={inStock ? styles.stock : `${styles.stock} ${styles.outOfStock}`}>
-              {formatStock(product.stockQuantity)}
-            </p>
-          </div>
-          {product.packSize && <p className={styles.pack}>{product.packSize}</p>}
-
-          {product.requiresPrescription && (
-            <div className={styles.rx} role="note">
-              <strong>Prescription only</strong>
-              <p>
-                This medicine can only be supplied with a valid prescription. Prescription upload is
-                coming soon, so it cannot be added to your cart yet.
-              </p>
-            </div>
-          )}
-
-          {/* Keyed so quantity and messages start fresh on another product. */}
-          <AddToCart key={product.id} product={product} />
-
-          <ul className={styles.service}>
-            <li>Delivered in 1 to 3 working days</li>
-            <li>Unopened packs can be returned within 14 days</li>
-          </ul>
-        </section>
-      </div>
-
-      <div className={styles.info}>
-        {product.activeIngredients.length > 0 && (
-          <details className={styles.section} open>
-            <summary>
-              <h2>Active ingredients</h2>
-            </summary>
-            <ul>
-              {product.activeIngredients.map((ingredient) => (
-                <li key={ingredient}>{ingredient}</li>
-              ))}
-            </ul>
-          </details>
-        )}
-        {product.warnings && (
-          <details className={`${styles.section} ${styles.warnings}`} open>
-            <summary>
-              <h2>Warnings</h2>
-            </summary>
-            <p>{product.warnings}</p>
-          </details>
-        )}
-        {product.usageInstructions && (
-          <details className={styles.section}>
-            <summary>
-              <h2>Usage instructions</h2>
-            </summary>
-            <p>{product.usageInstructions}</p>
-          </details>
-        )}
         {facts.length > 0 && (
-          <details className={styles.section}>
-            <summary>
-              <h2>Product details</h2>
-            </summary>
+          <section className={styles.factsSection} aria-labelledby="product-facts">
+            <h2 id="product-facts">Product details</h2>
             <dl className={styles.facts}>
               {facts.map(([label, value]) => (
                 <div key={label}>
@@ -157,9 +101,65 @@ function ProductDetails({ product }: { product: ProductDetail }) {
                 </div>
               ))}
             </dl>
-          </details>
+          </section>
         )}
       </div>
+
+      <section className={styles.buyBox} aria-label="Buy">
+        <div className={styles.priceRow}>
+          <p className={styles.price}>{formatPrice(product.price)}</p>
+          <p className={inStock ? styles.stock : `${styles.stock} ${styles.outOfStock}`}>
+            {formatStock(product.stockQuantity)}
+          </p>
+        </div>
+        {product.packSize && <p className={styles.pack}>{product.packSize}</p>}
+
+        {product.requiresPrescription && (
+          <div className={styles.rx} role="note">
+            <strong>Prescription only</strong>
+            <p>
+              This medicine can only be supplied with a valid prescription. Prescription upload is
+              coming soon, so it cannot be added to your cart yet.
+            </p>
+          </div>
+        )}
+
+        {/* Keyed so quantity and messages start fresh on another product. */}
+        <AddToCart key={product.id} product={product} />
+
+        <ul className={styles.service}>
+          <li>Delivered in 1 to 3 working days</li>
+          <li>Unopened packs can be returned within 14 days</li>
+        </ul>
+      </section>
+
+      {hasInfo && (
+        <div className={styles.info}>
+          {/* Safety first: the warnings sit above the rest, where they can't be skipped. */}
+          {product.warnings && (
+            <section className={styles.warnings} aria-labelledby="product-warnings">
+              <h2 id="product-warnings">Warnings</h2>
+              <p>{product.warnings}</p>
+            </section>
+          )}
+          {product.activeIngredients.length > 0 && (
+            <section className={styles.section} aria-labelledby="product-ingredients">
+              <h2 id="product-ingredients">Active ingredients</h2>
+              <ul>
+                {product.activeIngredients.map((ingredient) => (
+                  <li key={ingredient}>{ingredient}</li>
+                ))}
+              </ul>
+            </section>
+          )}
+          {product.usageInstructions && (
+            <section className={styles.section} aria-labelledby="product-usage">
+              <h2 id="product-usage">Usage instructions</h2>
+              <p>{product.usageInstructions}</p>
+            </section>
+          )}
+        </div>
+      )}
     </article>
   );
 }

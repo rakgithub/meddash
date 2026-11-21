@@ -44,7 +44,7 @@
   stroke-width: 2;
 }
 
-/* Fills the space between the logo and the upload button. */
+/* Fills the space between the logo and the actions. */
 .search {
   flex: 1;
   min-width: 0;
@@ -55,9 +55,9 @@
   justify-content: space-between;
 }
 
-/* On a phone the logo, upload button and user menu share the first row and the search gets its own. */
+/* On a phone the logo and actions share the first row and the search gets its own, full width. */
 @media (max-width: 720px) {
-  /* Actions that don't fit beside the logo wrap to the right, under the upload button. */
+  /* Actions that don't fit beside the logo wrap to the right. */
   .inner {
     justify-content: flex-end;
     column-gap: 8px;

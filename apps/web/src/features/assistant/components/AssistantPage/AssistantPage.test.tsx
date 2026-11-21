@@ -44,14 +44,49 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("AssistantPage", () => {
-  it("greets with starter prompts and the disclaimer", () => {
+  it("greets with starter prompts and the disclaimer", async () => {
     renderPage("/assistant");
 
-    expect(screen.getByRole("heading", { name: "What’s bothering you?" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "What’s bothering you today?" }),
+    ).toBeInTheDocument();
     for (const starter of ["Sore throat and fever", "Can't sleep", "Hay fever", "Upset stomach"]) {
       expect(screen.getByRole("button", { name: starter })).toBeInTheDocument();
     }
-    expect(screen.getByText("Suggestions, not a diagnosis. Ask a pharmacist.")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Suggestions, not a diagnosis" }));
+    expect(screen.getByText(/It can’t examine you/)).toBeInTheDocument();
+  });
+
+  it("describes each starter and offers every body area", () => {
+    renderPage("/assistant");
+
+    expect(screen.getByRole("button", { name: "Hay fever" })).toHaveAccessibleDescription(
+      "Sneezing, itchy eyes, runny nose",
+    );
+    expect(screen.getByRole("button", { name: "Nose and throat" })).toBeInTheDocument();
+  });
+
+  it("shows who you're talking to and how far along the consultation is", async () => {
+    engine.mockImplementationOnce(async function* () {
+      yield { kind: "symptoms", symptoms: ["Hay fever"] };
+      yield {
+        kind: "products",
+        items: [{ product: ibuprofenDetail, reason: "Eases it", fit: "best" }],
+      };
+    });
+    renderPage("/assistant");
+
+    await userEvent.click(screen.getByRole("button", { name: "Hay fever" }));
+
+    expect(
+      await screen.findByRole("heading", { name: "My suggestions for hay fever" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("MedDash assistant")).toBeInTheDocument();
+    const progress = screen.getByRole("list", { name: "Progress" });
+    expect(within(progress).getByText("Suggestions").closest("li")).toHaveAttribute(
+      "aria-current",
+      "step",
+    );
   });
 
   it("sends a starter prompt and renders the streamed reply", async () => {
@@ -68,7 +103,7 @@ describe("AssistantPage", () => {
     expect(reply).toHaveTextContent("Try an antihistamine.");
     expect(screen.getByRole("button", { name: "3 matches 1 step" })).toBeInTheDocument();
     expect(
-      screen.queryByRole("heading", { name: "What’s bothering you?" }),
+      screen.queryByRole("heading", { name: "What’s bothering you today?" }),
     ).not.toBeInTheDocument();
   });
 
@@ -117,7 +152,7 @@ describe("AssistantPage", () => {
         caseFile: expect.objectContaining({ symptoms: ["Sore throat"] }),
       }),
     );
-    const panel = await screen.findByRole("complementary", { name: "Case file" });
+    const panel = await screen.findByRole("complementary", { name: "Your consultation" });
     expect(within(panel).getByRole("list", { name: "Symptoms" })).toHaveTextContent("Sore throat");
   });
 
@@ -203,7 +238,9 @@ describe("AssistantPage", () => {
     await user.click(screen.getByRole("button", { name: "Start over" }));
     await user.click(screen.getByRole("button", { name: "Yes, clear it" }));
 
-    expect(screen.getByRole("heading", { name: "What’s bothering you?" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "What’s bothering you today?" }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "Describe your symptoms" })).toBeInTheDocument();
   });
 
@@ -218,11 +255,15 @@ describe("AssistantPage", () => {
 
     it("is hidden until the conversation starts", async () => {
       renderPage("/assistant");
-      expect(screen.queryByRole("complementary", { name: "Case file" })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("complementary", { name: "Your consultation" }),
+      ).not.toBeInTheDocument();
 
       await userEvent.click(screen.getByRole("button", { name: "Hay fever" }));
 
-      expect(await screen.findByRole("complementary", { name: "Case file" })).toBeInTheDocument();
+      expect(
+        await screen.findByRole("complementary", { name: "Your consultation" }),
+      ).toBeInTheDocument();
     });
 
     it("re-runs the engine with the edited case file", async () => {
@@ -273,14 +314,18 @@ describe("AssistantPage", () => {
       await userEvent.click(screen.getByRole("button", { name: "Start over" }));
       await userEvent.click(screen.getByRole("button", { name: "Keep chatting" }));
       expect(
-        screen.queryByRole("heading", { name: "What’s bothering you?" }),
+        screen.queryByRole("heading", { name: "What’s bothering you today?" }),
       ).not.toBeInTheDocument();
 
       await userEvent.click(screen.getByRole("button", { name: "Start over" }));
       await userEvent.click(screen.getByRole("button", { name: "Yes, clear it" }));
 
-      expect(screen.getByRole("heading", { name: "What’s bothering you?" })).toBeInTheDocument();
-      expect(screen.queryByRole("complementary", { name: "Case file" })).not.toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: "What’s bothering you today?" }),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole("complementary", { name: "Your consultation" }),
+      ).not.toBeInTheDocument();
     });
 
     it("is read-only after an urgent alert", async () => {
@@ -338,7 +383,7 @@ describe("AssistantPage", () => {
       await user.click(within(saved).getByRole("button", { name: "Reopen Sore throat" }));
 
       expect(screen.getByRole("article", { name: ibuprofenDetail.name })).toBeInTheDocument();
-      expect(screen.getByRole("complementary", { name: "Case file" })).toHaveTextContent(
+      expect(screen.getByRole("complementary", { name: "Your consultation" })).toHaveTextContent(
         "Sore throat",
       );
     });

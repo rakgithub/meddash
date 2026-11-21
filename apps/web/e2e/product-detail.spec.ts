@@ -6,7 +6,7 @@ test.describe("Product detail", () => {
 
     await page.getByRole("combobox", { name: "Search products" }).fill("ibuprofen");
     await page.getByRole("button", { name: "Search" }).click();
-    await expect(page.getByRole("listitem")).toHaveCount(2);
+    await expect(page.getByRole("main").getByRole("listitem")).toHaveCount(2);
 
     await page.getByRole("link", { name: "Ibuprofen 400mg" }).click();
 
@@ -19,9 +19,7 @@ test.describe("Product detail", () => {
     await expect(page.getByText("Ibuprofen 400 mg")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Usage instructions" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Warnings" })).toBeVisible();
-    // Product details start closed; opening the section shows the facts.
-    await expect(page.getByText("04875159")).toBeHidden();
-    await page.getByRole("heading", { name: "Product details" }).click();
+    await expect(page.getByRole("region", { name: "Product details" })).toBeVisible();
     await expect(page.getByText("04875159")).toBeVisible();
     await expect(page.getByRole("note")).toBeHidden();
 
@@ -34,7 +32,7 @@ test.describe("Product detail", () => {
     page,
   }) => {
     await page.goto("/?q=ibuprofen");
-    await expect(page.getByRole("listitem")).toHaveCount(2);
+    await expect(page.getByRole("main").getByRole("listitem")).toHaveCount(2);
     await page.getByRole("link", { name: "Ibuprofen Gel" }).click();
     await expect(page.getByRole("heading", { name: "Ibuprofen Gel", level: 1 })).toBeVisible();
 
@@ -43,13 +41,13 @@ test.describe("Product detail", () => {
 
     await expect(page).toHaveURL(/\/\?q=vitamin$/);
     await expect(page.getByRole("combobox", { name: "Search products" })).toHaveValue("vitamin");
-    await expect(page.getByRole("listitem")).toHaveCount(2);
+    await expect(page.getByRole("main").getByRole("listitem")).toHaveCount(2);
 
     await page.goBack();
     await expect(page.getByRole("heading", { name: "Ibuprofen Gel", level: 1 })).toBeVisible();
     await page.goBack();
     await expect(page.getByRole("combobox", { name: "Search products" })).toHaveValue("ibuprofen");
-    await expect(page.getByRole("listitem")).toHaveCount(2);
+    await expect(page.getByRole("main").getByRole("listitem")).toHaveCount(2);
   });
 
   test("picking a filter on a product page opens the filtered results", async ({ page }) => {
