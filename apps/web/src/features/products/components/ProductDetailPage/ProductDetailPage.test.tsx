@@ -112,7 +112,7 @@ describe("ProductDetailPage content", () => {
     expect(screen.getByText("1 tablet with water, up to 3 times a day.")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Warnings" })).toBeInTheDocument();
     expect(screen.getByText("Do not use with stomach ulcers.")).toBeInTheDocument();
-    const details = screen.getByRole("heading", { name: "Product details" }).closest("details");
+    const details = screen.getByRole("region", { name: "Product details" });
     expect(details).toHaveTextContent("Reckitt");
     expect(details).toHaveTextContent("Film-coated tablet");
     expect(details).toHaveTextContent("20 tablets");
@@ -168,16 +168,15 @@ describe("ProductDetailPage content", () => {
     await vi.waitFor(() => expect(buy.getByRole("button", { name: "Add to cart" })).toBeEnabled());
   });
 
-  it("opens the ingredients and warnings, and keeps the other sections closed", async () => {
+  it("shows every section and fact without having to open anything", async () => {
     fetchProduct.mockResolvedValue(ibuprofenDetail);
     renderPage("1");
 
-    const section = async (name: string) =>
-      (await screen.findByRole("heading", { name })).closest("details");
-    expect(await section("Active ingredients")).toHaveAttribute("open");
-    expect(await section("Warnings")).toHaveAttribute("open");
-    expect(await section("Usage instructions")).not.toHaveAttribute("open");
-    expect(await section("Product details")).not.toHaveAttribute("open");
+    await screen.findByRole("heading", { name: "Ibuprofen 400mg", level: 1 });
+    expect(screen.getByText("04875159")).toBeVisible();
+    expect(screen.getByText("Ibuprofen 400 mg")).toBeVisible();
+    expect(screen.getByText("Do not use with stomach ulcers.")).toBeVisible();
+    expect(screen.getByText("1 tablet with water, up to 3 times a day.")).toBeVisible();
   });
 
   it("blocks and explains a prescription-only product", async () => {

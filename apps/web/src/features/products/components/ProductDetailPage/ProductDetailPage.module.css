@@ -31,26 +31,26 @@
 }
 
 /*
- * Desktop: image and info on the left, the summary and buy box in a sticky column on the right.
- * Phone: one column in source order (image, title, buy box, info).
+ * Desktop: a small image, the summary with its facts, and a sticky buy box side by side;
+ * the warnings and longer reading sit underneath the image and summary.
+ * Tablet: the buy box drops under the summary. Phone: one column in source order.
  */
 .detail {
   display: grid;
-  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  grid-template-columns: 260px minmax(0, 1fr) 320px;
   grid-template-areas:
-    "media aside"
-    "info aside";
-  gap: 32px 48px;
+    "media summary buy"
+    "info info buy";
+  gap: 32px 40px;
   align-items: start;
 }
 
-/* The same domed blister pocket as the product cards, at hero size. */
+/* The same domed blister pocket as the product cards, kept small so the details lead. */
 .media {
   grid-area: media;
   display: grid;
   place-items: center;
-  aspect-ratio: 4 / 3;
-  max-width: 100%;
+  aspect-ratio: 1;
   overflow: hidden;
   border-radius: var(--radius-well);
   background: var(--well-bg);
@@ -64,8 +64,8 @@
 }
 
 .placeholder {
-  width: 72px;
-  height: 72px;
+  width: 56px;
+  height: 56px;
   fill: none;
   stroke: var(--text-muted);
   stroke-width: 1.25;
@@ -73,13 +73,12 @@
   opacity: 0.55;
 }
 
-.aside {
-  grid-area: aside;
-  position: sticky;
-  top: 24px;
+.summary {
+  grid-area: summary;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+  min-width: 0;
 }
 
 .top {
@@ -140,6 +139,7 @@
 }
 
 .description {
+  max-width: 60ch;
   font-size: 16px;
   line-height: 1.5;
   color: var(--text-muted);
@@ -147,10 +147,12 @@
 
 /* The buy box: the one raised surface on the page, so the eye lands on it. */
 .buyBox {
+  grid-area: buy;
+  position: sticky;
+  top: 24px;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  margin-top: 8px;
   padding: 22px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -233,64 +235,72 @@
   background: linear-gradient(90deg, var(--accent) 50%, transparent 50%);
 }
 
-.info {
-  grid-area: info;
+/* The facts read like the label on the side of the pack: short pairs in a compact grid. */
+.factsSection {
+  margin-top: 10px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.factsSection h2,
+.section h2,
+.warnings h2 {
+  margin-bottom: 10px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px 24px;
+  margin: 0;
+  font-size: 14px;
+}
+
+.facts div {
   display: flex;
   flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.facts dt {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.facts dd {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.info {
+  grid-area: info;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px 40px;
+  padding-top: 24px;
   border-top: 1px solid var(--border-strong);
 }
 
-.section {
-  border-bottom: 1px solid var(--border-strong);
-}
-
-.section summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 18px 4px;
-  list-style: none;
-  cursor: pointer;
-}
-
-.section summary::-webkit-details-marker {
-  display: none;
-}
-
-/* A plus that turns into a minus when the section is open. */
-.section summary::after {
-  content: "";
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
-  background:
-    linear-gradient(currentColor, currentColor) center / 14px 2px no-repeat,
-    linear-gradient(currentColor, currentColor) center / 2px 14px no-repeat;
-  color: var(--text-muted);
-  transition: transform var(--duration-base) var(--ease-in-out);
-}
-
-.section[open] summary::after {
-  background: linear-gradient(currentColor, currentColor) center / 14px 2px no-repeat;
-  transform: rotate(180deg);
-}
-
-.section h2 {
-  font-size: 17px;
-  font-weight: 600;
+/* Warnings span the full width and carry the caution colour, so they're read before the rest. */
+.warnings {
+  grid-column: 1 / -1;
+  padding: 14px 16px;
+  border-left: 3px solid var(--caution);
+  border-radius: 0 12px 12px 0;
+  background: var(--caution-soft);
 }
 
 .warnings h2 {
   color: var(--caution);
 }
 
-.section > :not(summary) {
-  margin: 0 4px 20px;
-}
-
 .section p,
-.section li {
+.section li,
+.warnings p {
   max-width: 68ch;
   font-size: 15px;
   line-height: 1.6;
@@ -298,31 +308,22 @@
 }
 
 .section ul {
+  margin: 0;
   padding-left: 20px;
 }
 
-.facts {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-width: 480px;
-  font-size: 14px;
-}
+@media (max-width: 1000px) {
+  .detail {
+    grid-template-columns: 220px minmax(0, 1fr);
+    grid-template-areas:
+      "media summary"
+      "buy buy"
+      "info info";
+  }
 
-.facts div {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.facts dt {
-  color: var(--text-muted);
-}
-
-.facts dd {
-  margin: 0;
-  font-weight: 600;
-  text-align: right;
+  .buyBox {
+    position: static;
+  }
 }
 
 @media (max-width: 720px) {
@@ -330,21 +331,24 @@
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
       "media"
-      "aside"
+      "summary"
+      "buy"
       "info";
     gap: 24px;
   }
 
-  .aside {
-    position: static;
+  /* A short strip instead of a full-width square, so the name is on screen straight away. */
+  .media {
+    aspect-ratio: 16 / 9;
+    max-height: 200px;
+    width: 100%;
   }
 
   .name {
     font-size: 24px;
   }
 
-  /* Room under the info for the bottom bar, so it never covers the last section. */
   .info {
-    margin-bottom: 72px;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
