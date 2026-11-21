@@ -3,7 +3,8 @@
   "services": {
     "server": {
       "root": "apps/server",
-      "framework": "express"
+      "framework": "express",
+      "installCommand": "pnpm install --ignore-workspace --no-frozen-lockfile --config.node-linker=hoisted --config.strict-dep-builds=false"
     },
     "web": {
       "root": "apps/web",
