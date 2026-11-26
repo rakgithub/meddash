@@ -19,6 +19,8 @@ export default defineConfig({
         "src/db/migrate.ts",
         "src/db/seed.ts",
         "src/db/seed-data.ts",
+        "src/db/catalogue/load.ts",
+        "src/db/catalogue/checkImages.ts",
         "src/test/**",
       ],
       reporter: ["text-summary", "lcov"],

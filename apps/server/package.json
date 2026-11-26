@@ -10,6 +10,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx --env-file-if-exists=.env src/db/migrate.ts",
     "db:seed": "tsx --env-file-if-exists=.env src/db/seed.ts",
+    "db:catalogue": "tsx --env-file-if-exists=.env src/db/catalogue/load.ts",
+    "catalogue:check-images": "tsx src/db/catalogue/checkImages.ts",
     "assistant:eval": "tsx --env-file-if-exists=.env evals/assistant/run.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

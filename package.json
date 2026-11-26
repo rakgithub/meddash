@@ -9,6 +9,8 @@
     "db:down": "docker compose down",
     "db:migrate": "pnpm --filter server db:migrate",
     "db:seed": "pnpm --filter server db:seed",
+    "db:catalogue": "pnpm --filter server db:catalogue",
+    "catalogue:check-images": "pnpm --filter server catalogue:check-images",
     "assistant:eval": "pnpm --filter server assistant:eval",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
