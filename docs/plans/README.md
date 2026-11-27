@@ -15,6 +15,6 @@ PRs that need their own detail, each gets a `pr-<n>-<kebab-name>.md` next to it.
 | ↳ [PR 5 — Evals and a model check](symptom-assistant-backend/pr-5-evals.md)               |                         | In progress                  |
 | ↳ [PR 6 — Web app on the real engine](symptom-assistant-backend/pr-6-web-real-engine.md)  |                         | In progress                  |
 | ↳ [PR 7 — Compare mode on the backend](symptom-assistant-backend/pr-7-compare-backend.md) |                         | In progress                  |
-| [Bulk product import with shared images](bulk-product-import/)                            | Phase 2 (builds on)     | Draft                        |
+| [1,000-product catalogue](bulk-product-import/)                                           | Phase 2 (builds on)     | In progress                  |
 
 Keep the status here in step with the `Status:` line at the top of each plan.

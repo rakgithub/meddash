@@ -1,4 +1,4 @@
-const LOCAL_HOSTS = ["localhost", "127.0.0.1", "[::1]"];
+export const LOCAL_HOSTS = ["localhost", "127.0.0.1", "[::1]"];
 
 /**
  * Seeding deletes every product, so it only runs against a local database unless the caller
