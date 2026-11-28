@@ -3,6 +3,8 @@
 Incremental phases. Each phase is one PR, leaves the app working, and is done only when
 `pnpm verify` passes. Tick a box when it lands on `main`.
 
+Ideas not scheduled yet are in [`FUTURE-IMPROVEMENTS.md`](FUTURE-IMPROVEMENTS.md).
+
 ## Decisions to confirm before starting
 
 New dependencies need approval (repo rule). Proposed, simplest option first:
