@@ -1,0 +1,30 @@
+/* Out of sight until a keyboard user tabs to it; then it sits over the top-left of the header. */
+.skipLink:not(:focus) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.skipLink:focus {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 10;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-control);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/*
+ * <main> only takes focus so screen readers start reading the new page after a route change.
+ * It is not a control, so a ring around the whole page would just be noise.
+ */
+.main:focus {
+  outline: none;
+}

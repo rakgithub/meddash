@@ -4,6 +4,7 @@ import { useOrders } from "../../hooks/useOrders";
 import { formatOrderDate, itemLabel } from "../../utils/orderFormat";
 import { OrderStatusBadge } from "../OrderStatusBadge/OrderStatusBadge";
 import styles from "./OrdersPage.module.css";
+import { PageTitle } from "../../../../lib/PageTitle";
 
 /** The signed-in user's orders, newest first. Render under <RequireAuth>. */
 export function OrdersPage() {
@@ -11,6 +12,7 @@ export function OrdersPage() {
 
   return (
     <div className={styles.page}>
+      <PageTitle title="Your orders" />
       <Link className={styles.back} to="/">
         ← Back to products
       </Link>

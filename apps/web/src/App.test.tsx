@@ -59,7 +59,9 @@ describe("App routes", () => {
 
     expect(await screen.findByRole("button", { name: "Account menu" })).toHaveTextContent("AW");
     // Back on the page the user came from.
-    expect(screen.getByRole("heading", { name: "Ibuprofen 400mg", level: 1 })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Ibuprofen 400mg", level: 1 }),
+    ).toBeInTheDocument();
   });
 
   it("sends a signed-out visitor from /profile to log in", async () => {
@@ -166,5 +168,35 @@ describe("App routes", () => {
 
     await user.click(screen.getByRole("link", { name: /Back to products/ }));
     expect(await screen.findByRole("heading", { name: "Products", level: 1 })).toBeInTheDocument();
+  });
+});
+
+describe("App accessibility", () => {
+  it("names the browser tab after the page", async () => {
+    renderWithRouter(<App />, "/products/1");
+    await screen.findByRole("heading", { name: "Ibuprofen 400mg", level: 1 });
+    expect(document.title).toBe("Ibuprofen 400mg | MedDash");
+  });
+
+  it("moves focus to the new page after following a link", async () => {
+    const user = userEvent.setup();
+    renderWithRouter(<App />, "/");
+
+    await user.click(await screen.findByRole("link", { name: "Ibuprofen 400mg" }));
+
+    await screen.findByRole("heading", { name: "Ibuprofen 400mg", level: 1 });
+    expect(screen.getByRole("main")).toHaveFocus();
+  });
+
+  it("leaves focus alone on the first page load", async () => {
+    renderWithRouter(<App />, "/");
+    await screen.findByRole("heading", { name: "Products", level: 1 });
+    expect(screen.getByRole("main")).not.toHaveFocus();
+  });
+
+  it("offers a skip link to the main content", () => {
+    renderWithRouter(<App />, "/");
+    const skip = screen.getByRole("link", { name: "Skip to main content" });
+    expect(skip).toHaveAttribute("href", `#${screen.getByRole("main").id}`);
   });
 });

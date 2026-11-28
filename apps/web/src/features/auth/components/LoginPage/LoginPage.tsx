@@ -4,6 +4,7 @@ import { ApiError } from "../../../../lib/apiClient";
 import { login } from "../../api/authApi";
 import { useAuth } from "../../hooks/useAuth";
 import styles from "./LoginPage.module.css";
+import { PageTitle } from "../../../../lib/PageTitle";
 
 /** Where to go after logging in: the page that sent the user here, or the home page. */
 function returnPath(state: unknown): string {
@@ -49,6 +50,7 @@ export function LoginPage() {
 
   return (
     <div className={styles.page}>
+      <PageTitle title="Log in" />
       <h1 className={styles.title}>Log in</h1>
       <p className={styles.lead}>Log in to keep track of your orders and prescriptions.</p>
       <form className={styles.form} onSubmit={handleSubmit}>

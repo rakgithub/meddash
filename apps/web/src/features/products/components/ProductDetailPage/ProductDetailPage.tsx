@@ -9,6 +9,7 @@ import { formatPrice } from "../../utils/formatPrice";
 import { formatStock } from "../../utils/formatStock";
 import { CategoryAisles } from "../CategoryAisles/CategoryAisles";
 import styles from "./ProductDetailPage.module.css";
+import { PageTitle } from "../../../../lib/PageTitle";
 
 const BackLink = () => (
   <Link className={styles.back} to="/">
@@ -20,11 +21,18 @@ export function ProductDetailPage() {
   // The route is `/products/:id`, so id is always present.
   const { id = "" } = useParams();
   const state = useProduct(id);
+  const title =
+    state.status === "success"
+      ? state.product.name
+      : state.status === "not-found"
+        ? "Product not found"
+        : "Product";
   // Searching or filtering from here opens the results on `/`.
   const { filters, search } = useSearchQuery();
 
   return (
     <div className={styles.page}>
+      <PageTitle title={title} />
       <CategoryAisles
         value={filters.category}
         onChange={(category) => search({ ...filters, category })}

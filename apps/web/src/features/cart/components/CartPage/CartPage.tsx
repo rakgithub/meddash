@@ -5,6 +5,7 @@ import { formatPrice } from "../../../products";
 import { useCart } from "../../hooks/useCart";
 import { CartLineItem, type LinePending } from "../CartLineItem/CartLineItem";
 import styles from "./CartPage.module.css";
+import { PageTitle } from "../../../../lib/PageTitle";
 
 const errorMessage = (err: unknown) =>
   err instanceof ApiError ? err.message : "Could not reach the server. Try again.";
@@ -47,6 +48,7 @@ export function CartPage() {
 
   return (
     <div className={styles.page}>
+      <PageTitle title="Your cart" />
       <Link className={styles.back} to="/">
         ← Back to products
       </Link>

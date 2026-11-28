@@ -5,6 +5,7 @@ import { register } from "../../api/authApi";
 import { useAuth } from "../../hooks/useAuth";
 import { PASSWORD_MIN } from "../../types";
 import styles from "./RegisterPage.module.css";
+import { PageTitle } from "../../../../lib/PageTitle";
 
 export function RegisterPage() {
   const { state, signIn } = useAuth();
@@ -42,6 +43,7 @@ export function RegisterPage() {
 
   return (
     <div className={styles.page}>
+      <PageTitle title="Create an account" />
       <h1 className={styles.title}>Create an account</h1>
       <p className={styles.lead}>You need an account to order from MedDash.</p>
       <form className={styles.form} onSubmit={handleSubmit}>
