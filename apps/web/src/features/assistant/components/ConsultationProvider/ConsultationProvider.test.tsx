@@ -56,7 +56,7 @@ beforeEach(() => {
   vi.resetAllMocks();
   vi.mocked(authApi.fetchCurrentUser).mockResolvedValue(ana);
   vi.mocked(authApi.logout).mockResolvedValue();
-  saveConsultation({ messages: [stored], caseFile: emptyCaseFile });
+  saveConsultation({ messages: [stored], caseFile: emptyCaseFile, fromChat: {} });
 });
 
 describe("ConsultationProvider", () => {

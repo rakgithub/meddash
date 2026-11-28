@@ -136,3 +136,67 @@
     padding: 0 var(--space-4);
   }
 }
+
+/* Right after Place order: one calm moment of confirmation above the order itself. */
+.placed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  padding: var(--space-10) var(--space-5);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(600px 320px at 50% 20%, var(--color-bg-glow), transparent 70%),
+    var(--color-surface);
+  text-align: center;
+}
+
+.tick {
+  width: 72px;
+  height: 72px;
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tick circle {
+  stroke-width: 2.5;
+  opacity: 0.35;
+}
+
+/* The tick draws itself once; the one motion on the page answers the click that placed the order. */
+.tick path {
+  stroke-width: 3.5;
+  stroke-dasharray: 40;
+  stroke-dashoffset: 40;
+  animation: draw var(--duration-slow) var(--ease-out) forwards;
+}
+
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tick path {
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+}
+
+.placedTitle {
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+
+.placedLine {
+  max-width: 40ch;
+  color: var(--color-text-secondary);
+  font-size: var(--text-base);
+  line-height: 1.55;
+}

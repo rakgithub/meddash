@@ -1,9 +1,11 @@
 import { useEffect, useReducer, useRef } from "react";
 import { AssistantError, streamEngine } from "../api/streamEngine";
 import type { CaseField, CaseFile, Message, QuickReply } from "../types";
+import type { Order } from "../../orders";
 import { applyAnswer } from "../utils/caseFile";
 import { consultationReducer, isPaused, messageText } from "../utils/consultationReducer";
 import { loadConsultation, saveConsultation } from "../utils/consultationStorage";
+import { orderNote } from "../utils/orderNote";
 
 function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -69,7 +71,7 @@ export function useConsultation({
     }
   }
 
-  const { messages, caseFile } = state;
+  const { messages, caseFile, fromChat } = state;
   const isStreaming = messages.at(-1)?.status === "streaming";
   const paused = isPaused(messages);
 
@@ -120,9 +122,23 @@ export function useConsultation({
     );
   }
 
+  /** A suggestion from reply `messageId` went into the cart; the cart page says so. */
+  function addedFromChat(productId: string, messageId: string) {
+    dispatch({ type: "addedFromChat", productId, messageId });
+  }
+
+  /** The assistant notes an order placed while this conversation is live. No model call. */
+  function noteOrder(order: Pick<Order, "id" | "items">) {
+    if (messages.length === 0) return;
+    dispatch({ type: "note", id: crypto.randomUUID(), text: orderNote(order, messages, fromChat) });
+  }
+
   return {
     messages,
     caseFile,
+    fromChat,
+    addedFromChat,
+    noteOrder,
     isStreaming,
     paused,
     send,

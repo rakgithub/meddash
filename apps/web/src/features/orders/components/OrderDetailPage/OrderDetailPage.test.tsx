@@ -11,16 +11,47 @@ vi.mock("../../api/ordersApi");
 
 beforeEach(() => vi.resetAllMocks());
 
-const renderPage = () =>
+const renderPage = (url = "/orders/7", backToAssistant = false) =>
   render(
-    <MemoryRouter initialEntries={["/orders/7"]}>
+    <MemoryRouter initialEntries={[url]}>
       <Routes>
-        <Route path="/orders/:id" element={<OrderDetailPage />} />
+        <Route path="/orders/:id" element={<OrderDetailPage backToAssistant={backToAssistant} />} />
       </Routes>
     </MemoryRouter>,
   );
 
 describe("OrderDetailPage", () => {
+  it("opens with Order placed right after placing, and the way back to a live chat", async () => {
+    vi.mocked(api.getOrder).mockResolvedValue(order);
+    renderPage("/orders/7?placed=1", true);
+
+    expect(await screen.findByRole("heading", { level: 1, name: "Order placed" })).toBeVisible();
+    expect(screen.getByText(/^Order #7, 21,93\s€\. Follow it under Orders\.$/)).toBeVisible();
+    expect(screen.getByRole("link", { name: "Back to the assistant" })).toHaveAttribute(
+      "href",
+      "/",
+    );
+    // The order itself follows, one level down.
+    expect(screen.getByRole("heading", { level: 2, name: "Order #7" })).toBeVisible();
+  });
+
+  it("has no way back to the assistant when there is no conversation", async () => {
+    vi.mocked(api.getOrder).mockResolvedValue(order);
+    renderPage("/orders/7?placed=1", false);
+
+    await screen.findByRole("heading", { level: 1, name: "Order placed" });
+    expect(screen.queryByRole("link", { name: "Back to the assistant" })).not.toBeInTheDocument();
+  });
+
+  it("is the plain order page when opened later", async () => {
+    vi.mocked(api.getOrder).mockResolvedValue(order);
+    renderPage("/orders/7", true);
+
+    expect(await screen.findByRole("heading", { level: 1, name: "Order #7" })).toBeVisible();
+    expect(screen.queryByText("Order placed")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Back to the assistant" })).not.toBeInTheDocument();
+  });
+
   it("shows loading, then the items, prices, total and status", async () => {
     vi.mocked(api.getOrder).mockResolvedValue(order);
     renderPage();

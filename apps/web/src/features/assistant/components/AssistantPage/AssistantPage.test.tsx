@@ -25,7 +25,7 @@ const text = (id: string, role: Message["role"], value: string): Message => ({
 
 /** Renders the chat on a conversation already under way (as the provider restores it). */
 async function renderChat(messages: Message[]) {
-  saveConsultation({ messages, caseFile: emptyCaseFile });
+  saveConsultation({ messages, caseFile: emptyCaseFile, fromChat: {} });
   renderWithRouter(
     <AuthProvider>
       <CartProvider>

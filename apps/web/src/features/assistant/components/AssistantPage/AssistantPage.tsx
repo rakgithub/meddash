@@ -14,7 +14,7 @@ interface AssistantPageProps {
 
 /** The conversation, once it has started: one centred column with the message box docked under it. */
 export function AssistantPage({ composer, footnote }: AssistantPageProps) {
-  const { messages, paused, answer, retry, startOver } = useConsultationContext();
+  const { messages, paused, answer, retry, startOver, addedFromChat } = useConsultationContext();
 
   return (
     <div className={styles.page}>
@@ -27,6 +27,7 @@ export function AssistantPage({ composer, footnote }: AssistantPageProps) {
           onRetry={retry}
           // After an urgent alert everything earlier is a read-only record.
           onAnswer={paused ? undefined : answer}
+          onAdded={addedFromChat}
         />
       </div>
 

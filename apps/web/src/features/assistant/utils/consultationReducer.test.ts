@@ -246,6 +246,49 @@ describe("consultationReducer case file", () => {
   });
 });
 
+describe("products added from the chat", () => {
+  it("remembers which reply suggested each one, and forgets on reset", () => {
+    let state = consultationReducer(sent, {
+      type: "addedFromChat",
+      productId: "1",
+      messageId: "a1",
+    });
+    expect(state.fromChat).toEqual({ "1": "a1" });
+    expect(
+      consultationReducer(state, { type: "addedFromChat", productId: "1", messageId: "a1" }),
+    ).toBe(state);
+
+    state = consultationReducer(state, { type: "reset" });
+    expect(state.fromChat).toEqual({});
+  });
+});
+
+describe("a local note", () => {
+  const done = consultationReducer(sent, { type: "finish", id: "a1", status: "done" });
+
+  it("is added as a finished assistant message after the last reply", () => {
+    const state = consultationReducer(done, {
+      type: "note",
+      id: "n1",
+      text: "Order #7 is placed.",
+    });
+
+    expect(state.messages.at(-1)).toEqual({
+      id: "n1",
+      role: "assistant",
+      parts: [{ kind: "text", text: "Order #7 is placed." }],
+      status: "done",
+    });
+  });
+
+  it("waits for no conversation and never lands inside a streaming reply", () => {
+    const note = { type: "note", id: "n1", text: "Order #7 is placed." } as const;
+
+    expect(consultationReducer(initialConsultation, note)).toBe(initialConsultation);
+    expect(consultationReducer(sent, note)).toBe(sent);
+  });
+});
+
 describe("messageText", () => {
   it("joins the text parts and skips the thinking steps", () => {
     const message: Message = {

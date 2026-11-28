@@ -5,6 +5,11 @@ import { rankRecommendations } from "./rankRecommendations";
 export interface ConsultationState {
   messages: Message[];
   caseFile: CaseFile;
+  /**
+   * Products added to the cart from a suggestion, by product id, with the id of the reply that
+   * suggested them. Kept here, not on the server: it only matters while this conversation lasts.
+   */
+  fromChat: Record<string, string>;
 }
 
 export type ConsultationAction =
@@ -14,12 +19,17 @@ export type ConsultationAction =
   | { type: "finish"; id: string; status: Exclude<MessageStatus, "streaming">; error?: string }
   /** Replaces the last assistant message (the failed one) with a fresh streaming one. */
   | { type: "retry"; assistantId: string }
+  /** A suggestion from reply `messageId` was added to the cart. */
+  | { type: "addedFromChat"; productId: string; messageId: string }
+  /** A local assistant message, written without the model (the order note). */
+  | { type: "note"; id: string; text: string }
   /** Clears the conversation, e.g. to start over after an urgent alert. */
   | { type: "reset" };
 
 export const initialConsultation: ConsultationState = {
   messages: [],
   caseFile: emptyCaseFile,
+  fromChat: {},
 };
 
 function assistantMessage(id: string): Message {
@@ -126,6 +136,25 @@ export function consultationReducer(
         messages: [...state.messages.slice(0, -1), assistantMessage(action.assistantId)],
       };
     }
+    case "addedFromChat":
+      if (state.fromChat[action.productId] === action.messageId) return state;
+      return { ...state, fromChat: { ...state.fromChat, [action.productId]: action.messageId } };
+    case "note":
+      // After the last reply, never inside one that is still streaming.
+      if (state.messages.length === 0 || state.messages.at(-1)?.status === "streaming")
+        return state;
+      return {
+        ...state,
+        messages: [
+          ...state.messages,
+          {
+            id: action.id,
+            role: "assistant",
+            parts: [{ kind: "text", text: action.text }],
+            status: "done",
+          },
+        ],
+      };
     case "reset":
       return initialConsultation;
   }
