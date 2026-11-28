@@ -3,9 +3,11 @@ import type { ProductFilters } from "../types";
 import { buildSearchParams } from "../utils/buildSearchParams";
 import { parseSearchParams } from "../utils/parseSearchParams";
 
+export const SHOP_PATH = "/shop";
+
 /**
- * The product search lives in the URL of `/`, so any page with the search header can start a
- * search, browser Back restores the results, and a search can be shared as a link.
+ * The product search lives in the URL of `/shop`, so any page can start a search (the product
+ * page's category links do), browser Back restores the results, and a search can be shared as a link.
  */
 export function useSearchQuery() {
   const [searchParams] = useSearchParams();
@@ -15,7 +17,7 @@ export function useSearchQuery() {
 
   function go(nextFilters: ProductFilters, nextPage: number) {
     const search = buildSearchParams(nextFilters, nextPage).toString();
-    navigate({ pathname: "/", search: search ? `?${search}` : "" });
+    navigate({ pathname: SHOP_PATH, search: search ? `?${search}` : "" });
   }
 
   return {

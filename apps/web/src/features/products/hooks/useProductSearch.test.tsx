@@ -128,13 +128,13 @@ describe("useProductSearch", () => {
     expect(searchProducts).toHaveBeenCalledWith(filters, 2, expect.any(AbortSignal));
   });
 
-  it("writes a search and a page change to the URL of the products page", async () => {
+  it("writes a search and a page change to the URL of /shop", async () => {
     searchProducts.mockResolvedValue(response([ibuprofen], 1, 2));
     const { result } = renderSearch("/products/1");
     await waitFor(() => expect(result.current.status).toBe("success"));
 
     act(() => result.current.search({ ...EMPTY_FILTERS, q: "vitamin d", brand: "Abtei" }));
-    expect(result.current.location.pathname).toBe("/");
+    expect(result.current.location.pathname).toBe("/shop");
     expect(result.current.location.search).toBe("?q=vitamin+d&brand=Abtei");
 
     act(() => result.current.goToPage(2));

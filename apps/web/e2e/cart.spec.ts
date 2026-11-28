@@ -99,7 +99,7 @@ test.describe("Cart page", () => {
     await expect(page.getByText("Your cart is empty")).toBeVisible();
     await expect(banner.getByRole("link", { name: "Cart, 0 items" })).toBeVisible();
     await page.getByRole("link", { name: "Browse products" }).click();
-    await expect(page).toHaveURL(/\/$/);
+    await expect(page).toHaveURL(/\/shop$/);
   });
 });
 

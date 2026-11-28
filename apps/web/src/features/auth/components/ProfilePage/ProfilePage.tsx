@@ -13,7 +13,7 @@ export function ProfilePage() {
   return (
     <div className={styles.page}>
       <PageTitle title="Your profile" />
-      <Link className={styles.back} to="/">
+      <Link className={styles.back} to="/shop">
         ← Back to products
       </Link>
       <h1 className={styles.title}>Your profile</h1>

@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useRef } from "react";
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import styles from "./App.module.css";
 import { AppFooter } from "./components/AppFooter/AppFooter";
 import { AppHeader } from "./components/AppHeader/AppHeader";
@@ -8,13 +8,27 @@ import { AssistantPage } from "./features/assistant";
 import { AuthProvider, LoginPage, ProfilePage, RegisterPage, RequireAuth } from "./features/auth";
 import { CartPage, CartProvider } from "./features/cart";
 import { OrderDetailPage, OrdersPage } from "./features/orders";
-import { ProductDetailPage, ProductsPage } from "./features/products";
+import {
+  hasCatalogueParams,
+  ProductDetailPage,
+  ProductsPage,
+  SHOP_PATH,
+} from "./features/products";
 
 // The style guide is for development only; in a production build this folds to null and the page's
 // chunk is never emitted.
 const StyleGuidePage = import.meta.env.DEV
   ? lazy(() => import("./features/design").then((m) => ({ default: m.StyleGuidePage })))
   : null;
+
+/** `/` still shows the catalogue, but a search or filter link to it (`/?q=…`) belongs on `/shop`. */
+function HomeRoute() {
+  const { search } = useLocation();
+  if (hasCatalogueParams(new URLSearchParams(search))) {
+    return <Navigate to={{ pathname: SHOP_PATH, search }} replace />;
+  }
+  return <ProductsPage />;
+}
 
 export default function App() {
   const { pathname } = useLocation();
@@ -23,7 +37,7 @@ export default function App() {
 
   // A new page replaces the content without a reload, so move focus to it: otherwise focus stays
   // on the link that was clicked and screen readers say nothing. Only the path counts, so search,
-  // filters and paging on `/` (query string only) keep focus where the user is.
+  // filters and paging on `/shop` (query string only) keep focus where the user is.
   useEffect(() => {
     if (pathname === lastPathname.current) return;
     lastPathname.current = pathname;
@@ -39,7 +53,8 @@ export default function App() {
         <AppHeader />
         <main id="main-content" className={styles.main} ref={mainRef} tabIndex={-1}>
           <Routes>
-            <Route path="/" element={<ProductsPage />} />
+            <Route path="/" element={<HomeRoute />} />
+            <Route path={SHOP_PATH} element={<ProductsPage />} />
             <Route path="/products/:id" element={<ProductDetailPage />} />
             <Route
               path="/assistant"

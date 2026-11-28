@@ -27,7 +27,7 @@ describe("ProfilePage", () => {
     const details = screen.getByRole("region", { name: "Account details" });
     expect(details).toHaveTextContent("NameAna Weber");
     expect(details).toHaveTextContent("Emailana@example.com");
-    expect(screen.getByRole("link", { name: /Back to products/ })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: /Back to products/ })).toHaveAttribute("href", "/shop");
   });
 
   it("renders nothing when signed out", async () => {

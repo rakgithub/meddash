@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test.describe("Product detail", () => {
   test("search → open product → see details, then go back", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/shop");
 
     await page.getByRole("combobox", { name: "Search products" }).fill("ibuprofen");
     await page.getByRole("button", { name: "Search" }).click();
@@ -25,26 +25,23 @@ test.describe("Product detail", () => {
 
     await page.getByRole("link", { name: /Back to products/ }).click();
 
-    await expect(page.getByRole("heading", { name: "Products", level: 1 })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Medicines", level: 1 })).toBeVisible();
   });
 
-  test("searching from a product page opens the results, and Back returns to the product", async ({
-    page,
-  }) => {
-    await page.goto("/?q=ibuprofen");
+  test("search on /shop → open a product → Back returns to the same results", async ({ page }) => {
+    await page.goto("/shop?q=ibuprofen");
     await expect(page.getByRole("main").getByRole("listitem")).toHaveCount(2);
-    await page.getByRole("link", { name: "Ibuprofen Gel" }).click();
-    await expect(page.getByRole("heading", { name: "Ibuprofen Gel", level: 1 })).toBeVisible();
 
     await page.getByRole("combobox", { name: "Search products" }).fill("vitamin");
     await page.getByRole("button", { name: "Search" }).click();
-
-    await expect(page).toHaveURL(/\/\?q=vitamin$/);
-    await expect(page.getByRole("combobox", { name: "Search products" })).toHaveValue("vitamin");
+    await expect(page).toHaveURL(/\/shop\?q=vitamin$/);
     await expect(page.getByRole("main").getByRole("listitem")).toHaveCount(2);
 
+    await page.getByRole("link", { name: "Vitamin C 500mg" }).click();
+    await expect(page.getByRole("heading", { name: "Vitamin C 500mg", level: 1 })).toBeVisible();
+
     await page.goBack();
-    await expect(page.getByRole("heading", { name: "Ibuprofen Gel", level: 1 })).toBeVisible();
+    await expect(page.getByRole("combobox", { name: "Search products" })).toHaveValue("vitamin");
     await page.goBack();
     await expect(page.getByRole("combobox", { name: "Search products" })).toHaveValue("ibuprofen");
     await expect(page.getByRole("main").getByRole("listitem")).toHaveCount(2);
@@ -56,14 +53,14 @@ test.describe("Product detail", () => {
 
     await page.getByRole("button", { name: /^Skin care/ }).click();
 
-    await expect(page).toHaveURL(/\/\?category=skin-care$/);
+    await expect(page).toHaveURL(/\/shop\?category=skin-care$/);
     await expect(page.getByRole("region", { name: "Results" }).getByRole("listitem")).toHaveCount(
       3,
     );
   });
 
   test("a card opens the product when clicked anywhere on it", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/shop");
 
     // The link's overlay sits on top of the text, so skip Playwright's "is it hittable" check;
     // the click still lands at the text's coordinates, like a user's would.

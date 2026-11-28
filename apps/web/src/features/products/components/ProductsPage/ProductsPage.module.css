@@ -7,12 +7,30 @@
   padding: var(--space-8) var(--space-5) var(--space-16);
 }
 
-.header {
+/* Title and result count on the left, search on the right; stacked on a phone. */
+.titleRow {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: flex-end;
   justify-content: space-between;
-  gap: var(--space-4);
+  gap: var(--space-4) var(--space-6);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.search {
+  flex: 0 1 420px;
+  min-width: 0;
+}
+
+@media (max-width: 720px) {
+  .search {
+    flex-basis: 100%;
+  }
 }
 
 .header h1 {
@@ -30,7 +48,7 @@
 .resultsHead {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-5);
 }
 
 .body {

@@ -12,11 +12,11 @@ describe("AppFooter", () => {
       .getAllByRole("link")
       .map((link) => [link.textContent, link.getAttribute("href")]);
     expect(hrefs).toEqual([
-      ["All products", "/"],
-      ["Cold and flu", "/?category=cold-flu"],
-      ["Pain relief", "/?category=pain-relief"],
-      ["Skin care", "/?category=skin-care"],
-      ["Vitamins", "/?category=vitamins"],
+      ["All products", "/shop"],
+      ["Cold and flu", "/shop?category=cold-flu"],
+      ["Pain relief", "/shop?category=pain-relief"],
+      ["Skin care", "/shop?category=skin-care"],
+      ["Vitamins", "/shop?category=vitamins"],
       ["Cart", "/cart"],
       ["Orders", "/orders"],
       ["Profile", "/profile"],

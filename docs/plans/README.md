@@ -18,6 +18,6 @@ PRs that need their own detail, each gets a `pr-<n>-<kebab-name>.md` next to it.
 | [1,000-product catalogue](bulk-product-import/)                                           | Phase 2 (builds on)            | In progress                  |
 | [OpenSearch search platform](opensearch-search/)                                          | Search platform track          | Draft                        |
 | [Design system](design-system/)                                                           | Design system track            | Draft                        |
-| [Assistant-first redesign](assistant-first-redesign/)                                     | Assistant-first redesign track | Approved                     |
+| [Assistant-first redesign](assistant-first-redesign/)                                     | Assistant-first redesign track | PR 1 in progress             |
 
 Keep the status here in step with the `Status:` line at the top of each plan.

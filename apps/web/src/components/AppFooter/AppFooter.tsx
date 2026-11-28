@@ -58,11 +58,11 @@ export function AppFooter() {
             <h2>Shop</h2>
             <ul>
               <li>
-                <Link to="/">All products</Link>
+                <Link to="/shop">All products</Link>
               </li>
               {CATEGORIES.map((slug) => (
                 <li key={slug}>
-                  <Link to={`/?category=${slug}`}>
+                  <Link to={`/shop?category=${slug}`}>
                     <span className={styles.dot} data-category={slug} aria-hidden="true" />
                     {formatCategory(slug)}
                   </Link>
