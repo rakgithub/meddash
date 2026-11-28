@@ -9,14 +9,14 @@ Ideas not scheduled yet are in [`FUTURE-IMPROVEMENTS.md`](FUTURE-IMPROVEMENTS.md
 
 New dependencies need approval (repo rule). Proposed, simplest option first:
 
-| Need | Proposal | Alternative |
-| --- | --- | --- |
-| DB access | Drizzle ORM (`drizzle-orm`, `pg`; dev: `drizzle-kit`) — typed queries + generated SQL migrations | plain `pg` / Prisma |
-| Routing (web) | `react-router-dom` | hand-rolled hash routing |
-| Password hashing | `argon2` | `bcrypt` |
-| Sessions | signed JWT in an `httpOnly` cookie (`jsonwebtoken`, `cookie-parser`) | `express-session` + `connect-pg-simple` |
-| Payment | Stripe **test mode** (Checkout + webhook, `stripe` SDK) | local fake payment endpoint |
-| Security headers / rate limit | `helmet`, `express-rate-limit` | — |
+| Need                          | Proposal                                                                                         | Alternative                             |
+| ----------------------------- | ------------------------------------------------------------------------------------------------ | --------------------------------------- |
+| DB access                     | Drizzle ORM (`drizzle-orm`, `pg`; dev: `drizzle-kit`) — typed queries + generated SQL migrations | plain `pg` / Prisma                     |
+| Routing (web)                 | `react-router-dom`                                                                               | hand-rolled hash routing                |
+| Password hashing              | `argon2`                                                                                         | `bcrypt`                                |
+| Sessions                      | signed JWT in an `httpOnly` cookie (`jsonwebtoken`, `cookie-parser`)                             | `express-session` + `connect-pg-simple` |
+| Payment                       | Stripe **test mode** (Checkout + webhook, `stripe` SDK)                                          | local fake payment endpoint             |
+| Security headers / rate limit | `helmet`, `express-rate-limit`                                                                   | —                                       |
 
 ---
 
@@ -118,7 +118,8 @@ Runs alongside the phases above. Frontend first with a mock engine; backend late
 
 ## Track — Search platform (OpenSearch)
 
-Postgres stays the source of truth; OpenSearch serves search with hybrid (BM25 + vector) ranking. Plan:
+Postgres stays the source of truth; OpenSearch serves search with hybrid (BM25 + vector) ranking, all on free
+tiers. Plan:
 [`docs/plans/opensearch-search/`](plans/opensearch-search/README.md).
 
 - [ ] PR 1 — OpenSearch locally, client and index
@@ -139,3 +140,15 @@ before the assistant-first redesign, which builds on it. Plan:
 - [ ] D2 — Move the app onto the tokens and turn on the guard
 - [ ] D3 — Core components
 - [ ] D4 — Style guide page and rules
+
+## Track — Assistant-first redesign
+
+MedDash opens on the assistant: a short intro that ends in "How are you feeling today?", one top-right
+menu, the catalogue at `/shop`, and shopping from the chat through to the order and back. Builds on the
+design system (needs D3). Plan: [`docs/plans/assistant-first-redesign/`](plans/assistant-first-redesign/README.md).
+
+- [ ] R1 — Top-right menu and `/shop`
+- [ ] R2 — Strip the assistant to the v5 chat
+- [ ] R3 — The assistant becomes home, with the intro
+- [ ] R4 — Shopping from the chat
+- [ ] R5 — Cart page and back to the assistant

@@ -11,13 +11,13 @@ Feature-first under `src/features/<feature>/`:
 
 - `components/<Name>/<Name>.tsx` + `<Name>.module.css` + `<Name>.test.tsx` (one folder per component)
 - `hooks/`, `api/`, `utils/` (pure functions), `types.ts`, `index.ts` (public exports only)
-- Shared code in `src/lib/`; global styles in `src/styles/global.css`; test fixtures in `src/test/fixtures.ts`.
+- Shared code in `src/lib/`; app-only layout in `src/styles/global.css` (tokens and base styles come from the design system); test fixtures in `src/test/fixtures.ts`.
 - Other features import from a feature's `index.ts`, never its internals.
 
 ## Conventions
 
 - Named exports, function components, no default exports (except config files).
-- Styling: CSS Modules only. No inline styles, no CSS-in-JS, no UI library.
+- Styling: CSS Modules using `@meddash/design-system` tokens (semantic tokens, not primitives; see `packages/design-system/README.md`). Prefer its components over new ones. `pnpm verify:web` runs the token check. No inline styles (the `/design` style guide sets CSS custom properties inline, nothing else), no CSS-in-JS, no UI library.
 - Network: call the API only through `lib/apiClient` (`apiGet`) from a feature's `api/` module; base path is `/api`, proxied to :3001 by Vite. Pass an `AbortSignal` for cancellable requests.
 - Server data shapes live in `apps/server/src/schemas`; mirror them in the feature's `types.ts`.
 - UI must handle loading, error, and empty states.
@@ -32,4 +32,4 @@ Feature-first under `src/features/<feature>/`:
 
 ## UI work
 
-For new or restyled UI, follow the `frontend-design` skill, then check it in the browser: start the `web` + `server` launch configs and look at the page at desktop and mobile widths.
+For new or restyled UI, follow the `frontend-design` skill, then check it in the browser: start the `web` + `server` launch configs and look at the page at desktop and mobile widths, in both themes. `/design` (dev only) shows every token.

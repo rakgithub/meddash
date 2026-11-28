@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { lazy, Suspense, useEffect, useRef } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import styles from "./App.module.css";
 import { AppFooter } from "./components/AppFooter/AppFooter";
@@ -9,6 +9,12 @@ import { AuthProvider, LoginPage, ProfilePage, RegisterPage, RequireAuth } from 
 import { CartPage, CartProvider } from "./features/cart";
 import { OrderDetailPage, OrdersPage } from "./features/orders";
 import { ProductDetailPage, ProductsPage } from "./features/products";
+
+// The style guide is for development only; in a production build this folds to null and the page's
+// chunk is never emitted.
+const StyleGuidePage = import.meta.env.DEV
+  ? lazy(() => import("./features/design").then((m) => ({ default: m.StyleGuidePage })))
+  : null;
 
 export default function App() {
   const { pathname } = useLocation();
@@ -77,6 +83,16 @@ export default function App() {
                 </RequireAuth>
               }
             />
+            {StyleGuidePage && (
+              <Route
+                path="/design"
+                element={
+                  <Suspense fallback={<p>Loading the style guide…</p>}>
+                    <StyleGuidePage />
+                  </Suspense>
+                }
+              />
+            )}
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </main>
