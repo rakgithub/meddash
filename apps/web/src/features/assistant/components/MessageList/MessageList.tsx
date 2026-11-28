@@ -221,9 +221,7 @@ export function MessageList({
   const last = messages.at(-1);
   const idle = last?.status !== "streaming";
   // Only the most recent list of symptoms follows the case file; older ones are a record.
-  const latestSymptoms = [...messages]
-    .reverse()
-    .find((m) => m.parts.some((p) => p.kind === "symptoms"));
+  const latestSymptoms = messages.findLast((m) => m.parts.some((p) => p.kind === "symptoms"));
 
   function actionsFor(message: Message, index: number): PartActions {
     const next = messages[index + 1];

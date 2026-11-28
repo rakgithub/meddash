@@ -126,7 +126,7 @@ export function useConsultation({ onSessionEnded }: { onSessionEnded?: () => voi
 
   /** Asks again for the last user message; the conversation before it is kept. */
   function retry() {
-    const lastUserIndex = messages.map((m) => m.role).lastIndexOf("user");
+    const lastUserIndex = messages.findLastIndex((m) => m.role === "user");
     if (lastUserIndex === -1 || isStreaming) return;
     const assistantId = crypto.randomUUID();
     dispatch({ type: "retry", assistantId });

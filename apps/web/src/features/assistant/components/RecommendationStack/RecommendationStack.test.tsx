@@ -1,7 +1,8 @@
-import { screen, waitFor, within } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { coughSyrupDetail, ibuprofenDetail, paracetamolDetail } from "../../../../test/fixtures";
+import { endAnimation } from "../../../../test/endAnimation";
 import { renderWithRouter } from "../../../../test/renderWithRouter";
 import { RecommendationStack } from "./RecommendationStack";
 
@@ -61,8 +62,61 @@ describe("RecommendationStack", () => {
     await userEvent.click(within(card).getByRole("button", { name: "Not for me" }));
     await userEvent.click(within(card).getByRole("button", { name: "Already tried" }));
 
-    expect(card.closest("li")?.className).toContain("leaving");
-    await waitFor(() => expect(onDismiss).toHaveBeenCalledWith(ibuprofenDetail, "Already tried"));
+    const item = card.closest("li");
+    expect(item?.className).toContain("leaving");
+    expect(onDismiss).not.toHaveBeenCalled();
+
+    endAnimation(item);
+    expect(onDismiss).toHaveBeenCalledWith(ibuprofenDetail, "Already tried");
+  });
+
+  it("ignores animations ending inside a card", async () => {
+    const onDismiss = vi.fn();
+    renderWithRouter(<RecommendationStack items={items} onDismiss={onDismiss} />);
+    const card = screen.getByRole("article", { name: "Ibuprofen 400mg" });
+
+    await userEvent.click(within(card).getByRole("button", { name: "Not for me" }));
+    await userEvent.click(within(card).getByRole("button", { name: "Already tried" }));
+    endAnimation(card);
+
+    expect(onDismiss).not.toHaveBeenCalled();
+  });
+
+  it("never reports a card that was removed while sliding out", async () => {
+    const onDismiss = vi.fn();
+    const { unmount } = renderWithRouter(
+      <RecommendationStack items={items} onDismiss={onDismiss} />,
+    );
+    const card = screen.getByRole("article", { name: "Ibuprofen 400mg" });
+
+    await userEvent.click(within(card).getByRole("button", { name: "Not for me" }));
+    await userEvent.click(within(card).getByRole("button", { name: "Already tried" }));
+    unmount();
+
+    expect(onDismiss).not.toHaveBeenCalled();
+  });
+
+  it("reports each card when two slide out at once", async () => {
+    const onDismiss = vi.fn();
+    const two = [
+      { product: ibuprofenDetail, reason: "Brings fever down", fit: "best" as const },
+      { product: paracetamolDetail, reason: "Gentle on the stomach", fit: "good" as const },
+    ];
+    renderWithRouter(<RecommendationStack items={two} onDismiss={onDismiss} />);
+    const first = screen.getByRole("article", { name: "Ibuprofen 400mg" });
+    const second = screen.getByRole("article", { name: "Paracetamol 500mg" });
+
+    await userEvent.click(within(first).getByRole("button", { name: "Not for me" }));
+    await userEvent.click(within(first).getByRole("button", { name: "Already tried" }));
+    await userEvent.click(within(second).getByRole("button", { name: "Not for me" }));
+    await userEvent.click(within(second).getByRole("button", { name: "Too expensive" }));
+    for (const card of [first, second]) {
+      const item = card.closest("li");
+      endAnimation(item);
+    }
+
+    expect(onDismiss).toHaveBeenCalledWith(ibuprofenDetail, "Already tried");
+    expect(onDismiss).toHaveBeenCalledWith(paracetamolDetail, "Too expensive");
   });
 
   it("removes the card at once when the user prefers reduced motion", async () => {
