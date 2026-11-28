@@ -26,6 +26,7 @@ export default defineConfig({
       reporter: ["text-summary", "lcov"],
       thresholds: { lines: 80, functions: 80, statements: 80, branches: 75 },
     },
-    css: { modules: { classNameStrategy: "non-scoped" } },
+    // Process the design-system CSS so the style guide can read it with `?raw`; other CSS stays blank.
+    css: { include: [/design-system\/src\/.*\.css/], modules: { classNameStrategy: "non-scoped" } },
   },
 });

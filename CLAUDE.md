@@ -1,12 +1,14 @@
 # MedDash
 
-pnpm monorepo: `apps/web` (React 18 + Vite + TypeScript) and `apps/server` (Express + zod, port 3001).
-Each app has its own conventions: `apps/web/CLAUDE.md` and `apps/server/CLAUDE.md`. Read the one for the app you are changing.
+pnpm monorepo: `apps/web` (React + Vite + TypeScript), `apps/server` (Express + zod, port 3001) and
+`packages/design-system` (`@meddash/design-system`: the tokens and base styles the web app uses).
+Each has its own conventions: `apps/web/CLAUDE.md`, `apps/server/CLAUDE.md` and
+`packages/design-system/CLAUDE.md`. Read the one for the part you are changing.
 
 ## Commands (run from repo root)
 
 - `pnpm dev` - web (5173) and API (3001) together
-- `pnpm verify:web` / `pnpm verify:server` - the definition of done per app; `pnpm verify` runs both
+- `pnpm verify:design-system` / `pnpm verify:web` / `pnpm verify:server` - the definition of done per part; `pnpm verify` runs all three
 
 ## Rules
 

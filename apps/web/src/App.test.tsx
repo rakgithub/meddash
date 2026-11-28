@@ -141,6 +141,13 @@ describe("App routes", () => {
     expect(await screen.findByRole("link", { name: "Ibuprofen 400mg" })).toBeInTheDocument();
   });
 
+  it("shows the style guide at /design in development", async () => {
+    renderWithRouter(<App />, "/design");
+    expect(
+      await screen.findByRole("heading", { name: "Design tokens", level: 1 }),
+    ).toBeInTheDocument();
+  });
+
   it("shows a not-found page for an unknown route", () => {
     renderWithRouter(<App />, "/nope");
     expect(screen.getByRole("heading", { name: "Page not found" })).toBeInTheDocument();
