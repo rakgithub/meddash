@@ -1,8 +1,8 @@
 # Plan — Assistant-first redesign
 
 Status: approved 2026-11-28, after review (v5 chat only, catalogue at `/shop`, cart stays a page, Orders in
-the menu for every signed-in user). PR 1 (top-right menu and `/shop`) merged; PR 2 (v5 chat) open; PR 3 (home and intro) done on its branch, waiting
-for PR 2. Design-system PR 3 has merged.
+the menu for every signed-in user). PR 1 (top-right menu and `/shop`) and PR 2 (v5 chat) merged; PR 3 (home and intro) in review. Design-system
+PR 3 has merged.
 Roadmap entry: [Track — Assistant-first redesign](../../PLAN.md#track--assistant-first-redesign).
 Builds on: [Design system](../design-system/README.md) (tokens, and the `Button`, `Chip` and `Badge`
 components from its PR 3), [Symptom assistant](../symptom-assistant/README.md),
