@@ -127,3 +127,15 @@ Postgres stays the source of truth; OpenSearch serves search with hybrid (BM25 +
 - [ ] PR 4 — Hybrid search and the assistant tool
 - [ ] PR 5 — Relevance evals and observability
 - [ ] PR 6 — Deployment and runbook
+
+## Track — Design system
+
+A shared package, `packages/design-system`, holds the theme as tokens (colour, type, spacing, radii,
+shadows, motion) and the core components, and `pnpm verify` rejects raw values in app CSS. It comes
+before the assistant-first redesign, which builds on it. Plan:
+[`docs/plans/design-system/`](plans/design-system/README.md).
+
+- [ ] D1 — Package, tokens and theme switch
+- [ ] D2 — Move the app onto the tokens and turn on the guard
+- [ ] D3 — Core components
+- [ ] D4 — Style guide page and rules

@@ -17,5 +17,6 @@ PRs that need their own detail, each gets a `pr-<n>-<kebab-name>.md` next to it.
 | ↳ [PR 7 — Compare mode on the backend](symptom-assistant-backend/pr-7-compare-backend.md) |                         | In progress                  |
 | [1,000-product catalogue](bulk-product-import/)                                           | Phase 2 (builds on)     | In progress                  |
 | [OpenSearch search platform](opensearch-search/)                                          | Search platform track   | Draft                        |
+| [Design system](design-system/)                                                           | Design system track     | Draft                        |
 
 Keep the status here in step with the `Status:` line at the top of each plan.
