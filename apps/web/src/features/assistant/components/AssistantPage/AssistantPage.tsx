@@ -2,6 +2,7 @@ import { Button } from "@meddash/design-system/components";
 import type { ReactNode } from "react";
 import { PageTitle } from "../../../../lib/PageTitle";
 import { useConsultationContext } from "../../hooks/useConsultationContext";
+import { CartBar } from "../CartBar/CartBar";
 import { MessageList } from "../MessageList/MessageList";
 import styles from "./AssistantPage.module.css";
 
@@ -31,6 +32,7 @@ export function AssistantPage({ composer, footnote }: AssistantPageProps) {
 
       <div className={styles.dock}>
         <div className={styles.column}>
+          <CartBar />
           {paused ? (
             <div className={styles.paused}>
               <p>I’ve stopped suggesting products so you can get help first.</p>

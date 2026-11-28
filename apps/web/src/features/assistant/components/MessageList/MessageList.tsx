@@ -1,5 +1,6 @@
 import { Button } from "@meddash/design-system/components";
 import { useEffect, useRef } from "react";
+import { formatCategory, SHOP_PATH } from "../../../products";
 import type { CaseField, Message, MessagePart, QuickReply, Recommendation } from "../../types";
 import { messageText } from "../../utils/consultationReducer";
 import { ChatProductCard } from "../ChatProductCard/ChatProductCard";
@@ -41,9 +42,15 @@ function byBuyable(items: Recommendation[]) {
   ];
 }
 
+/** The shelf of the top buyable suggestion, for "More in <aisle>". */
+function aisleOf(items: Recommendation[]): string | null {
+  return items.find((item) => item.fit !== "locked")?.product.category ?? null;
+}
+
 function Products({ part }: { part: Extract<MessagePart, { kind: "products" }> }) {
   const loading = part.loading ?? 0;
   const unavailable = part.unavailable ?? 0;
+  const aisle = aisleOf(part.items);
   if (loading > 0) {
     return (
       <div className={styles.products} role="status" aria-label="Loading suggestions">
@@ -68,6 +75,17 @@ function Products({ part }: { part: Extract<MessagePart, { kind: "products" }> }
         <p className={styles.note}>
           {unavailable} {unavailable === 1 ? "suggestion" : "suggestions"} unavailable
         </p>
+      )}
+      {aisle && (
+        // A block around the inline button, so the reply's column doesn't stretch it.
+        <div>
+          <Button
+            variant="secondary"
+            href={`${SHOP_PATH}?${new URLSearchParams({ category: aisle })}`}
+          >
+            More in {formatCategory(aisle)}
+          </Button>
+        </div>
       )}
       {part.items.length > 0 && <PharmacistContact />}
     </>

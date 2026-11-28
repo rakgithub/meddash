@@ -8,7 +8,7 @@ test.describe("Product detail", () => {
     await page.getByRole("button", { name: "Search" }).click();
     await expect(page.getByRole("main").getByRole("listitem")).toHaveCount(2);
 
-    await page.getByRole("link", { name: "Ibuprofen 400mg" }).click();
+    await page.getByRole("link", { name: "Ibuprofen 400mg", exact: true }).click();
 
     await expect(page).toHaveURL(/\/products\/1$/);
     await expect(page.getByRole("heading", { name: "Ibuprofen 400mg", level: 1 })).toBeVisible();
@@ -37,7 +37,7 @@ test.describe("Product detail", () => {
     await expect(page).toHaveURL(/\/shop\?q=vitamin$/);
     await expect(page.getByRole("main").getByRole("listitem")).toHaveCount(2);
 
-    await page.getByRole("link", { name: "Vitamin C 500mg" }).click();
+    await page.getByRole("link", { name: "Vitamin C 500mg", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Vitamin C 500mg", level: 1 })).toBeVisible();
 
     await page.goBack();

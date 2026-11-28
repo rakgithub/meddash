@@ -1,18 +1,21 @@
 import { LinkProvider } from "@meddash/design-system/components";
-import { act, render, screen, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RouterLink } from "../../../../lib/RouterLink";
-import { ana, ibuprofenDetail } from "../../../../test/fixtures";
+import { ana, emptyCart, ibuprofenDetail } from "../../../../test/fixtures";
 import { AuthProvider, LoginPage } from "../../../auth";
 import * as authApi from "../../../auth/api/authApi";
+import { CartProvider } from "../../../cart";
+import * as cartApi from "../../../cart/api/cartApi";
 import * as engineModule from "../../api/streamEngine";
 import { ConsultationProvider } from "../ConsultationProvider/ConsultationProvider";
 import { HomePage } from "./HomePage";
 
 vi.mock("../../api/streamEngine");
 vi.mock("../../../auth/api/authApi");
+vi.mock("../../../cart/api/cartApi");
 const engine = vi.mocked(engineModule.streamEngine);
 
 function Where() {
@@ -26,13 +29,15 @@ async function renderHome(url = "/") {
     <MemoryRouter initialEntries={[url]}>
       <LinkProvider component={RouterLink}>
         <AuthProvider>
-          <ConsultationProvider>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/login" element={<LoginPage />} />
-            </Routes>
-            <Where />
-          </ConsultationProvider>
+          <CartProvider>
+            <ConsultationProvider>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/login" element={<LoginPage />} />
+              </Routes>
+              <Where />
+            </ConsultationProvider>
+          </CartProvider>
         </AuthProvider>
       </LinkProvider>
     </MemoryRouter>,
@@ -46,6 +51,7 @@ const messageBox = () => screen.getByRole("textbox", { name: "Describe your symp
 beforeEach(() => {
   vi.resetAllMocks();
   vi.mocked(authApi.fetchCurrentUser).mockResolvedValue(ana);
+  vi.mocked(cartApi.getCart).mockResolvedValue(emptyCart);
   engine.mockImplementation(async function* () {
     yield { kind: "thinking", steps: [{ label: "3 matches", done: true }] };
     yield { kind: "text", text: "Try an " };
@@ -81,7 +87,12 @@ describe("HomePage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Hay fever" }));
 
     // The finished reply is announced, and shown under the question.
-    expect(await screen.findByRole("status")).toHaveTextContent("Try an antihistamine.");
+    // The chat's live region, beside the cart bar's.
+    await waitFor(() =>
+      expect(screen.getAllByRole("status").map((s) => s.textContent)).toContain(
+        "Try an antihistamine.",
+      ),
+    );
     const [question, reply] = within(
       screen.getByRole("list", { name: "Conversation" }),
     ).getAllByRole("listitem");
@@ -226,7 +237,12 @@ describe("HomePage", () => {
       await user.type(screen.getByLabelText("Password"), "secret123");
       await user.click(screen.getByRole("button", { name: "Log in" }));
 
-      expect(await screen.findByRole("status")).toHaveTextContent("Try an antihistamine.");
+      // The chat's live region, beside the cart bar's.
+      await waitFor(() =>
+        expect(screen.getAllByRole("status").map((s) => s.textContent)).toContain(
+          "Try an antihistamine.",
+        ),
+      );
       expect(screen.getByText("At /")).toBeInTheDocument();
       expect(screen.getByRole("list", { name: "Conversation" })).toHaveTextContent("Itchy eyes");
       expect(engine).toHaveBeenCalledTimes(1);

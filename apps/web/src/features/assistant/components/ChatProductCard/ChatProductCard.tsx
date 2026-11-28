@@ -1,5 +1,8 @@
+import { Button } from "@meddash/design-system/components";
 import { useState, type ReactElement } from "react";
 import { Link } from "react-router-dom";
+import { ApiError } from "../../../../lib/apiClient";
+import { useCart } from "../../../cart";
 import { formatPrice, formatStock, LOW_STOCK_THRESHOLD } from "../../../products";
 import type { Recommendation } from "../../types";
 import { dosageFormKind, type DosageFormKind } from "../../utils/dosageFormKind";
@@ -31,12 +34,30 @@ const ICONS: Record<DosageFormKind, ReactElement> = {
   cream: <path d="M8 21h8l-1-12H9zM9 9l1-4h4l1 4M10 5V3h4v2" />,
 };
 
-/** A suggested product as one compact row: picture, name, why it was picked, price. */
+/** A suggested product as one compact row: picture, name, why it was picked, and Add · price. */
 export function ChatProductCard({ recommendation }: ChatProductCardProps) {
   const { product, reason, fit, caution } = recommendation;
+  const { state: cart, addItem } = useCart();
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const showImage = product.imageUrl !== null && product.imageUrl !== failedUrl;
-  const locked = fit === "locked";
+  const locked = fit === "locked" || product.requiresPrescription;
+  const inCart =
+    cart.status === "ready" && cart.cart.items.some((line) => line.product.id === product.id);
+  const outOfStock = product.stockQuantity <= 0;
+
+  async function handleAdd() {
+    setAdding(true);
+    setError(null);
+    try {
+      await addItem(product.id, 1);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Couldn't add to cart. Try again.");
+    } finally {
+      setAdding(false);
+    }
+  }
 
   return (
     <article
@@ -67,6 +88,11 @@ export function ChatProductCard({ recommendation }: ChatProductCardProps) {
           {product.name}
         </Link>
         <span className={styles.reason}>{reason}</span>
+        {error && (
+          <span className={styles.error} role="alert">
+            {error}
+          </span>
+        )}
         {caution && (
           <span className={styles.caution}>
             <span className="visually-hidden">Check first: </span>
@@ -80,7 +106,26 @@ export function ChatProductCard({ recommendation }: ChatProductCardProps) {
           <span className={styles.rx}>Needs a prescription</span>
         ) : (
           <>
-            <span className={styles.price}>{formatPrice(product.price)}</span>
+            {inCart ? (
+              <Link className={styles.inCart} to="/cart">
+                In cart
+              </Link>
+            ) : outOfStock ? (
+              <span className={styles.price}>{formatPrice(product.price)}</span>
+            ) : (
+              <Button
+                size="md"
+                busy={adding}
+                // The cart isn't known yet (or the visitor isn't signed in): nothing to add to.
+                disabled={cart.status === "loading" || cart.status === "signed-out"}
+                onClick={handleAdd}
+              >
+                {adding ? "Adding…" : "Add"}
+                <span className="visually-hidden"> {product.name} to cart</span>
+                <span aria-hidden="true"> · </span>
+                {formatPrice(product.price)}
+              </Button>
+            )}
             {/* Low and out of stock are worth a word in a compact row; plain "In stock" is not. */}
             {product.stockQuantity <= LOW_STOCK_THRESHOLD && (
               <span className={styles.stock}>{formatStock(product.stockQuantity)}</span>

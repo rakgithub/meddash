@@ -151,6 +151,48 @@ test.describe("Symptom assistant", () => {
     await expect(page.getByRole("heading", { name: "Ibuprofen 400mg" })).toBeVisible();
   });
 
+  test("adds a suggestion to the cart, browses its aisle and comes back to the chat", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Dry cough" }).click();
+    await page.getByRole("button", { name: "2–3 days" }).click();
+    await page.getByRole("button", { name: "Me", exact: true }).click();
+
+    const suggestions = page.getByRole("list", { name: "Suggested products" });
+    await suggestions.getByRole("button", { name: /^Add Ibuprofen 400mg/ }).click();
+
+    await expect(suggestions.getByRole("link", { name: "In cart" })).toBeVisible();
+    const cartBar = page.getByRole("link", { name: /^Cart: 1 item/ });
+    await expect(cartBar).toContainText("Checkout");
+    await expect(
+      page.getByRole("banner").getByRole("link", { name: "Cart, 1 item" }),
+    ).toBeVisible();
+
+    await page.getByRole("link", { name: "More in Pain relief" }).click();
+
+    await expect(page).toHaveURL(/\/shop\?category=pain-relief$/);
+    await expect(page.getByRole("heading", { name: "Medicines", level: 1 })).toBeVisible();
+    await page.getByRole("link", { name: "Back to your chat" }).click();
+
+    await expect(page.getByRole("list", { name: "Conversation" })).toContainText(
+      "Dry, tickly cough",
+    );
+    await expect(cartBar).toBeVisible();
+  });
+
+  test("asks about a product from Medicines", async ({ page }) => {
+    await page.goto("/shop?category=pain-relief");
+    // No conversation yet, so there is nothing to go back to.
+    await expect(page.getByRole("link", { name: "Back to your chat" })).toHaveCount(0);
+
+    await page.getByRole("link", { name: "Ask the assistant about Paracetamol 500mg" }).click();
+
+    await expect(page.getByRole("textbox", { name: "Describe your symptoms" })).toHaveValue(
+      "Tell me about Paracetamol 500mg",
+    );
+  });
+
   test("an urgent symptom gets a doctor alert instead of products", async ({ page }) => {
     await page.goto("/");
 

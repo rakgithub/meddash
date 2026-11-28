@@ -24,6 +24,14 @@ describe("ProductCard", () => {
     );
   });
 
+  it("offers to ask the assistant about the product, pre-filling the message box", () => {
+    renderWithRouter(<ProductCard product={ibuprofen} />);
+
+    const ask = screen.getByRole("link", { name: "Ask the assistant about Ibuprofen 400mg" });
+    expect(ask).toHaveTextContent(/^Ask/);
+    expect(ask).toHaveAttribute("href", "/?ask=Tell+me+about+Ibuprofen+400mg");
+  });
+
   it("shows the product image, lazily loaded and named after the product", () => {
     renderWithRouter(<ProductCard product={ibuprofen} />);
 

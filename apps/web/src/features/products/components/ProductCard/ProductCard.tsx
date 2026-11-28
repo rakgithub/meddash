@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { ASK_PARAM } from "../../../assistant";
 import type { Product } from "../../types";
 import { formatCategory } from "../../utils/formatCategory";
 import { formatPrice } from "../../utils/formatPrice";
@@ -51,6 +52,16 @@ export function ProductCard({ product }: ProductCardProps) {
       <p className={styles.description}>{product.description}</p>
       <div className={styles.footer}>
         <span className={styles.price}>{formatPrice(product.price)}</span>
+        {/* Pre-fills the message box; the user still chooses to send it. */}
+        <Link
+          className={styles.ask}
+          to={{
+            pathname: "/",
+            search: `?${new URLSearchParams({ [ASK_PARAM]: `Tell me about ${product.name}` })}`,
+          }}
+        >
+          Ask <span className="visually-hidden">the assistant about {product.name}</span>
+        </Link>
       </div>
     </article>
   );

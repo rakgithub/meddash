@@ -1,8 +1,13 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactElement } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { coughSyrupDetail, ibuprofenDetail } from "../../../../test/fixtures";
+import { ana, coughSyrupDetail, emptyCart, ibuprofenDetail } from "../../../../test/fixtures";
 import { renderWithRouter } from "../../../../test/renderWithRouter";
+import { AuthProvider } from "../../../auth";
+import * as authApi from "../../../auth/api/authApi";
+import { CartProvider } from "../../../cart";
+import * as cartApi from "../../../cart/api/cartApi";
 import type { Message, MessagePart } from "../../types";
 import { MessageList } from "./MessageList";
 
@@ -15,6 +20,21 @@ const question: Message = {
 
 function answer(status: Message["status"], text = "Try an antihistamine.\n\nOr a spray."): Message {
   return { id: "a1", role: "assistant", parts: text ? [{ kind: "text", text }] : [], status };
+}
+
+vi.mock("../../../auth/api/authApi");
+vi.mock("../../../cart/api/cartApi");
+
+/** Product rows add to the signed-in user's cart, so replies with products need both providers. */
+async function renderWithCart(ui: ReactElement) {
+  vi.mocked(authApi.fetchCurrentUser).mockResolvedValue(ana);
+  vi.mocked(cartApi.getCart).mockResolvedValue(emptyCart);
+  renderWithRouter(
+    <AuthProvider>
+      <CartProvider>{ui}</CartProvider>
+    </AuthProvider>,
+  );
+  await act(async () => {});
 }
 
 afterEach(() => vi.restoreAllMocks());
@@ -42,7 +62,7 @@ describe("MessageList", () => {
     expect(live).toHaveTextContent("Try an antihistamine. Or a spray.");
   });
 
-  it("announces a question with its options and the suggestions by name", () => {
+  it("announces a question with its options and the suggestions by name", async () => {
     const reply: Message = {
       id: "a1",
       role: "assistant",
@@ -67,7 +87,7 @@ describe("MessageList", () => {
         },
       ],
     };
-    renderWithRouter(<MessageList messages={[question, reply]} onRetry={() => {}} />);
+    await renderWithCart(<MessageList messages={[question, reply]} onRetry={() => {}} />);
 
     // Prescription-only products are not offered, so they are not announced either.
     const live = screen.getByText(
@@ -204,8 +224,8 @@ describe("MessageList", () => {
       items: [{ product: ibuprofenDetail, reason: "Brings fever down", fit: "best" }],
     };
 
-    it("lists the suggestions as rows, prescription-only ones last, with the pharmacist after them", () => {
-      renderWithRouter(
+    it("lists the suggestions as rows, prescription-only ones last, then More in their aisle and the pharmacist", async () => {
+      await renderWithCart(
         <MessageList
           messages={[
             question,
@@ -232,6 +252,11 @@ describe("MessageList", () => {
         "Cough Syrup",
       ]);
       expect(screen.getByText("1 suggestion unavailable")).toBeInTheDocument();
+      // The aisle of the top suggestion the user can buy, not of the prescription-only one.
+      expect(screen.getByRole("link", { name: "More in Pain relief" })).toHaveAttribute(
+        "href",
+        "/shop?category=pain-relief",
+      );
       expect(screen.getByText("Talk to a pharmacist")).toBeInTheDocument();
     });
 
