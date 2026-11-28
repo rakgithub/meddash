@@ -9,14 +9,14 @@ Ideas not scheduled yet are in [`FUTURE-IMPROVEMENTS.md`](FUTURE-IMPROVEMENTS.md
 
 New dependencies need approval (repo rule). Proposed, simplest option first:
 
-| Need | Proposal | Alternative |
-| --- | --- | --- |
-| DB access | Drizzle ORM (`drizzle-orm`, `pg`; dev: `drizzle-kit`) — typed queries + generated SQL migrations | plain `pg` / Prisma |
-| Routing (web) | `react-router-dom` | hand-rolled hash routing |
-| Password hashing | `argon2` | `bcrypt` |
-| Sessions | signed JWT in an `httpOnly` cookie (`jsonwebtoken`, `cookie-parser`) | `express-session` + `connect-pg-simple` |
-| Payment | Stripe **test mode** (Checkout + webhook, `stripe` SDK) | local fake payment endpoint |
-| Security headers / rate limit | `helmet`, `express-rate-limit` | — |
+| Need                          | Proposal                                                                                         | Alternative                             |
+| ----------------------------- | ------------------------------------------------------------------------------------------------ | --------------------------------------- |
+| DB access                     | Drizzle ORM (`drizzle-orm`, `pg`; dev: `drizzle-kit`) — typed queries + generated SQL migrations | plain `pg` / Prisma                     |
+| Routing (web)                 | `react-router-dom`                                                                               | hand-rolled hash routing                |
+| Password hashing              | `argon2`                                                                                         | `bcrypt`                                |
+| Sessions                      | signed JWT in an `httpOnly` cookie (`jsonwebtoken`, `cookie-parser`)                             | `express-session` + `connect-pg-simple` |
+| Payment                       | Stripe **test mode** (Checkout + webhook, `stripe` SDK)                                          | local fake payment endpoint             |
+| Security headers / rate limit | `helmet`, `express-rate-limit`                                                                   | —                                       |
 
 ---
 
@@ -118,7 +118,8 @@ Runs alongside the phases above. Frontend first with a mock engine; backend late
 
 ## Track — Search platform (OpenSearch)
 
-Postgres stays the source of truth; OpenSearch serves search with hybrid (BM25 + vector) ranking. Plan:
+Postgres stays the source of truth; OpenSearch serves search with hybrid (BM25 + vector) ranking, all on free
+tiers. Plan:
 [`docs/plans/opensearch-search/`](plans/opensearch-search/README.md).
 
 - [ ] PR 1 — OpenSearch locally, client and index

@@ -1,6 +1,6 @@
 # Plan — OpenSearch search platform
 
-Status: draft 2026-11-28, awaiting approval of the decisions below.
+Status: draft 2026-11-28, revised the same day for free-tier hosting; awaiting approval of the decisions below.
 Roadmap entry: [Track — Search platform (OpenSearch)](../../PLAN.md#track--search-platform-opensearch).
 Builds on: [Postgres products DB](../postgres-products-db/README.md), [1,000-product catalogue](../bulk-product-import/README.md),
 [Symptom assistant backend](../symptom-assistant-backend/README.md) (the `search_products` tool).
@@ -17,6 +17,7 @@ Move product search to a dedicated search engine, the way enterprise e-commerce 
   and a **Postgres fallback** if OpenSearch is down.
 - **Measured, not assumed:** a relevance eval set with recall and MRR before and after, plus latency and
   zero-result tracking.
+- **$0 to run:** a hobby demo, so every hosted piece uses a free tier (see the cost constraint below).
 
 The LLM never queries OpenSearch directly. Claude keeps calling `search_products({ query, category })`; the server
 decides how to search and what Claude may see.
@@ -35,29 +36,50 @@ Products are written in three places: `db/seed.ts`, `upsertProductsBySku` in `db
 
 The API runs on Vercel serverless functions (`fra1`), so there is no always-on worker process.
 
+## Cost constraint: everything on free tiers
+
+MedDash is a hobby demo, so every piece must run at $0. This rules out anything that needs a paid plan, and it
+shapes decisions 3–5 below.
+
+| Piece          | Free option                       | Limit that matters here                                              |
+| -------------- | --------------------------------- | -------------------------------------------------------------------- |
+| API            | Vercel Hobby                      | Non-commercial use only; cron once a day                             |
+| OpenSearch     | Aiven free plan                   | Single node, 4 GB RAM, 20 GB disk; powers off after 24 h with no use |
+| Embeddings     | Voyage AI free tokens             | One-time 200M tokens; 1,000 products use a tiny fraction             |
+| Outbox retries | Upstash QStash free tier          | Daily message cap (1,000/day at last check), so not every minute     |
+| Local and CI   | Docker, GitHub Actions containers | None                                                                 |
+
+Limits checked 2026-11-28; check the providers' pricing pages again before PR 6.
+
 ## Decisions to make first
 
 1. **New dependency (needs approval):** `@opensearch-project/opensearch`, the official Node client. No other
-   runtime dependency: embeddings are created inside OpenSearch (decision 3).
+   runtime dependency: the embedding API is called with `fetch` (decision 3).
 2. **Engine: OpenSearch, not Elasticsearch.** Apache 2.0 with vector search, hybrid queries and hosted ML
    models all free; AWS-managed option. The search design would be the same on Elasticsearch.
-3. **Embeddings live in OpenSearch (ML Commons), not in the app.** The app sends text; an ingest pipeline embeds
-   products and a `neural` query embeds the search text. The pipeline name is the same in every environment;
-   only what is behind it changes:
-   - **Local and CI:** a small built-in sentence-transformer model running on the OpenSearch node.
-   - **Production:** a connector to a hosted embedding API (Voyage AI recommended; needs an account and key),
-     because small hosted plans can't run models.
+3. **The app creates embeddings, not OpenSearch.** `search/embeddings.ts` calls the Voyage AI API (free tokens)
+   with `fetch` and sends vectors to OpenSearch: one call per product batch when indexing, one per query when
+   searching. Free OpenSearch hosts don't run models, and their support for ML Commons connectors isn't
+   documented, so plain `knn_vector` fields work on any host.
+   - **Without `VOYAGE_API_KEY`** (local by default, CI): no embeddings, search is BM25 only, same as before PR 4.
+   - **Tests** use a small deterministic fake embedder, so CI needs no key and no network.
 
-   Alternative: the app calls the embedding API itself and sends vectors. More code in the app, same result.
+   Rejected: ML Commons in OpenSearch (needs a model on the node or a connector the free host may not allow).
 
-4. **Hosting:** Bonsai free plan for the demo (enough for 1,000 products); AWS OpenSearch Service as the
-   "real" option, described in the runbook. Choose one before PR 6.
+4. **Hosting: Aiven free plan.** Free with no expiry, k-NN included, more room than needed for 1,000 products.
+   It powers off after 24 hours with no indexing or queries; the outbox schedule (decision 5) runs a cheap
+   query each time, which keeps it on. If it is off anyway, search falls back to Postgres.
+   Check before PR 4 that the free plan allows the `hybrid` query and search pipelines (neural-search plugin);
+   if not, run the BM25 and `knn` queries separately and combine scores in the app.
+   Backup option: Bonsai's free sandbox (OpenSearch 3.x, `us-east-1` only; vector search on it not confirmed).
+   AWS OpenSearch Service is described in the runbook only as the paid upgrade path.
 5. **Sync trigger on Vercel:** Vercel Hobby cron runs only once a day, so:
    - write the outbox row in the same transaction as the product change,
    - try to index straight after commit (best effort),
-   - an Upstash QStash schedule (free tier) calls the outbox processor every minute for retries.
+   - an Upstash QStash schedule (free tier) calls the outbox processor **every 5 minutes** for retries
+     (288 calls a day, well under the free daily cap; every minute would be 1,440 and could exceed it).
 
-   Alternative: Vercel Pro cron every minute.
+   Rejected: Vercel Pro cron (paid).
 
 6. **Response shapes stay the same.** `/api/search`, `/api/facets`, `/api/suggest` and the `search_products` tool
    keep their zod schemas and OpenAPI entries. Only the ranking can change, which the evals measure.
@@ -82,6 +104,24 @@ The API runs on Vercel serverless functions (`fra1`), so there is no always-on w
                                                      └──────────────────────────┘
 ```
 
+## Where the code runs
+
+OpenSearch is a separate service (a Docker container locally, Aiven in production), like Postgres. Our search
+code is not: it lives in `apps/server/src/search/` and deploys with the API. No new app in the monorepo.
+
+- Nothing needs to run on its own: the outbox processor is an API endpoint and the reindex is a script.
+- Search needs the server's Postgres repos (fallback, outbox in the same transaction) and zod schemas.
+- One deploy and one set of env vars, on Vercel Hobby.
+
+The rest of the server reaches search only through `search.backend.ts`, and the outbox processor runs on its
+own via its endpoint, so splitting later means moving files, not a redesign. Split when one of these happens:
+
+- **Indexer worker (`apps/search-indexer`), usually first:** the outbox can't keep up within a serverless call
+  (large imports, live price/stock feeds), reindexing slows the API, or sync moves to a queue or CDC consumer
+  that must run all the time.
+- **Search API (`apps/search-api`), later:** several clients need search directly, search traffic needs its own
+  scaling, or a separate team owns ranking and releases.
+
 ## PRs
 
 Each PR leaves the app working and is done when `pnpm verify` passes. Until PR 3 lands, nothing reads from
@@ -100,7 +140,7 @@ OpenSearch, so the first two PRs can't break search.
   - `name.suggest` as `search_as_you_type` for suggestions.
   - `category`, `brand.keyword`, `dosageForm`, `requiresPrescription`, `inStock` for filters and facets.
   - `price` as `scaled_float`.
-  - `embedding` as `knn_vector` (HNSW, cosine), filled by the ingest pipeline.
+  - `embedding` as `knn_vector` (HNSW, cosine), filled by the app from PR 4 on.
   - A synonym filter from `search/synonyms.ts` (for example paracetamol ⇄ acetaminophen, cold ⇄ flu,
     painkiller ⇄ analgesic). Synonyms are applied at search time so they can change without a reindex.
 - `pnpm search:reindex`: builds `products_v<n+1>` from Postgres in bulk batches, checks the document count, then
@@ -144,15 +184,20 @@ OpenSearch, so the first two PRs can't break search.
 
 ### PR 4 — Hybrid search and the assistant tool
 
-- Ingest pipeline `products-embedding`: builds the embedding from name, active ingredients, category and what
-  the product is for (description). Reindex with `pnpm search:reindex`.
+- `search/embeddings.ts`: embeds the text built from name, active ingredients, category and what the product is
+  for (description) through the Voyage API, in batches. `toSearchDocument` adds the vector when a key is set; the
+  outbox processor and `pnpm search:reindex` both go through it. Reindex once to fill existing documents.
+- Query time: embed the search text (one API call, same timeout and fallback rules as OpenSearch: if it fails,
+  run BM25 only).
 - Search pipeline `products-hybrid`: min-max normalisation, then a weighted combination of BM25 and vector
   scores (start at 0.6 BM25 / 0.4 vector; tuned in PR 5).
-- `searchCatalogue` (the `search_products` tool) uses a `hybrid` query: BM25 `multi_match` plus a `neural` query,
+- `searchCatalogue` (the `search_products` tool) uses a `hybrid` query: BM25 `multi_match` plus a `knn` query,
   filtered by category when given, limit 8. Same `CatalogueItem` shape, so Claude and the prompt don't change.
   The server still records the returned ids, so `recommend_products` accepts only those.
 - The search bar stays on BM25 at first; hybrid there is a switch flipped after PR 5 shows it helps.
-- Tests: query building unit tests; an integration test that "tickly cough at night" returns a cough product.
+- `config/env.ts`: optional `VOYAGE_API_KEY`. Never logged.
+- Tests: query building unit tests with the fake embedder; embedding failure falls back to BM25. The "tickly
+  cough at night returns a cough product" check runs in `pnpm eval:search` with a real key, not in CI.
 
 ### PR 5 — Relevance evals and observability
 
@@ -167,12 +212,14 @@ OpenSearch, so the first two PRs can't break search.
 
 ### PR 6 — Deployment and runbook
 
-- Create the hosted OpenSearch (decision 4) and the embedding connector (decision 3) with a setup script, not by
-  clicking, so it can be recreated.
-- Vercel env vars for OpenSearch and the outbox secret; QStash schedule for the outbox processor (decision 5).
+- Create the Aiven free OpenSearch service (decision 4) and write down the steps in the runbook so it can be
+  recreated. Index setup itself is code (`pnpm search:reindex`).
+- Vercel env vars for OpenSearch, `VOYAGE_API_KEY` and the outbox secret; QStash schedule every 5 minutes for
+  the outbox processor (decision 5).
 - Run `pnpm search:reindex` against production once; after that the outbox keeps it in sync.
 - `docs/runbooks/search.md`: reindexing, rotating credentials, what happens when OpenSearch is down (fallback),
-  clearing stuck outbox rows, moving from Bonsai to AWS OpenSearch Service.
+  clearing stuck outbox rows, powering the Aiven service back on, and the paid upgrade path (AWS OpenSearch
+  Service, Vercel Pro) if the app ever stops being a hobby project.
 - README: `docker compose up -d`, `pnpm search:reindex`, how to run without OpenSearch.
 
 ## Out of scope
@@ -185,16 +232,20 @@ OpenSearch, so the first two PRs can't break search.
 
 - **Ranking changes users notice.** Existing route tests assert today's order. Where OpenSearch ranks
   differently, update the expectation in the PR and justify it with the eval numbers.
-- **Free hosting limits.** Bonsai's free plan has small document and request limits and can't run models; fine
-  for 1,000 products with an external embedding connector.
+- **Free tiers change.** Any provider can cut its free plan. Every piece is optional: without OpenSearch,
+  search runs on Postgres; without Voyage, it runs BM25 only.
+- **Aiven idle power-off.** If the service powers off anyway, search falls back to Postgres until it is turned
+  back on in the Aiven console (runbook).
+- **Vercel Hobby is non-commercial.** Fine for this demo; a commercial launch needs Vercel Pro.
 - **Index drift.** Mitigated by the outbox; a nightly count check (Postgres vs index) in the processor logs any
   difference, and `pnpm search:reindex` repairs it.
-- **Local memory.** OpenSearch with a model needs 2–4 GB for Docker.
+- **Local memory.** The OpenSearch container needs about 2 GB for Docker (no model runs on it).
 
 ## Done when
 
 - All four search paths read from OpenSearch, with a working Postgres fallback.
 - Every product write reaches the index through the outbox.
 - `pnpm eval:search` shows hybrid at or above today's recall@8 on the eval set, with numbers recorded here.
-- Production runs on hosted OpenSearch with the runbook in place.
+- Production runs on free tiers only (Aiven, Voyage free tokens, QStash free, Vercel Hobby) with the runbook in
+  place.
 - `pnpm verify` passes; roadmap ticked; status here updated.
