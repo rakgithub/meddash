@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { ApiError } from "../../../../lib/apiClient";
 import type { Order } from "../../../orders";
 import { AuthProvider } from "../../../auth";
@@ -189,33 +189,71 @@ describe("CartPage", () => {
     await vi.waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
   });
 
+  it("marks the lines that came from the chat and says so in the summary", async () => {
+    vi.mocked(cartApi.getCart).mockResolvedValue(cartWithTwoLines);
+    renderWithRouter(
+      <AuthProvider>
+        <CartProvider>
+          <CartPage chatProductIds={["1"]} />
+        </CartProvider>
+      </AuthProvider>,
+      "/cart",
+    );
+
+    await screen.findByRole("heading", { name: "Ibuprofen 400mg" });
+    expect(line("Ibuprofen 400mg").getByText("From your chat")).toBeVisible();
+    expect(line("Vitamin D3 1000 IU").queryByText("From your chat")).not.toBeInTheDocument();
+    expect(
+      summary().getByText(/^1 of these came from your chat\. Tell the assistant/),
+    ).toBeVisible();
+    // What will be ordered, line by line.
+    expect(summary().getByRole("list", { name: "In this order" })).toHaveTextContent(
+      /2 × Ibuprofen 400mg12,98\s€/,
+    );
+  });
+
+  it("has no chat note when nothing came from the chat", async () => {
+    vi.mocked(cartApi.getCart).mockResolvedValue(cartWithTwoLines);
+    renderPage();
+
+    await screen.findByRole("heading", { name: "Ibuprofen 400mg" });
+    expect(screen.queryByText(/came from your chat/)).not.toBeInTheDocument();
+  });
+
   describe("Place order", () => {
-    const renderWithOrderRoute = () =>
+    function OrderPage() {
+      const { search } = useLocation();
+      return <p>On the order page{search}</p>;
+    }
+
+    const renderWithOrderRoute = (onOrderPlaced?: (placed: Order) => void) =>
       render(
         <MemoryRouter initialEntries={["/cart"]}>
           <AuthProvider>
             <CartProvider>
               <Routes>
-                <Route path="/cart" element={<CartPage />} />
-                <Route path="/orders/:id" element={<p>On the order page</p>} />
+                <Route path="/cart" element={<CartPage onOrderPlaced={onOrderPlaced} />} />
+                <Route path="/orders/:id" element={<OrderPage />} />
               </Routes>
             </CartProvider>
           </AuthProvider>
         </MemoryRouter>,
       );
 
-    it("creates the order, goes to its page and leaves the cart empty", async () => {
+    it("creates the order, hands it on, and opens it as just placed", async () => {
       vi.mocked(cartApi.getCart).mockResolvedValue(cartWithTwoLines);
       const request = deferred<Order>();
       vi.mocked(ordersApi.createOrder).mockReturnValue(request.promise);
-      renderWithOrderRoute();
+      const onOrderPlaced = vi.fn();
+      renderWithOrderRoute(onOrderPlaced);
 
       await userEvent.click(await screen.findByRole("button", { name: "Place order" }));
       expect(screen.getByRole("button", { name: "Placing order…" })).toBeDisabled();
 
       request.resolve(order);
-      expect(await screen.findByText("On the order page")).toBeVisible();
+      expect(await screen.findByText("On the order page?placed=1")).toBeVisible();
       expect(ordersApi.createOrder).toHaveBeenCalledTimes(1);
+      expect(onOrderPlaced).toHaveBeenCalledWith(order);
     });
 
     it("shows the server's reason and keeps the cart when the order is rejected", async () => {

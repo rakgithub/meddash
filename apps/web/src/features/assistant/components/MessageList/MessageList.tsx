@@ -1,5 +1,6 @@
 import { Button } from "@meddash/design-system/components";
 import { useEffect, useRef } from "react";
+import { formatCategory, SHOP_PATH } from "../../../products";
 import type { CaseField, Message, MessagePart, QuickReply, Recommendation } from "../../types";
 import { messageText } from "../../utils/consultationReducer";
 import { ChatProductCard } from "../ChatProductCard/ChatProductCard";
@@ -14,12 +15,16 @@ interface PartActions {
   onAnswer?: (field: CaseField, option: QuickReply) => void;
   /** The option the user picked for this reply's question, i.e. their next message. */
   selected?: string;
+  /** A product from this reply went into the cart. */
+  onAdded?: (productId: string) => void;
 }
 
 interface MessageListProps {
   messages: Message[];
   onRetry: () => void;
   onAnswer?: PartActions["onAnswer"];
+  /** A suggested product went into the cart from reply `messageId`. */
+  onAdded?: (productId: string, messageId: string) => void;
 }
 
 /** A paragraph that tells people when to get medical help; it is set apart so it isn't skimmed past. */
@@ -41,9 +46,21 @@ function byBuyable(items: Recommendation[]) {
   ];
 }
 
-function Products({ part }: { part: Extract<MessagePart, { kind: "products" }> }) {
+/** The shelf of the top buyable suggestion, for "More in <aisle>". */
+function aisleOf(items: Recommendation[]): string | null {
+  return items.find((item) => item.fit !== "locked")?.product.category ?? null;
+}
+
+function Products({
+  part,
+  onAdded,
+}: {
+  part: Extract<MessagePart, { kind: "products" }>;
+  onAdded?: (productId: string) => void;
+}) {
   const loading = part.loading ?? 0;
   const unavailable = part.unavailable ?? 0;
+  const aisle = aisleOf(part.items);
   if (loading > 0) {
     return (
       <div className={styles.products} role="status" aria-label="Loading suggestions">
@@ -59,7 +76,10 @@ function Products({ part }: { part: Extract<MessagePart, { kind: "products" }> }
         <ul className={styles.products} aria-label="Suggested products">
           {byBuyable(part.items).map((item) => (
             <li key={item.product.id}>
-              <ChatProductCard recommendation={item} />
+              <ChatProductCard
+                recommendation={item}
+                onAdded={onAdded && (() => onAdded(item.product.id))}
+              />
             </li>
           ))}
         </ul>
@@ -68,6 +88,17 @@ function Products({ part }: { part: Extract<MessagePart, { kind: "products" }> }
         <p className={styles.note}>
           {unavailable} {unavailable === 1 ? "suggestion" : "suggestions"} unavailable
         </p>
+      )}
+      {aisle && (
+        // A block around the inline button, so the reply's column doesn't stretch it.
+        <div>
+          <Button
+            variant="secondary"
+            href={`${SHOP_PATH}?${new URLSearchParams({ category: aisle })}`}
+          >
+            More in {formatCategory(aisle)}
+          </Button>
+        </div>
       )}
       {part.items.length > 0 && <PharmacistContact />}
     </>
@@ -101,7 +132,7 @@ function Part({
       );
     }
     case "products":
-      return <Products part={part} />;
+      return <Products part={part} onAdded={actions.onAdded} />;
     case "alert":
       return <SafetyAlert level={part.level} title={part.title} body={part.body} />;
     case "text":
@@ -191,7 +222,7 @@ function announcementFor(message: Message): string {
   return said.filter(Boolean).join(" ");
 }
 
-export function MessageList({ messages, onRetry, onAnswer }: MessageListProps) {
+export function MessageList({ messages, onRetry, onAnswer, onAdded }: MessageListProps) {
   // A ref, not state: following the conversation never needs a re-render of its own.
   const stickRef = useRef(true);
   const countRef = useRef(messages.length);
@@ -221,6 +252,7 @@ export function MessageList({ messages, onRetry, onAnswer }: MessageListProps) {
       // A question can be answered only while it is the last thing said and the reply has finished.
       onAnswer: message === last && message.status === "done" ? onAnswer : undefined,
       selected: next?.role === "user" ? messageText(next) : undefined,
+      onAdded: onAdded && ((productId) => onAdded(productId, message.id)),
     };
   }
   const announcement = last?.role === "assistant" ? announcementFor(last) : "";

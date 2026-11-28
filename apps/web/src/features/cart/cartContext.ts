@@ -1,4 +1,5 @@
 import { createContext } from "react";
+import type { Order } from "../orders";
 import type { Cart } from "./types";
 
 export type CartState =
@@ -15,8 +16,8 @@ export interface CartContextValue {
   updateItem: (productId: string, quantity: number) => Promise<void>;
   /** Removes a line; rejects with the server's error. */
   removeItem: (productId: string) => Promise<void>;
-  /** Orders the whole cart and empties it; resolves with the new order's id, rejects with the server's error. */
-  placeOrder: () => Promise<number>;
+  /** Orders the whole cart and empties it; resolves with the new order, rejects with the server's error. */
+  placeOrder: () => Promise<Order>;
 }
 
 export const CartContext = createContext<CartContextValue | null>(null);

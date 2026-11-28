@@ -2,6 +2,7 @@ import { Button } from "@meddash/design-system/components";
 import type { ReactNode } from "react";
 import { PageTitle } from "../../../../lib/PageTitle";
 import { useConsultationContext } from "../../hooks/useConsultationContext";
+import { CartBar } from "../CartBar/CartBar";
 import { MessageList } from "../MessageList/MessageList";
 import styles from "./AssistantPage.module.css";
 
@@ -13,7 +14,7 @@ interface AssistantPageProps {
 
 /** The conversation, once it has started: one centred column with the message box docked under it. */
 export function AssistantPage({ composer, footnote }: AssistantPageProps) {
-  const { messages, paused, answer, retry, startOver } = useConsultationContext();
+  const { messages, paused, answer, retry, startOver, addedFromChat } = useConsultationContext();
 
   return (
     <div className={styles.page}>
@@ -26,11 +27,13 @@ export function AssistantPage({ composer, footnote }: AssistantPageProps) {
           onRetry={retry}
           // After an urgent alert everything earlier is a read-only record.
           onAnswer={paused ? undefined : answer}
+          onAdded={addedFromChat}
         />
       </div>
 
       <div className={styles.dock}>
         <div className={styles.column}>
+          <CartBar />
           {paused ? (
             <div className={styles.paused}>
               <p>I’ve stopped suggesting products so you can get help first.</p>

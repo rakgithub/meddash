@@ -25,6 +25,16 @@ const setup = (props: Partial<Parameters<typeof CartLineItem>[0]> = {}) => {
 };
 
 describe("CartLineItem", () => {
+  it("says when the line came from the assistant's chat, and only then", () => {
+    setup({ fromChat: true });
+    expect(screen.getByRole("article")).toHaveTextContent("From your chat");
+  });
+
+  it("has no chat tag for a product picked in the shop", () => {
+    setup();
+    expect(screen.getByRole("article")).not.toHaveTextContent("From your chat");
+  });
+
   it("shows the product, unit price, quantity and line total", () => {
     setup();
     const article = screen.getByRole("article", { name: "Ibuprofen 400mg" });

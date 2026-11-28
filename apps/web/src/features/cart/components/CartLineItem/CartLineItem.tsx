@@ -9,6 +9,8 @@ export type LinePending = "update" | "remove";
 
 interface CartLineItemProps {
   line: CartLine;
+  /** Added from a suggestion in the assistant's chat. */
+  fromChat?: boolean;
   /** What this line is waiting for, if anything. */
   pending: LinePending | null;
   /** True while another line is saving; mutations run one at a time. */
@@ -20,6 +22,7 @@ interface CartLineItemProps {
 
 export function CartLineItem({
   line,
+  fromChat = false,
   pending,
   locked,
   error,
@@ -40,8 +43,8 @@ export function CartLineItem({
             className={styles.image}
             src={product.imageUrl ?? undefined}
             alt=""
-            width={96}
-            height={96}
+            width={56}
+            height={56}
             onError={() => setFailedUrl(product.imageUrl)}
           />
         ) : (
@@ -57,8 +60,16 @@ export function CartLineItem({
           <Link to={`/products/${encodeURIComponent(product.id)}`}>{product.name}</Link>
         </h2>
         <p className={styles.meta}>
-          {product.brand} <span aria-hidden="true">/</span> {formatPrice(product.price)} each
+          {product.brand}, {formatPrice(product.price)} each
         </p>
+        {fromChat && (
+          <p className={styles.fromChat}>
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M2.5 4.5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v4.5a2 2 0 0 1-2 2H7l-3 2.5v-2.5a2 2 0 0 1-1.5-2z" />
+            </svg>
+            From your chat
+          </p>
+        )}
       </div>
 
       <div className={styles.controls}>

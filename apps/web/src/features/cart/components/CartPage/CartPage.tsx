@@ -1,7 +1,8 @@
 import { Button } from "@meddash/design-system/components";
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ApiError } from "../../../../lib/apiClient";
+import type { Order } from "../../../orders";
 import { formatPrice } from "../../../products";
 import { useCart } from "../../hooks/useCart";
 import { CartLineItem, type LinePending } from "../CartLineItem/CartLineItem";
@@ -13,8 +14,22 @@ const errorMessage = (err: unknown) =>
 
 const itemLabel = (count: number) => `${count} ${count === 1 ? "item" : "items"}`;
 
+interface CartPageProps {
+  /** Products added from the assistant's suggestions; their lines say so. */
+  chatProductIds?: readonly string[];
+  /** Runs once the order exists, before the page moves on to it. */
+  onOrderPlaced?: (order: Order) => void;
+}
+
+/** The chat's note on the summary: how many of the lines it suggested. */
+function chatNote(fromChat: number, lines: number) {
+  if (fromChat === 0) return null;
+  const which = fromChat === lines ? "Everything here" : `${fromChat} of these`;
+  return `${which} came from your chat. Tell the assistant about other medicines you take and it will check those too.`;
+}
+
 /** The signed-in user's cart, from <CartProvider>. Render under <RequireAuth>. */
-export function CartPage() {
+export function CartPage({ chatProductIds = [], onOrderPlaced }: CartPageProps) {
   const { state, updateItem, removeItem, placeOrder } = useCart();
   const navigate = useNavigate();
   const [placing, setPlacing] = useState(false);
@@ -40,19 +55,26 @@ export function CartPage() {
     setPlacing(true);
     setOrderError(null);
     try {
-      navigate(`/orders/${await placeOrder()}`);
+      const order = await placeOrder();
+      onOrderPlaced?.(order);
+      navigate(`/orders/${order.id}?placed=1`);
     } catch (err) {
       setOrderError(errorMessage(err));
       setPlacing(false);
     }
   };
 
+  const note =
+    state.status === "ready"
+      ? chatNote(
+          state.cart.items.filter((line) => chatProductIds.includes(line.product.id)).length,
+          state.cart.items.length,
+        )
+      : null;
+
   return (
     <div className={styles.page}>
       <PageTitle title="Your cart" />
-      <Link className={styles.back} to="/shop">
-        ← Back to products
-      </Link>
       <h1 className={styles.title}>Your cart</h1>
 
       {(state.status === "loading" || state.status === "signed-out") && (
@@ -69,7 +91,9 @@ export function CartPage() {
         <section className={styles.empty} aria-label="Empty cart">
           <span className={styles.emptyWell} aria-hidden="true" />
           <p className={styles.emptyTitle}>Your cart is empty</p>
-          <p className={styles.emptyText}>Find what you need and add it from the product page.</p>
+          <p className={styles.emptyText}>
+            Ask the assistant what might help, or find it in Medicines.
+          </p>
           <Button href="/shop" size="lg">
             Browse products
           </Button>
@@ -81,11 +105,13 @@ export function CartPage() {
           <ul className={styles.lines} aria-label="Cart items">
             {state.cart.items.map((line) => {
               const { id } = line.product;
+              const fromChat = chatProductIds.includes(id);
               const ownPending = pending?.productId === id ? pending.action : null;
               return (
-                <li key={id} className={styles.lineItem}>
+                <li key={id}>
                   <CartLineItem
                     line={line}
+                    fromChat={fromChat}
                     pending={ownPending}
                     locked={pending !== null && ownPending === null}
                     error={lineError?.productId === id ? lineError.message : null}
@@ -103,6 +129,16 @@ export function CartPage() {
             <h2 id="cart-summary-title" className={styles.summaryTitle}>
               Order summary
             </h2>
+            <ul className={styles.recap} aria-label="In this order">
+              {state.cart.items.map((line) => (
+                <li key={line.product.id}>
+                  <span>
+                    {line.quantity} × {line.product.name}
+                  </span>
+                  <span>{formatPrice(line.lineTotal)}</span>
+                </li>
+              ))}
+            </ul>
             <dl className={styles.totals}>
               <div className={styles.row}>
                 <dt>Items</dt>
@@ -122,6 +158,7 @@ export function CartPage() {
             >
               {placing ? "Placing order…" : "Place order"}
             </Button>
+            {note && <p className={styles.chatNote}>{note}</p>}
             {orderError && (
               <p className={`${styles.note} ${styles.error}`} role="alert">
                 {orderError}

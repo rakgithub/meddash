@@ -7,7 +7,7 @@ import { initialConsultation, type ConsultationState } from "./consultationReduc
  * keeps it. Bump `VERSION` when the stored shape changes: an older copy is then dropped, not misread.
  */
 const STORAGE_KEY = "meddash-consultation";
-const VERSION = 1;
+const VERSION = 2;
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
@@ -22,6 +22,14 @@ function isCaseFile(value: unknown): value is CaseFile {
     isStringArray(value.avoid) &&
     (value.duration === null || typeof value.duration === "string") &&
     (value.forWhom === null || FOR_WHOM.some((option) => option === value.forWhom))
+  );
+}
+
+function isFromChat(value: unknown): value is Record<string, string> {
+  return (
+    isObject(value) &&
+    !Array.isArray(value) &&
+    Object.values(value).every((id) => typeof id === "string")
   );
 }
 
@@ -63,7 +71,8 @@ export function loadConsultation(): ConsultationState {
     !isObject(stored.state) ||
     !Array.isArray(stored.state.messages) ||
     !stored.state.messages.every(isMessage) ||
-    !isCaseFile(stored.state.caseFile)
+    !isCaseFile(stored.state.caseFile) ||
+    !isFromChat(stored.state.fromChat)
   ) {
     clearConsultation();
     return initialConsultation;
@@ -73,7 +82,7 @@ export function loadConsultation(): ConsultationState {
   const messages = stored.state.messages.map((m) =>
     m.status === "streaming" ? { ...m, status: "stopped" as const } : m,
   );
-  return { messages, caseFile: stored.state.caseFile };
+  return { messages, caseFile: stored.state.caseFile, fromChat: stored.state.fromChat };
 }
 
 export function saveConsultation(state: ConsultationState) {

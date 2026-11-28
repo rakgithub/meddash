@@ -4,7 +4,13 @@ import styles from "./App.module.css";
 import { AppFooter } from "./components/AppFooter/AppFooter";
 import { AppHeader } from "./components/AppHeader/AppHeader";
 import { NotFoundPage } from "./components/NotFoundPage/NotFoundPage";
-import { ASK_PARAM, ConsultationProvider, HomePage } from "./features/assistant";
+import {
+  ASK_PARAM,
+  BackToChat,
+  ConsultationProvider,
+  HomePage,
+  useConsultationContext,
+} from "./features/assistant";
 import { AuthProvider, LoginPage, ProfilePage, RegisterPage, RequireAuth } from "./features/auth";
 import { CartPage, CartProvider } from "./features/cart";
 import { OrderDetailPage, OrdersPage } from "./features/orders";
@@ -41,6 +47,23 @@ function AssistantRedirect() {
   return <Navigate to={{ pathname: "/", search: next }} replace />;
 }
 
+/** The cart, told which lines came from the chat, and noting the order in the chat once placed. */
+function CartRoute() {
+  const { fromChat, noteOrder } = useConsultationContext();
+  return (
+    <>
+      <BackToChat />
+      <CartPage chatProductIds={Object.keys(fromChat)} onOrderPlaced={noteOrder} />
+    </>
+  );
+}
+
+/** An order; right after placing it, the way back to a live conversation. */
+function OrderRoute() {
+  const { messages } = useConsultationContext();
+  return <OrderDetailPage backToAssistant={messages.length > 0} />;
+}
+
 export default function App() {
   const { pathname } = useLocation();
   const mainRef = useRef<HTMLElement>(null);
@@ -66,7 +89,15 @@ export default function App() {
           <main id="main-content" className={styles.main} ref={mainRef} tabIndex={-1}>
             <Routes>
               <Route path="/" element={<HomeRoute />} />
-              <Route path={SHOP_PATH} element={<ProductsPage />} />
+              <Route
+                path={SHOP_PATH}
+                element={
+                  <>
+                    <BackToChat />
+                    <ProductsPage />
+                  </>
+                }
+              />
               <Route path="/products/:id" element={<ProductDetailPage />} />
               <Route path="/assistant" element={<AssistantRedirect />} />
               <Route path="/login" element={<LoginPage />} />
@@ -83,7 +114,7 @@ export default function App() {
                 path="/cart"
                 element={
                   <RequireAuth>
-                    <CartPage />
+                    <CartRoute />
                   </RequireAuth>
                 }
               />
@@ -99,7 +130,7 @@ export default function App() {
                 path="/orders/:id"
                 element={
                   <RequireAuth>
-                    <OrderDetailPage />
+                    <OrderRoute />
                   </RequireAuth>
                 }
               />
