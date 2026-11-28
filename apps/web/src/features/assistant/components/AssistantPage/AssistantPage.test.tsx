@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as engineModule from "../../api/streamEngine";
 import { AuthProvider } from "../../../auth";
 import { ana, ibuprofenDetail } from "../../../../test/fixtures";
+import { endAnimation } from "../../../../test/endAnimation";
 import { renderWithRouter } from "../../../../test/renderWithRouter";
 import type { MessagePart } from "../../types";
 import { BODY_REGIONS } from "../../utils/bodyRegions";
@@ -294,6 +295,7 @@ describe("AssistantPage", () => {
 
       await userEvent.click(within(card).getByRole("button", { name: "Not for me" }));
       await userEvent.click(within(card).getByRole("button", { name: "Too expensive" }));
+      endAnimation(card.closest("li"));
 
       await waitFor(() => expect(screen.queryByRole("article")).not.toBeInTheDocument());
       expect(screen.getByRole("list", { name: "Avoiding" })).toHaveTextContent("Expensive options");
