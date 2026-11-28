@@ -181,6 +181,38 @@ test.describe("Symptom assistant", () => {
     await expect(cartBar).toBeVisible();
   });
 
+  test("orders a suggestion and comes back to the chat, which notes the order", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Dry cough" }).click();
+    await page.getByRole("button", { name: "2–3 days" }).click();
+    await page.getByRole("button", { name: "Me", exact: true }).click();
+    await page
+      .getByRole("list", { name: "Suggested products" })
+      .getByRole("button", { name: /^Add Ibuprofen 400mg/ })
+      .click();
+
+    await page.getByRole("link", { name: /^Cart: 1 item/ }).click();
+
+    await expect(page.getByRole("article", { name: "Ibuprofen 400mg" })).toContainText(
+      "From your chat",
+    );
+    await page.getByRole("button", { name: "Place order" }).click();
+
+    await expect(page).toHaveURL(/\/orders\/\d+\?placed=1$/);
+    await expect(page.getByRole("heading", { name: "Order placed", level: 1 })).toBeVisible();
+    await page.getByRole("link", { name: "Back to the assistant" }).click();
+
+    const conversation = page.getByRole("list", { name: "Conversation" });
+    await expect(conversation).toContainText("Dry, tickly cough");
+    await expect(conversation).toContainText(/Order #\d+ is placed: Ibuprofen 400mg\./);
+    await expect(conversation).toContainText("Ask me anything about taking it.");
+    await expect(
+      page.getByRole("banner").getByRole("link", { name: "Cart, 0 items" }),
+    ).toBeVisible();
+  });
+
   test("asks about a product from Medicines", async ({ page }) => {
     await page.goto("/shop?category=pain-relief");
     // No conversation yet, so there is nothing to go back to.

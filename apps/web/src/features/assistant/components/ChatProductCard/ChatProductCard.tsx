@@ -10,6 +10,8 @@ import styles from "./ChatProductCard.module.css";
 
 interface ChatProductCardProps {
   recommendation: Recommendation;
+  /** Called once the product is in the cart. */
+  onAdded?: () => void;
 }
 
 const ICONS: Record<DosageFormKind, ReactElement> = {
@@ -35,7 +37,7 @@ const ICONS: Record<DosageFormKind, ReactElement> = {
 };
 
 /** A suggested product as one compact row: picture, name, why it was picked, and Add · price. */
-export function ChatProductCard({ recommendation }: ChatProductCardProps) {
+export function ChatProductCard({ recommendation, onAdded }: ChatProductCardProps) {
   const { product, reason, fit, caution } = recommendation;
   const { state: cart, addItem } = useCart();
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
@@ -52,6 +54,7 @@ export function ChatProductCard({ recommendation }: ChatProductCardProps) {
     setError(null);
     try {
       await addItem(product.id, 1);
+      onAdded?.();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Couldn't add to cart. Try again.");
     } finally {

@@ -55,7 +55,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         userId,
         state: { status: "ready", cart: { items: [], itemCount: 0, subtotal: 0 } },
       });
-      return order.id;
+      return order;
     },
   };
 

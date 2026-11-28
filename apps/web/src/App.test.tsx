@@ -3,9 +3,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 import * as authApi from "./features/auth/api/authApi";
 import * as cartApi from "./features/cart/api/cartApi";
+import * as ordersApi from "./features/orders/api/ordersApi";
 import * as detailApi from "./features/products/api/fetchProduct";
 import * as searchApi from "./features/products/api/searchProducts";
-import { ana, cartWithIbuprofen, ibuprofen, ibuprofenDetail } from "./test/fixtures";
+import {
+  ana,
+  cartWithIbuprofen,
+  emptyCart,
+  ibuprofen,
+  ibuprofenDetail,
+  order,
+} from "./test/fixtures";
 import { renderWithRouter } from "./test/renderWithRouter";
 import userEvent from "@testing-library/user-event";
 import { useLocation } from "react-router-dom";
@@ -16,6 +24,7 @@ vi.mock("./features/products/api/fetchSuggestions");
 vi.mock("./features/products/api/fetchProduct");
 vi.mock("./features/auth/api/authApi");
 vi.mock("./features/cart/api/cartApi");
+vi.mock("./features/orders/api/ordersApi");
 // Keeps the real AssistantError, so a 401 is recognised; only the paid engine is faked.
 vi.mock("./features/assistant/api/streamEngine", async (importOriginal) => ({
   ...(await importOriginal<typeof engineModule>()),
@@ -258,6 +267,46 @@ describe("App routes", () => {
         "aria-busy",
         "true",
       );
+    });
+
+    it("shops from a suggestion, places the order and comes back to a note about it", async () => {
+      vi.mocked(cartApi.getCart).mockResolvedValue(emptyCart);
+      vi.mocked(cartApi.addToCart).mockResolvedValue(cartWithIbuprofen);
+      const placed = { ...order, items: [order.items[0]!], itemCount: 2, total: 12.98 };
+      vi.mocked(ordersApi.createOrder).mockResolvedValue(placed);
+      vi.mocked(ordersApi.getOrder).mockResolvedValue(placed);
+      vi.mocked(engineModule.streamEngine).mockImplementation(async function* () {
+        yield { kind: "text", text: "A pain reliever should help." };
+        yield {
+          kind: "products",
+          items: [{ product: ibuprofenDetail, reason: "Eases pain", fit: "best" }],
+        };
+      });
+      const user = userEvent.setup();
+      renderWithRouter(<App />, "/");
+      await screen.findByRole("button", { name: "Account menu" });
+      await user.click(screen.getByRole("button", { name: "Hay fever" }));
+
+      await user.click(await screen.findByRole("button", { name: /^Add Ibuprofen 400mg/ }));
+      await user.click(await screen.findByRole("link", { name: /^Cart: 2 items/ }));
+
+      const line = await screen.findByRole("article", { name: "Ibuprofen 400mg" });
+      expect(line).toHaveTextContent("From your chat");
+      await user.click(screen.getByRole("button", { name: "Place order" }));
+
+      expect(
+        await screen.findByRole("heading", { level: 1, name: "Order placed" }),
+      ).toBeInTheDocument();
+      await user.click(screen.getByRole("link", { name: "Back to the assistant" }));
+
+      const conversation = screen.getByRole("list", { name: "Conversation" });
+      expect(conversation).toHaveTextContent("Order #7 is placed: Ibuprofen 400mg.");
+      expect(conversation).toHaveTextContent(
+        `Ibuprofen 400mg: ${ibuprofenDetail.usageInstructions}`,
+      );
+      expect(conversation).toHaveTextContent("Ask me anything about taking it.");
+      // Written locally: the paid model was asked once, for the suggestions.
+      expect(engineModule.streamEngine).toHaveBeenCalledTimes(1);
     });
 
     it("does not replay the intro on coming back to an empty chat", async () => {

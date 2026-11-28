@@ -37,6 +37,7 @@ describe("BackToChat", () => {
         { id: "1", role: "user", parts: [{ kind: "text", text: "Headache" }], status: "done" },
       ],
       caseFile: emptyCaseFile,
+      fromChat: {},
     });
     await renderBar();
 
