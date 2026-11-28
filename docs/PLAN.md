@@ -115,3 +115,15 @@ Runs alongside the phases above. Frontend first with a mock engine; backend late
 - [x] S6 — Body map entry
 - [ ] S7 — Polish and integrations: done except add to cart, which needs Phase 5
 - [ ] Backend: LLM orchestration endpoint. Plan: [`docs/plans/symptom-assistant-backend/`](plans/symptom-assistant-backend/README.md)
+
+## Track — Design system
+
+A shared package, `packages/design-system`, holds the theme as tokens (colour, type, spacing, radii,
+shadows, motion) and the core components, and `pnpm verify` rejects raw values in app CSS. It comes
+before the assistant-first redesign, which builds on it. Plan:
+[`docs/plans/design-system/`](plans/design-system/README.md).
+
+- [ ] D1 — Package, tokens and theme switch
+- [ ] D2 — Move the app onto the tokens and turn on the guard
+- [ ] D3 — Core components
+- [ ] D4 — Style guide page and rules
