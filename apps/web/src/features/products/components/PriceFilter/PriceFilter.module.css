@@ -1,7 +1,7 @@
 .price {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-3);
   min-width: 0;
   margin: 0;
   padding: 0;
@@ -9,45 +9,45 @@
 }
 
 .legend {
-  margin-bottom: 10px;
+  margin-bottom: var(--space-3);
   padding: 0;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
 }
 
 .presets {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--space-2);
 }
 
 .preset {
   height: 32px;
-  padding: 0 12px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--text);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--text-sm);
   cursor: pointer;
 }
 
 .preset:hover {
-  border-color: var(--border-strong);
+  border-color: var(--color-border-strong);
 }
 
 .preset[aria-pressed="true"] {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  color: var(--accent-hover);
-  font-weight: 600;
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-hover);
+  font-weight: var(--weight-semibold);
 }
 
 .custom {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-2);
   container-type: inline-size;
 }
 
@@ -55,8 +55,8 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
-  color: var(--text-muted);
+  gap: var(--space-2);
+  color: var(--color-text-muted);
 }
 
 .range input {
@@ -64,46 +64,46 @@
   width: 100%;
   min-width: 0;
   height: 36px;
-  padding: 0 14px;
-  border: 1px solid var(--input-border);
-  border-radius: var(--radius-control);
-  background: var(--surface);
-  color: var(--text);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text);
   font: inherit;
-  font-size: 14px;
+  font-size: var(--text-md);
 }
 
 .range input:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
 }
 
 .range input[aria-invalid="true"] {
-  border-color: var(--danger);
+  border-color: var(--color-danger);
 }
 
 .apply {
   flex: none;
   height: 36px;
-  padding: 0 12px;
-  border: 1px solid var(--accent);
-  border-radius: var(--radius-control);
-  background: var(--surface);
-  color: var(--accent);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-accent);
   font: inherit;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
   cursor: pointer;
 }
 
 .apply:hover {
-  background: var(--accent-soft);
+  background: var(--color-accent-soft);
 }
 
 .error {
-  font-size: 13px;
-  color: var(--danger);
+  font-size: var(--text-sm);
+  color: var(--color-danger);
 }
 
 /* In the narrow desktop column, Apply drops to its own row so the fields stay readable. */

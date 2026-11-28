@@ -2,7 +2,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
   flex-shrink: 0;
   min-height: 36px;
 }
@@ -11,21 +11,21 @@
   display: inline-flex;
   align-items: center;
   height: 36px;
-  padding: 0 12px;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-control);
-  background: var(--surface);
-  color: var(--text);
+  padding: 0 var(--space-3);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text);
   font: inherit;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
   text-decoration: none;
   cursor: pointer;
 }
 
 .login:hover {
-  border-color: var(--accent);
-  color: var(--accent-hover);
+  border-color: var(--color-accent);
+  color: var(--color-accent-hover);
 }
 
 /* Same 36px circle as the theme toggle, filled so it reads as "you". */
@@ -37,12 +37,12 @@
   height: 36px;
   padding: 0;
   border: 1.5px solid transparent;
-  border-radius: var(--radius-control);
-  background: var(--accent-soft);
-  color: var(--accent);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
   font: inherit;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
   letter-spacing: 0.02em;
   cursor: pointer;
   transition:
@@ -52,8 +52,8 @@
 
 .avatar:hover,
 .avatar[aria-expanded="true"] {
-  border-color: var(--accent);
-  background: var(--accent-soft-hover);
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft-hover);
 }
 
 /* Above the search suggestions, which can be open under it. */
@@ -61,23 +61,23 @@
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  z-index: 30;
+  z-index: calc(var(--z-popover) + 1);
   display: flex;
   flex-direction: column;
   width: 240px;
   max-width: calc(100vw - 32px);
-  padding: 6px;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  background: var(--surface);
-  box-shadow: var(--shadow-hover);
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-2);
   animation: drop-in var(--duration-fast) var(--ease-out);
 }
 
 .who {
-  padding: 10px 12px 12px;
-  margin-bottom: 4px;
-  border-bottom: 1px solid var(--border);
+  padding: var(--space-3) var(--space-3) var(--space-3);
+  margin-bottom: var(--space-1);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .name,
@@ -88,36 +88,36 @@
 }
 
 .name {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
 }
 
 .email {
-  margin-top: 2px;
-  font-size: 13px;
-  color: var(--text-muted);
+  margin-top: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
 }
 
 .item {
   display: flex;
   align-items: center;
   height: 38px;
-  padding: 0 12px;
+  padding: 0 var(--space-3);
   border: 0;
-  border-radius: 10px;
+  border-radius: var(--radius-xs);
   background: none;
-  color: var(--text);
+  color: var(--color-text);
   font: inherit;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
   text-align: left;
   text-decoration: none;
   cursor: pointer;
 }
 
 .item:hover {
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
 }
 
 @keyframes drop-in {
@@ -138,14 +138,14 @@
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  z-index: 20;
-  padding: 8px 12px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface);
-  box-shadow: var(--shadow-hover);
-  color: var(--danger);
-  font-size: 13px;
+  z-index: var(--z-popover);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xs);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-2);
+  color: var(--color-danger);
+  font-size: var(--text-sm);
   white-space: nowrap;
 }
 

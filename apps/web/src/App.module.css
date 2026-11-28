@@ -10,14 +10,14 @@
 
 .skipLink:focus {
   position: fixed;
-  top: 0.5rem;
-  left: 0.5rem;
-  z-index: 10;
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-control);
-  background: var(--accent);
-  color: var(--on-accent);
-  font-weight: 600;
+  top: var(--space-2);
+  left: var(--space-2);
+  z-index: var(--z-skip-link);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-weight: var(--weight-semibold);
   text-decoration: none;
 }
 

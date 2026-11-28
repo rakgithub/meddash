@@ -3,14 +3,14 @@
   display: inline-flex;
   align-items: center;
   height: 44px;
-  padding: 3px;
-  border: 1.5px solid var(--input-border);
-  border-radius: var(--radius-control);
-  background: var(--surface);
+  padding: var(--space-1);
+  border: 1.5px solid var(--color-input-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
 }
 
 .stepper:focus-within {
-  border-color: var(--accent);
+  border-color: var(--color-accent);
 }
 
 .step {
@@ -20,20 +20,20 @@
   height: 36px;
   padding: 0;
   border: 0;
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-pill);
   background: transparent;
-  color: var(--text);
+  color: var(--color-text);
   cursor: pointer;
   transition: background var(--duration-fast) var(--ease-in-out);
 }
 
 .step:hover:not(:disabled) {
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
 }
 
 .step:disabled {
-  color: var(--border-strong);
+  color: var(--color-border-strong);
   cursor: not-allowed;
 }
 
@@ -51,10 +51,10 @@
   min-width: 36px;
   border: 0;
   background: transparent;
-  color: var(--text);
+  color: var(--color-text);
   font: inherit;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
   font-variant-numeric: tabular-nums;
   text-align: center;
   appearance: textfield;
@@ -71,5 +71,5 @@
 }
 
 .input:disabled {
-  color: var(--text-muted);
+  color: var(--color-text-muted);
 }

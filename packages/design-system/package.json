@@ -9,6 +9,7 @@
   },
   "scripts": {
     "test": "node --test",
-    "verify": "pnpm test"
+    "check:tokens": "node scripts/check-tokens.mjs src",
+    "verify": "pnpm test && pnpm check:tokens"
   }
 }

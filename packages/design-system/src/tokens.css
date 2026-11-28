@@ -96,6 +96,8 @@
   --space-18: 72px;
 
   /* Shape */
+  --radius-2xs: 4px;
+  --radius-xs: 8px;
   --radius-sm: 12px;
   --radius-md: 18px;
   --radius-lg: 24px;
@@ -111,10 +113,14 @@
   --duration-slow: 420ms;
 
   /* Layering */
+  --z-raised: 1; /* lifted over its siblings, inside one component */
+  --z-sticky: 5; /* sticky bars inside a page, under the header */
   --z-header: 10;
+  --z-floating: 15; /* the assistant launcher */
   --z-popover: 20;
   --z-scrim: 30;
   --z-drawer: 40;
+  --z-skip-link: 50;
 
   /* Layout */
   --header-height: 64px;

@@ -31,6 +31,8 @@
     inset 0 1px 0 var(--sheen), 0 1px 2px color-mix(in srgb, var(--ink-950) 40%, transparent);
   --shadow-2: 0 8px 24px color-mix(in srgb, var(--ink-950) 50%, transparent);
   --shadow-overlay: 0 16px 48px color-mix(in srgb, var(--ink-950) 60%, transparent);
+  /* Bars fixed to the bottom of the screen cast upwards. */
+  --shadow-bar: 0 -8px 24px color-mix(in srgb, var(--ink-950) 50%, transparent);
 }
 
 :root[data-theme="light"] {
@@ -61,38 +63,13 @@
     inset 0 1px 0 var(--sheen), 0 1px 2px color-mix(in srgb, var(--slate-900) 6%, transparent);
   --shadow-2: 0 8px 24px color-mix(in srgb, var(--slate-900) 12%, transparent);
   --shadow-overlay: 0 16px 48px color-mix(in srgb, var(--slate-900) 18%, transparent);
+  /* Bars fixed to the bottom of the screen cast upwards. */
+  --shadow-bar: 0 -8px 24px color-mix(in srgb, var(--slate-900) 10%, transparent);
 }
 
 /* Product image wells read as the domed pockets of a blister pack; built from the theme's tokens above. */
 :root {
   --well-bg: radial-gradient(circle at 34% 28%, var(--sheen), var(--color-border) 58%);
   --well-shadow: inset 0 -12px 22px var(--dome-shade), inset 0 2px 1px var(--sheen);
-}
-
-/*
- * TEMPORARY: today's token names, mapped to the new ones so every *.module.css keeps working.
- * Remove in PR 2 of docs/plans/design-system, once the app uses the semantic names.
- */
-:root {
-  --bg: var(--color-bg);
-  --surface: var(--color-surface);
-  --border: var(--color-border);
-  --border-strong: var(--color-border-strong);
-  --input-border: var(--color-input-border);
-  --text: var(--color-text);
-  --text-muted: var(--color-text-muted);
-  --accent: var(--color-accent);
-  --accent-hover: var(--color-accent-hover);
-  --accent-soft: var(--color-accent-soft);
-  --accent-soft-hover: color-mix(in srgb, var(--color-accent) 12%, var(--color-accent-soft));
-  --on-accent: var(--color-on-accent);
-  --danger: var(--color-danger);
-  --danger-soft: var(--color-danger-soft);
-  --caution: var(--color-caution);
-  --caution-soft: var(--color-caution-soft);
-  --radius: var(--radius-md);
-  --radius-control: var(--radius-pill);
-  --radius-well: var(--radius-xl);
-  --shadow: var(--shadow-1);
-  --shadow-hover: var(--shadow-2);
+  --color-accent-soft-hover: color-mix(in srgb, var(--color-accent) 12%, var(--color-accent-soft));
 }

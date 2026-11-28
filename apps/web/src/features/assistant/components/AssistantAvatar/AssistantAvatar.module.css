@@ -6,9 +6,9 @@
   width: 36px;
   height: 36px;
   overflow: hidden;
-  border: 1.5px solid var(--accent);
+  border: 1.5px solid var(--color-accent);
   border-radius: 50%;
-  background: var(--accent-soft);
+  background: var(--color-accent-soft);
 }
 
 .doctor {
@@ -20,5 +20,5 @@
   width: 96px;
   height: 96px;
   border-width: 2px;
-  box-shadow: 0 0 0 8px color-mix(in srgb, var(--accent) 12%, transparent);
+  box-shadow: 0 0 0 8px color-mix(in srgb, var(--color-accent) 12%, transparent);
 }

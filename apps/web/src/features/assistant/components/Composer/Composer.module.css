@@ -1,18 +1,18 @@
 .composer {
   display: flex;
   align-items: flex-end;
-  gap: 8px;
-  padding: 8px 8px 8px 18px;
-  border: 1.5px solid var(--input-border);
-  border-radius: 26px;
-  background: var(--surface);
-  box-shadow: var(--shadow-hover);
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-5);
+  border: 1.5px solid var(--color-input-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-2);
 }
 
 /* The ring sits on the whole box, so the buttons inside it read as part of the field. */
 .composer:focus-within {
-  border-color: var(--accent);
-  outline: 2px solid var(--accent);
+  border-color: var(--color-accent);
+  outline: 2px solid var(--color-accent);
   outline-offset: 1px;
 }
 
@@ -27,9 +27,9 @@
 .grow::after,
 .input {
   grid-area: 1 / 1;
-  padding: 7px 0;
+  padding: var(--space-2) 0;
   font: inherit;
-  font-size: 16px;
+  font-size: var(--text-base);
   line-height: 1.45;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -45,7 +45,7 @@
   min-height: 0;
   border: 0;
   background: transparent;
-  color: var(--text);
+  color: var(--color-text);
   resize: none;
   overflow-y: auto;
 }
@@ -55,7 +55,7 @@
 }
 
 .input::placeholder {
-  color: var(--text-muted);
+  color: var(--color-text-muted);
 }
 
 .send,
@@ -63,13 +63,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: var(--space-2);
   height: 38px;
-  padding: 0 16px;
-  border-radius: var(--radius-control);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-pill);
   font: inherit;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -79,8 +79,8 @@
   width: 38px;
   padding: 0;
   border: 0;
-  background: var(--accent);
-  color: var(--on-accent);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
   transition: background var(--duration-fast) var(--ease-in-out);
 }
 
@@ -95,23 +95,23 @@
 }
 
 .send:hover:not(:disabled) {
-  background: var(--accent-hover);
+  background: var(--color-accent-hover);
 }
 
 .send:disabled {
-  background: var(--border);
-  color: var(--text-muted);
+  background: var(--color-border);
+  color: var(--color-text-muted);
   cursor: default;
 }
 
 .stop {
-  border: 1.5px solid var(--border-strong);
-  background: var(--surface);
-  color: var(--text);
+  border: 1.5px solid var(--color-border-strong);
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 
 .stop:hover {
-  background: var(--bg);
+  background: var(--color-bg);
 }
 
 .icon {
