@@ -39,38 +39,6 @@
   margin: 0 auto;
 }
 
-/* ---------- Before the first message ---------- */
-
-.welcome {
-  justify-content: center;
-  padding-bottom: var(--space-16);
-}
-
-.hello {
-  text-align: center;
-  font-size: var(--text-lg);
-  color: var(--color-text-secondary);
-}
-
-.question {
-  margin-bottom: var(--space-5);
-  text-align: center;
-  font-size: var(--text-3xl);
-  font-weight: var(--weight-bold);
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-}
-
-.starters {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--space-2);
-  margin: var(--space-2) 0 var(--space-4);
-  padding: 0;
-  list-style: none;
-}
-
 /* ---------- The conversation ---------- */
 
 /* The page scrolls as a whole, so the message box sticks to the bottom of the window. */
@@ -105,17 +73,7 @@
   color: var(--color-text-muted);
 }
 
-.disclaimer {
-  text-align: center;
-  font-size: var(--text-xs);
-  color: var(--color-text-muted);
-}
-
 @media (max-width: 720px) {
-  .question {
-    font-size: var(--text-2xl);
-  }
-
   .conversation {
     padding-top: var(--space-5);
   }

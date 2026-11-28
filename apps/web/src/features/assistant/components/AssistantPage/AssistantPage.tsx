@@ -1,66 +1,19 @@
-import { Button, Chip } from "@meddash/design-system/components";
-import { useSearchParams } from "react-router-dom";
-import { useAuth } from "../../../auth";
+import { Button } from "@meddash/design-system/components";
+import type { ReactNode } from "react";
 import { PageTitle } from "../../../../lib/PageTitle";
-import { useConsultation } from "../../hooks/useConsultation";
-import { consultationStage, type ConsultationStage } from "../../utils/consultationStage";
-import { Composer } from "../Composer/Composer";
+import { useConsultationContext } from "../../hooks/useConsultationContext";
 import { MessageList } from "../MessageList/MessageList";
 import styles from "./AssistantPage.module.css";
 
-const STARTERS = ["Hay fever", "Dry cough", "Can't sleep"];
-
-const PLACEHOLDERS: Record<ConsultationStage, string> = {
-  symptoms: "Describe how you feel…",
-  questions: "Reply, or type your own answer…",
-  suggestions: "Reply, or ask something else…",
-};
-
-function Disclaimer() {
-  return (
-    <p className={styles.disclaimer}>
-      Reviewed by pharmacists. Not a substitute for a doctor — in an emergency, call 112.
-    </p>
-  );
+interface AssistantPageProps {
+  /** The message box, shared with the intro so a half-typed message isn't lost between the two. */
+  composer: ReactNode;
+  footnote: ReactNode;
 }
 
-/** `/assistant?q=…` pre-fills the message box, e.g. with the search text from the shop. */
-export function AssistantPage() {
-  const [searchParams] = useSearchParams();
-  const { sessionEnded } = useAuth();
-  const { messages, caseFile, isStreaming, paused, send, answer, stop, retry, startOver } =
-    useConsultation({ onSessionEnded: sessionEnded });
-
-  const composer = (
-    <Composer
-      initialValue={searchParams.get("q") ?? ""}
-      isStreaming={isStreaming}
-      placeholder={PLACEHOLDERS[consultationStage(messages, caseFile)]}
-      onSend={send}
-      onStop={stop}
-    />
-  );
-
-  if (messages.length === 0) {
-    return (
-      <div className={`${styles.page} ${styles.welcome}`}>
-        <PageTitle title="Symptom assistant" />
-        <div className={styles.column}>
-          <p className={styles.hello}>Hi, I’m your MedDash assistant.</p>
-          <h1 className={styles.question}>How are you feeling today?</h1>
-          {composer}
-          <ul className={styles.starters} aria-label="Start with">
-            {STARTERS.map((starter) => (
-              <li key={starter}>
-                <Chip onClick={() => send(starter)}>{starter}</Chip>
-              </li>
-            ))}
-          </ul>
-          <Disclaimer />
-        </div>
-      </div>
-    );
-  }
+/** The conversation, once it has started: one centred column with the message box docked under it. */
+export function AssistantPage({ composer, footnote }: AssistantPageProps) {
+  const { messages, paused, answer, retry, startOver } = useConsultationContext();
 
   return (
     <div className={styles.page}>
@@ -86,7 +39,7 @@ export function AssistantPage() {
           ) : (
             composer
           )}
-          <Disclaimer />
+          {footnote}
         </div>
       </div>
     </div>

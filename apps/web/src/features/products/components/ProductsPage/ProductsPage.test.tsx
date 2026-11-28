@@ -203,24 +203,13 @@ describe("ProductsPage assistant entry points", () => {
     pagination: { page: 1, pageSize: 10, total: 1, totalPages: 1 },
   };
 
-  it("offers the floating assistant launcher", () => {
-    searchProducts.mockReturnValue(new Promise(() => {}));
-    renderWithRouter(<ProductsPage />);
-
-    expect(screen.getByRole("link", { name: "Ask MedDash assistant" })).toHaveAttribute(
-      "href",
-      "/assistant",
-    );
-    expect(screen.queryByRole("link", { name: "Ask the assistant" })).not.toBeInTheDocument();
-  });
-
   it("points a symptom search to the assistant with the search text", () => {
     searchProducts.mockReturnValue(new Promise(() => {}));
     renderWithRouter(<ProductsPage />, "/?q=sore throat");
 
     expect(screen.getByRole("link", { name: "Ask the assistant" })).toHaveAttribute(
       "href",
-      "/assistant?q=sore+throat",
+      "/?ask=sore+throat",
     );
   });
 

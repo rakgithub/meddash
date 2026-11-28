@@ -4,34 +4,13 @@ import styles from "./AppFooter.module.css";
 
 export function AppFooter() {
   const { pathname } = useLocation();
-  // The assistant is a full-window chat; a footer under it would only push the composer around.
-  if (pathname === "/assistant") return null;
+  // Home is the assistant, a full-window chat; a footer under it would only push the composer around.
+  if (pathname === "/") return null;
   // On a phone the product page pins Add to cart to the bottom; leave room so it doesn't cover the footer.
   const roomForBuyBar = pathname.startsWith("/products/");
 
   return (
     <footer className={roomForBuyBar ? `${styles.footer} ${styles.buyBar}` : styles.footer}>
-      {/* Someone who scrolled this far without finding a product is the person the assistant is for. */}
-      <section className={styles.ask} aria-labelledby="footer-ask">
-        <div className={styles.askText}>
-          <h2 id="footer-ask">Not sure which medicine fits?</h2>
-          <p>
-            Describe how you feel. MedDash suggests what to try, and tells you when it&apos;s time
-            to see a doctor.
-          </p>
-        </div>
-        <Link className={styles.askButton} to="/assistant">
-          Ask MedDash
-        </Link>
-        {/* The logo's capsule, blown up and cropped by the panel edge. */}
-        <svg className={styles.askCapsule} viewBox="0 0 32 32" aria-hidden="true">
-          <g transform="rotate(-45 16 16)">
-            <path className={styles.capsuleRight} d="M16 10.5H23.5A5.5 5.5 0 0 1 23.5 21.5H16Z" />
-            <path className={styles.capsuleLeft} d="M16 10.5H8.5A5.5 5.5 0 0 0 8.5 21.5H16Z" />
-          </g>
-        </svg>
-      </section>
-
       <div className={styles.inner}>
         <div className={styles.about}>
           <p className={styles.brand}>

@@ -2,12 +2,8 @@ import { useEffect, useReducer, useRef } from "react";
 import { AssistantError, streamEngine } from "../api/streamEngine";
 import type { CaseField, CaseFile, Message, QuickReply } from "../types";
 import { applyAnswer } from "../utils/caseFile";
-import {
-  consultationReducer,
-  initialConsultation,
-  isPaused,
-  messageText,
-} from "../utils/consultationReducer";
+import { consultationReducer, isPaused, messageText } from "../utils/consultationReducer";
+import { loadConsultation, saveConsultation } from "../utils/consultationStorage";
 
 function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -15,14 +11,20 @@ function prefersReducedMotion() {
 
 /**
  * Holds the whole conversation and runs the assistant engine for each turn. `onSessionEnded` is called
- * when the server no longer accepts the session (401), so the page can send the user to log in.
+ * with the message the server refused when it no longer accepts the session (401), so the app can send
+ * the user to log in and send it again afterwards.
+ * The conversation starts from, and is mirrored to, `sessionStorage`, so a reload keeps it.
  */
-export function useConsultation({ onSessionEnded }: { onSessionEnded?: () => void } = {}) {
-  const [state, dispatch] = useReducer(consultationReducer, initialConsultation);
+export function useConsultation({
+  onSessionEnded,
+}: { onSessionEnded?: (userText: string) => void } = {}) {
+  const [state, dispatch] = useReducer(consultationReducer, undefined, loadConsultation);
   const controllerRef = useRef<AbortController | null>(null);
 
-  // Leaving the page cancels a reply in progress.
+  // Unmounting (closing the app, not changing page: the provider sits above the routes) cancels a reply.
   useEffect(() => () => controllerRef.current?.abort(), []);
+
+  useEffect(() => saveConsultation(state), [state]);
 
   async function run(
     assistantId: string,
@@ -61,7 +63,7 @@ export function useConsultation({ onSessionEnded }: { onSessionEnded?: () => voi
       if (status === "error") console.error("Assistant reply failed", err);
       const error = status === "error" && err instanceof AssistantError ? err.message : undefined;
       dispatch({ type: "finish", id: assistantId, status, error });
-      if (err instanceof AssistantError && err.status === 401) onSessionEnded?.();
+      if (err instanceof AssistantError && err.status === 401) onSessionEnded?.(userText);
     } finally {
       if (controllerRef.current === controller) controllerRef.current = null;
     }

@@ -1,7 +1,8 @@
 # Plan — Assistant-first redesign
 
 Status: approved 2026-11-28, after review (v5 chat only, catalogue at `/shop`, cart stays a page, Orders in
-the menu for every signed-in user). PR 1 (top-right menu and `/shop`) merged; PR 2 (v5 chat) in progress. Design-system PR 3 has merged.
+the menu for every signed-in user). PR 1 (top-right menu and `/shop`) and PR 2 (v5 chat) merged; PR 3 (home and intro) in review. Design-system
+PR 3 has merged.
 Roadmap entry: [Track — Assistant-first redesign](../../PLAN.md#track--assistant-first-redesign).
 Builds on: [Design system](../design-system/README.md) (tokens, and the `Button`, `Chip` and `Badge`
 components from its PR 3), [Symptom assistant](../symptom-assistant/README.md),
@@ -59,7 +60,8 @@ Design reference: the v5 artboards ("Minimal: v3 theme, top-right menu, new intr
 
 1. **`/` is the assistant; the catalogue moves to `/shop`.** The menu still calls it "Medicines".
    `/products/:id` stays. Old links keep working: `/?q=…&category=…` redirects to `/shop` with the same
-   query, and `/assistant` redirects to `/`.
+   query, and `/assistant` redirects to `/`. The assistant's pre-fill on `/` is `?ask=` (a bare `/?q=` is
+   an old catalogue search), so `/assistant?q=x` lands on `/?ask=x`.
 2. **The assistant still needs an account.** The intro is public. A signed-out visitor who sends a first
    message is taken to log in with that message kept, and lands back in the chat with it sent. This keeps
    the paid model behind auth and needs no backend change.
@@ -103,7 +105,7 @@ Design reference: the v5 artboards ("Minimal: v3 theme, top-right menu, new intr
 | `/orders`, `/orders/:id` | Orders                                      | Required              |
 | `/login`, `/register`    | Auth, with `returnTo` and a pending message | Public                |
 | `/profile`               | Account                                     | Required              |
-| `/assistant`             | Redirects to `/`, keeping `?q=`             |                       |
+| `/assistant`             | Redirects to `/`, `?q=` becomes `?ask=`     |                       |
 
 ## Steps
 

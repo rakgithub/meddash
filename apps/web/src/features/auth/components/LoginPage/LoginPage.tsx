@@ -6,14 +6,20 @@ import { useAuth } from "../../hooks/useAuth";
 import styles from "./LoginPage.module.css";
 import { PageTitle } from "../../../../lib/PageTitle";
 
-/** Where to go after logging in: the page that sent the user here, or the home page. */
-function returnPath(state: unknown): string {
-  if (typeof state === "object" && state !== null && "from" in state) {
-    const { from } = state;
-    // Only in-app paths, so a crafted link cannot send the user to another site.
-    if (typeof from === "string" && from.startsWith("/") && !from.startsWith("//")) return from;
+// Only in-app paths, so a crafted link cannot send the user to another site.
+const isAppPath = (path: unknown): path is string =>
+  typeof path === "string" && /^\/(?![/\\])/.test(path);
+
+/**
+ * Where to go after logging in: the page that sent the user here (`RequireAuth` puts it in the router
+ * state, a link in `?returnTo=`), or the home page.
+ */
+function returnPath(state: unknown, search: string): string {
+  if (typeof state === "object" && state !== null && "from" in state && isAppPath(state.from)) {
+    return state.from;
   }
-  return "/";
+  const returnTo = new URLSearchParams(search).get("returnTo");
+  return isAppPath(returnTo) ? returnTo : "/";
 }
 
 interface LoginResult {
@@ -26,7 +32,7 @@ export function LoginPage() {
   const { state, signIn } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const next = returnPath(location.state);
+  const next = returnPath(location.state, location.search);
 
   async function logIn(_previous: LoginResult, form: FormData): Promise<LoginResult> {
     const email = String(form.get("email"));
@@ -82,7 +88,7 @@ export function LoginPage() {
       </form>
       <p className={styles.switch}>
         New to MedDash?{" "}
-        <Link to="/register" state={location.state}>
+        <Link to={{ pathname: "/register", search: location.search }} state={location.state}>
           Create an account
         </Link>
       </p>
