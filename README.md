@@ -179,7 +179,9 @@ The server checks these at startup and stops with a readable message if one is w
 <summary>🗄️ More about the stock room</summary>
 
 - Postgres runs on host port **5433**, so it doesn't fight with a Postgres you may already have on 5432.
-- It holds two databases: `meddash` for you, and `meddash_test`, which the server tests set up themselves.
+- It holds two databases: `meddash` for you, and `meddash_test`, which the server tests and e2e tests reset to the
+  seed data themselves. So `pnpm db:catalogue` in your dev database never affects tests.
+- e2e starts its own API on port 3001, so stop `pnpm dev` (or the API) before running `pnpm test:e2e`.
 - `pnpm db:seed` throws out all products and restocks from the seed catalogue. It refuses to run in production, and
   against a database that isn't local unless you set `ALLOW_REMOTE_SEED=1`.
 - `pnpm db:down` closes the stock room but keeps the data.
