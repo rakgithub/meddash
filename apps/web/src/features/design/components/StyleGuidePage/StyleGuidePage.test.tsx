@@ -1,4 +1,5 @@
-import { render, screen, within } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
+import { renderWithRouter as render } from "../../../../test/renderWithRouter";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { StyleGuidePage } from "./StyleGuidePage";
@@ -8,7 +9,14 @@ describe("StyleGuidePage", () => {
     render(<StyleGuidePage />);
 
     expect(screen.getByRole("heading", { name: "Design tokens", level: 1 })).toBeInTheDocument();
-    for (const name of ["Semantic colours", "Contrast", "Dark surfaces", "Type", "Motion"]) {
+    for (const name of [
+      "Semantic colours",
+      "Contrast",
+      "Dark surfaces",
+      "Type",
+      "Motion",
+      "Components",
+    ]) {
       expect(screen.getByRole("heading", { name, level: 2 })).toBeInTheDocument();
     }
     expect(screen.getByRole("link", { name: "Space, on a 4px grid" })).toHaveAttribute(

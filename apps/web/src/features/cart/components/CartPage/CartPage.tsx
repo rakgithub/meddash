@@ -1,3 +1,4 @@
+import { Button } from "@meddash/design-system/components";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ApiError } from "../../../../lib/apiClient";
@@ -69,9 +70,9 @@ export function CartPage() {
           <span className={styles.emptyWell} aria-hidden="true" />
           <p className={styles.emptyTitle}>Your cart is empty</p>
           <p className={styles.emptyText}>Find what you need and add it from the product page.</p>
-          <Link className={styles.primary} to="/">
+          <Button href="/" size="lg">
             Browse products
-          </Link>
+          </Button>
         </section>
       )}
 
@@ -112,14 +113,15 @@ export function CartPage() {
                 <dd>{formatPrice(state.cart.subtotal)}</dd>
               </div>
             </dl>
-            <button
-              type="button"
-              className={styles.primary}
-              disabled={placing || pending !== null}
+            <Button
+              size="lg"
+              block
+              busy={placing}
+              disabled={pending !== null}
               onClick={handlePlaceOrder}
             >
               {placing ? "Placing order…" : "Place order"}
-            </button>
+            </Button>
             {orderError && (
               <p className={`${styles.note} ${styles.error}`} role="alert">
                 {orderError}

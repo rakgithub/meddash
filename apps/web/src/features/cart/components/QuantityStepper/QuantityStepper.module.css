@@ -13,39 +13,6 @@
   border-color: var(--color-accent);
 }
 
-.step {
-  display: inline-grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: transparent;
-  color: var(--color-text);
-  cursor: pointer;
-  transition: background var(--duration-fast) var(--ease-in-out);
-}
-
-.step:hover:not(:disabled) {
-  background: var(--color-accent-soft);
-  color: var(--color-accent);
-}
-
-.step:disabled {
-  color: var(--color-border-strong);
-  cursor: not-allowed;
-}
-
-.step svg {
-  width: 16px;
-  height: 16px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-}
-
 .input {
   width: 3ch;
   min-width: 36px;

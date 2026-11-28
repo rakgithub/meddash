@@ -1,3 +1,4 @@
+import { Button, IconButton } from "@meddash/design-system/components";
 import { useState, type FormEvent, type KeyboardEvent } from "react";
 import styles from "./Composer.module.css";
 
@@ -62,18 +63,25 @@ export function Composer({
         />
       </div>
       {isStreaming ? (
-        <button className={styles.stop} type="button" onClick={onStop}>
+        <Button variant="secondary" onClick={onStop}>
           <svg className={styles.icon} viewBox="0 0 16 16" aria-hidden="true">
             <rect x="4" y="4" width="8" height="8" rx="1.5" />
           </svg>
           Stop
-        </button>
+        </Button>
       ) : (
-        <button className={styles.send} type="submit" disabled={!canSend} aria-label="Send">
-          <svg className={styles.arrow} viewBox="0 0 20 20" aria-hidden="true">
-            <path d="M10 16V4M5 9l5-5 5 5" />
-          </svg>
-        </button>
+        <IconButton
+          variant="primary"
+          size="sm"
+          type="submit"
+          label="Send"
+          disabled={!canSend}
+          icon={
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path d="M10 16V4M5 9l5-5 5 5" />
+            </svg>
+          }
+        />
       )}
     </form>
   );

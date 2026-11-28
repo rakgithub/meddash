@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Button } from "@meddash/design-system/components";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../auth";
 import { formatPrice, type ProductDetail } from "../../../products";
@@ -88,9 +89,11 @@ export function AddToCart({ product }: Props) {
           onChange={setQuantity}
           disabled={reason !== null || sending}
         />
-        <button type="button" className={styles.add} disabled={disabled} onClick={handleAdd}>
-          {buttonLabel}
-        </button>
+        <div className={styles.addSlot}>
+          <Button size="lg" block disabled={disabled} busy={sending} onClick={handleAdd}>
+            {buttonLabel}
+          </Button>
+        </div>
       </div>
       {reason && <p className={styles.reason}>{reason}</p>}
 
@@ -119,9 +122,11 @@ export function AddToCart({ product }: Props) {
             <span className={styles.barName}>{product.name}</span>
             <span className={styles.barPrice}>{formatPrice(product.price)}</span>
           </div>
-          <button type="button" className={styles.add} disabled={disabled} onClick={handleAdd}>
-            {buttonLabel}
-          </button>
+          <div className={styles.barAdd}>
+            <Button size="lg" disabled={disabled} busy={sending} onClick={handleAdd}>
+              {buttonLabel}
+            </Button>
+          </div>
         </div>
       )}
     </div>

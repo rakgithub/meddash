@@ -1,3 +1,4 @@
+import { Chip } from "@meddash/design-system/components";
 import { useId } from "react";
 import type { QuickReply } from "../../types";
 import styles from "./QuickReplies.module.css";
@@ -38,9 +39,9 @@ export function QuickReplies({ question, options, selected, onAnswer }: QuickRep
           return (
             <li key={option.value}>
               {onAnswer ? (
-                <button className={styles.option} type="button" onClick={() => onAnswer(option)}>
+                <Chip variant="accent" onClick={() => onAnswer(option)}>
                   {option.label}
-                </button>
+                </Chip>
               ) : (
                 <span className={chosen ? `${styles.answered} ${styles.chosen}` : styles.answered}>
                   {option.label}

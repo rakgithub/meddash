@@ -1,0 +1,37 @@
+.gallery {
+  display: grid;
+  gap: var(--space-8);
+  margin-top: var(--space-6);
+}
+
+.specimen {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.name {
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-secondary);
+}
+
+.states {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-4);
+  width: 100%;
+}
+
+.notices {
+  display: grid;
+  gap: var(--space-3);
+  width: 100%;
+}
