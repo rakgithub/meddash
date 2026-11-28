@@ -24,10 +24,7 @@ const storageKey = (userId: string) => `meddash-consultations-${userId}`;
 
 /** How many products the latest suggestions offer, leaving out prescription-only ones. */
 export function suggestionCount(messages: Message[]): number {
-  const latest = messages
-    .flatMap((m) => m.parts)
-    .filter((p) => p.kind === "products")
-    .at(-1);
+  const latest = messages.flatMap((m) => m.parts).findLast((p) => p.kind === "products");
   return latest ? latest.items.filter((item) => item.fit !== "locked").length : 0;
 }
 

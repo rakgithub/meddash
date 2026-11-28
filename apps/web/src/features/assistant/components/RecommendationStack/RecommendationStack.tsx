@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useId, useState, type AnimationEvent } from "react";
 import type { ProductDetail } from "../../../products";
 import type { Recommendation } from "../../types";
 import type { DismissReason } from "../../utils/caseFile";
@@ -25,9 +25,6 @@ interface RecommendationStackProps {
 /** The shortlist worth comparing is the top three; prescription-only products aren't options yet. */
 const COMPARE_MAX = 3;
 
-/** Matches the `leave` animation in the stylesheet, i.e. --duration-base. */
-const LEAVE_MS = 220;
-
 /** The suggested products under a reply: a grid on desktop, a swipeable row on mobile. */
 export function RecommendationStack({
   title = "My suggestions",
@@ -38,13 +35,12 @@ export function RecommendationStack({
   onAskIngredient,
   onDismiss,
 }: RecommendationStackProps) {
-  const [leavingId, setLeavingId] = useState<string | null>(null);
+  // Cards sliding out, by product id, with the reason to report once the slide ends. Several can
+  // leave at once. Ending on the animation, not a timer, means a card removed mid-slide (e.g. by
+  // starting over) never reports, and there is no duration to keep in step with the CSS.
+  const [leaving, setLeaving] = useState<Record<string, DismissReason>>({});
   const [comparing, setComparing] = useState(false);
-  const timerRef = useRef<number | undefined>(undefined);
   const lockedId = useId();
-
-  // Starting over while a card is leaving must not dismiss it in the fresh conversation.
-  useEffect(() => () => window.clearTimeout(timerRef.current), []);
 
   function dismiss(product: ProductDetail, reason: DismissReason) {
     if (!onDismiss) return;
@@ -52,8 +48,14 @@ export function RecommendationStack({
       onDismiss(product, reason);
       return;
     }
-    setLeavingId(product.id);
-    timerRef.current = window.setTimeout(() => onDismiss(product, reason), LEAVE_MS);
+    setLeaving((current) => ({ ...current, [product.id]: reason }));
+  }
+
+  function handleAnimationEnd(event: AnimationEvent<HTMLLIElement>, product: ProductDetail) {
+    // Only the card's own leave animation; animations inside the card bubble up here too.
+    const reason = leaving[product.id];
+    if (event.target !== event.currentTarget || !reason || !onDismiss) return;
+    onDismiss(product, reason);
   }
 
   if (loading > 0) {
@@ -90,10 +92,11 @@ export function RecommendationStack({
         className={[
           styles.item,
           item.fit === "best" && styles.wide,
-          item.product.id === leavingId && styles.leaving,
+          item.product.id in leaving && styles.leaving,
         ]
           .filter(Boolean)
           .join(" ")}
+        onAnimationEnd={(event) => handleAnimationEnd(event, item.product)}
       >
         <ChatProductCard
           recommendation={item}

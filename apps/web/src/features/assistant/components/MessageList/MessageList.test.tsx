@@ -1,7 +1,8 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ibuprofenDetail } from "../../../../test/fixtures";
+import { endAnimation } from "../../../../test/endAnimation";
 import { renderWithRouter } from "../../../../test/renderWithRouter";
 import type { Message, MessagePart } from "../../types";
 import { MessageList } from "./MessageList";
@@ -226,8 +227,9 @@ describe("MessageList", () => {
 
       await userEvent.click(screen.getByRole("button", { name: "Not for me" }));
       await userEvent.click(screen.getByRole("button", { name: "Already tried" }));
+      endAnimation(screen.getByRole("article", { name: "Ibuprofen 400mg" }).closest("li"));
 
-      await waitFor(() => expect(onDismiss).toHaveBeenCalledWith(ibuprofenDetail, "Already tried"));
+      expect(onDismiss).toHaveBeenCalledWith(ibuprofenDetail, "Already tried");
     });
 
     it("keeps suggestions read-only while a reply streams", () => {

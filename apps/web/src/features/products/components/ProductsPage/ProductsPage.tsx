@@ -51,7 +51,8 @@ export function ProductsPage() {
       <PageTitle title="Products" />
       <div className={styles.resultsHead}>
         <header className={styles.header}>
-          <h1>Products</h1>
+          {/* Hidden: the category aisles below say what the page is; screen readers still need an h1. */}
+          <h1 className="visually-hidden">Products</h1>
           {range && <p>{range}</p>}
         </header>
         <CategoryAisles

@@ -1,6 +1,12 @@
-import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { useId, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { mergeUnique } from "../../utils/caseFile";
 import styles from "./SymptomChips.module.css";
+
+/**
+ * The field opens because the user asked for it, so it takes focus. A module-level ref callback runs
+ * once when the field mounts; an inline one would refocus on every render.
+ */
+const focusOnMount = (element: HTMLInputElement | null) => element?.focus();
 
 interface SymptomChipsProps {
   symptoms: string[];
@@ -15,13 +21,7 @@ export function SymptomChips({ symptoms, label = "What I noted", onChange }: Sym
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState("");
   const addRef = useRef<HTMLButtonElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
   const labelId = useId();
-
-  // The field opens because the user asked for it, so it takes focus.
-  useEffect(() => {
-    if (adding) inputRef.current?.focus();
-  }, [adding]);
 
   function close() {
     setAdding(false);
@@ -76,7 +76,7 @@ export function SymptomChips({ symptoms, label = "What I noted", onChange }: Sym
                   className={styles.input}
                   aria-label="Add a symptom"
                   placeholder="e.g. Cough"
-                  ref={inputRef}
+                  ref={focusOnMount}
                   value={draft}
                   onChange={(event) => setDraft(event.target.value)}
                   onKeyDown={handleKeyDown}
