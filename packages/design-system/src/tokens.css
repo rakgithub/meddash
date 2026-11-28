@@ -1,0 +1,124 @@
+/*
+ * Primitives: raw values with neutral names, the same in every theme.
+ * App and component CSS should not use these directly; use the semantic tokens in themes.css.
+ */
+:root {
+  /* Dark surfaces */
+  --ink-950: #0c1517;
+  --ink-900: #0f1b1d;
+  --ink-850: #12302c;
+  --ink-800: #13211f;
+  --ink-700: #1e3330;
+  --ink-600: #2b4541;
+  /* 3:1 against --ink-900, so a text field's edge stays visible on dark. */
+  --ink-400: #5b7a74;
+
+  /* Accent */
+  --mint-300: #8be3d3;
+  --mint-400: #5fd4bf;
+  --teal-800: #0b5f58;
+  --teal-700: #0f766e;
+  --teal-50: #e6f4f1;
+
+  /* Text on dark */
+  --fog-100: #eaf2f0;
+  --sage-200: #cfe3de;
+  --sage-400: #b7c7c3;
+  --sage-500: #8fa5a0;
+
+  /* Light surfaces and text */
+  --white: #ffffff;
+  --mist-50: #f4f6f5;
+  --slate-900: #1b2230;
+  --slate-700: #3a4352;
+  --slate-500: #5c6575;
+  --line-200: #dce0e6;
+  --line-300: #c3c9d2;
+  /* 3:1 against white: the input edge on light. */
+  --line-500: #858d99;
+
+  /* Status */
+  --amber-300: #f3c77a;
+  --amber-700: #b54708;
+  --amber-950: #2b2112;
+  --amber-50: #fffaeb;
+  --red-400: #f97066;
+  --red-700: #b42318;
+  --red-950: #2d1614;
+  --red-50: #fef3f2;
+
+  /* One capsule colour per category; mid tones that read on both themes, kept apart from the reds. */
+  --cat-pain-relief: #e5546c;
+  --cat-first-aid: #eb7a4b;
+  --cat-vitamins: #d99a1e;
+  --cat-digestion: #a3b536;
+  --cat-allergy: #4fb477;
+  --cat-eye-ear: #36a9c9;
+  --cat-cold-flu: #4a86e0;
+  --cat-oral-care: #7c8cf0;
+  --cat-skin-care: #9b6fe0;
+  --cat-sleep-stress: #6c63c7;
+  --cat-womens-health: #e06ba8;
+  --cat-baby-child: #c9a27e;
+
+  /* Type */
+  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-body: Inter, ui-sans-serif, system-ui, sans-serif;
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-md: 14px;
+  --text-base: 15px;
+  --text-lg: 17px;
+  --text-xl: 20px;
+  --text-2xl: 26px;
+  --text-3xl: 34px;
+  --text-display: clamp(42px, 6.4vw, 92px);
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --leading-tight: 1;
+  --leading-snug: 1.3;
+  --leading-normal: 1.55;
+  --tracking-display: -0.035em;
+
+  /* Space, on a 4px grid */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-18: 72px;
+
+  /* Shape */
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 24px;
+  --radius-xl: 28px;
+  --radius-pill: 999px;
+
+  /* Motion: one easing per job, three durations. base.css switches all of it off under reduced motion. */
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1); /* things arriving */
+  --ease-in: cubic-bezier(0.5, 0, 0.75, 0); /* things leaving */
+  --ease-in-out: cubic-bezier(0.45, 0, 0.55, 1); /* hover, state changes and loops */
+  --duration-fast: 150ms;
+  --duration-base: 220ms;
+  --duration-slow: 420ms;
+
+  /* Layering */
+  --z-header: 10;
+  --z-popover: 20;
+  --z-scrim: 30;
+  --z-drawer: 40;
+
+  /* Layout */
+  --header-height: 64px;
+  --width-chat: 720px;
+  --width-page: 1040px;
+  --tap-target: 44px;
+}

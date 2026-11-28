@@ -9,28 +9,25 @@ beforeEach(() => localStorage.clear());
 afterEach(() => vi.restoreAllMocks());
 
 describe("theme", () => {
-  it("follows the OS preference when nothing is saved", () => {
-    mockSystemDark(true);
+  it("defaults to dark when nothing is saved, whatever the OS prefers", () => {
+    mockSystemDark(false);
     expect(readTheme()).toBe("dark");
 
-    mockSystemDark(false);
-    expect(readTheme()).toBe("light");
+    mockSystemDark(true);
+    expect(readTheme()).toBe("dark");
   });
 
-  it("prefers the saved choice over the OS preference", () => {
-    mockSystemDark(true);
+  it("uses the saved choice", () => {
     saveTheme("light");
     expect(readTheme()).toBe("light");
   });
 
   it("ignores an unknown saved value", () => {
-    mockSystemDark(false);
     localStorage.setItem("meddash-theme", "purple");
-    expect(readTheme()).toBe("light");
+    expect(readTheme()).toBe("dark");
   });
 
-  it("falls back to the OS preference when storage is blocked", () => {
-    mockSystemDark(true);
+  it("falls back to dark when storage is blocked", () => {
     vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
       throw new Error("blocked");
     });
