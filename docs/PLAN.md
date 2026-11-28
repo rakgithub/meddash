@@ -116,6 +116,18 @@ Runs alongside the phases above. Frontend first with a mock engine; backend late
 - [ ] S7 — Polish and integrations: done except add to cart, which needs Phase 5
 - [ ] Backend: LLM orchestration endpoint. Plan: [`docs/plans/symptom-assistant-backend/`](plans/symptom-assistant-backend/README.md)
 
+## Track — Search platform (OpenSearch)
+
+Postgres stays the source of truth; OpenSearch serves search with hybrid (BM25 + vector) ranking. Plan:
+[`docs/plans/opensearch-search/`](plans/opensearch-search/README.md).
+
+- [ ] PR 1 — OpenSearch locally, client and index
+- [ ] PR 2 — Sync with a transactional outbox
+- [ ] PR 3 — Search, facets and suggestions on OpenSearch, with fallback
+- [ ] PR 4 — Hybrid search and the assistant tool
+- [ ] PR 5 — Relevance evals and observability
+- [ ] PR 6 — Deployment and runbook
+
 ## Track — Design system
 
 A shared package, `packages/design-system`, holds the theme as tokens (colour, type, spacing, radii,
