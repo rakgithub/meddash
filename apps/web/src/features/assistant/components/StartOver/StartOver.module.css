@@ -1,60 +1,60 @@
 .start {
   height: 36px;
-  padding: 0 14px;
-  border: 1.5px solid var(--border-strong);
-  border-radius: var(--radius-control);
+  padding: 0 var(--space-4);
+  border: 1.5px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
   background: transparent;
-  color: var(--text-muted);
+  color: var(--color-text-muted);
   font: inherit;
-  font-size: 14px;
+  font-size: var(--text-md);
   cursor: pointer;
 }
 
 .start:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
 .confirm {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .confirm p {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--text-md);
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .danger,
 .keep {
   height: 36px;
-  padding: 0 14px;
-  border-radius: var(--radius-control);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-pill);
   font: inherit;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
   cursor: pointer;
 }
 
 .danger {
   border: none;
-  background: var(--danger);
-  color: var(--surface);
+  background: var(--color-danger);
+  color: var(--color-surface);
 }
 
 .keep {
-  border: 1.5px solid var(--border-strong);
+  border: 1.5px solid var(--color-border-strong);
   background: transparent;
-  color: var(--text);
+  color: var(--color-text);
 }
 
 .keep:hover {
-  border-color: var(--accent);
+  border-color: var(--color-accent);
 }

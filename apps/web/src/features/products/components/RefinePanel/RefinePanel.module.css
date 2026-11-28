@@ -2,21 +2,21 @@
 .body {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  padding: 20px;
+  gap: var(--space-6);
+  padding: var(--space-5);
 }
 
 .panel {
   position: sticky;
   top: 24px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
 }
 
 .title {
-  font-size: 17px;
-  font-weight: 700;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
   letter-spacing: -0.01em;
 }
 
@@ -28,10 +28,10 @@
 }
 
 .legend {
-  margin-bottom: 10px;
+  margin-bottom: var(--space-3);
   padding: 0;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
 }
 
 .options {
@@ -43,29 +43,29 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: var(--space-3);
 }
 
 .option {
   display: flex;
   flex: 1;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-3);
   min-height: 34px;
-  font-size: 14px;
+  font-size: var(--text-md);
   cursor: pointer;
 }
 
 .count {
-  font-size: 13px;
-  color: var(--text-muted);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
 }
 
 .option input {
   width: 16px;
   height: 16px;
   margin: 0;
-  accent-color: var(--accent);
+  accent-color: var(--color-accent);
 }
 
 /* Narrow screens: a modal sheet over the bottom of the page. */
@@ -76,10 +76,10 @@
   margin: auto 0 0;
   padding: 0;
   border: 0;
-  border-radius: 20px 20px 0 0;
-  background: var(--surface);
-  color: var(--text);
-  box-shadow: var(--shadow-hover);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-2);
 }
 
 .sheet[open] {
@@ -87,7 +87,7 @@
 }
 
 .sheet::backdrop {
-  background: rgb(16 24 20 / 40%);
+  background: var(--color-scrim);
 }
 
 /* The page behind a modal sheet shouldn't scroll along with it. */
@@ -98,17 +98,17 @@
 .done {
   height: 44px;
   border: 0;
-  border-radius: 999px;
-  background: var(--accent);
-  color: var(--on-accent);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
   font: inherit;
-  font-size: 15px;
-  font-weight: 600;
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
   cursor: pointer;
 }
 
 .done:hover {
-  background: var(--accent-hover);
+  background: var(--color-accent-hover);
 }
 
 @keyframes rise {

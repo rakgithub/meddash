@@ -1,18 +1,18 @@
 .steps {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-2);
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: 13px;
-  color: var(--text-muted);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
 }
 
 .steps li {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-2);
 }
 
 /* A short rule between steps; it fills in once the step before it is done. */
@@ -21,34 +21,34 @@
   width: 20px;
   height: 2px;
   border-radius: 1px;
-  background: var(--border-strong);
+  background: var(--color-border-strong);
 }
 
 .steps li.done + li::before {
-  background: var(--accent);
+  background: var(--color-accent);
 }
 
 .dot {
   width: 10px;
   height: 10px;
   flex-shrink: 0;
-  border: 2px solid var(--border-strong);
+  border: 2px solid var(--color-border-strong);
   border-radius: 50%;
 }
 
 .done .dot {
-  border-color: var(--accent);
-  background: var(--accent);
+  border-color: var(--color-accent);
+  background: var(--color-accent);
 }
 
 .current {
-  color: var(--text);
-  font-weight: 600;
+  color: var(--color-text);
+  font-weight: var(--weight-semibold);
 }
 
 .current .dot {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 25%, transparent);
 }
 
 /* On a phone only the current step keeps its name; the others are dots. */

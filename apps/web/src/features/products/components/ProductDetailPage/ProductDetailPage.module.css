@@ -1,33 +1,33 @@
 .page {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: var(--space-6);
   max-width: 1120px;
   margin: 0 auto;
-  padding: 40px 20px 64px;
+  padding: var(--space-10) var(--space-5) var(--space-16);
 }
 
 .back {
   align-self: flex-start;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--accent);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  color: var(--color-accent);
   text-decoration: none;
 }
 
 .back:hover {
-  color: var(--accent-hover);
+  color: var(--color-accent-hover);
   text-decoration: underline;
 }
 
 .message {
-  padding: 48px 0;
+  padding: var(--space-12) 0;
   text-align: center;
-  color: var(--text-muted);
+  color: var(--color-text-muted);
 }
 
 .error {
-  color: var(--danger);
+  color: var(--color-danger);
 }
 
 /*
@@ -41,7 +41,7 @@
   grid-template-areas:
     "media summary buy"
     "info info buy";
-  gap: 32px 40px;
+  gap: var(--space-8) var(--space-10);
   align-items: start;
 }
 
@@ -52,7 +52,7 @@
   place-items: center;
   aspect-ratio: 1;
   overflow: hidden;
-  border-radius: var(--radius-well);
+  border-radius: var(--radius-xl);
   background: var(--well-bg);
   box-shadow: var(--well-shadow);
 }
@@ -67,7 +67,7 @@
   width: 56px;
   height: 56px;
   fill: none;
-  stroke: var(--text-muted);
+  stroke: var(--color-text-muted);
   stroke-width: 1.25;
   stroke-linecap: round;
   opacity: 0.55;
@@ -77,35 +77,35 @@
   grid-area: summary;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-3);
   min-width: 0;
 }
 
 .top {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .category {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 2px 10px;
-  border: 1px solid var(--border-strong);
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--text);
-  font-size: 12px;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--text-xs);
 }
 
 /* Same two-tone aisle capsule as the product cards. */
 .capsule {
-  --cat: var(--text-muted);
+  --cat: var(--color-text-muted);
   width: 18px;
   height: 9px;
   border: 1.5px solid var(--cat);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: linear-gradient(90deg, var(--cat) 50%, transparent 50%);
 }
 
@@ -126,23 +126,23 @@
 }
 
 .brand {
-  font-size: 13px;
-  color: var(--text-muted);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
 }
 
 .name {
   margin: 0;
-  font-size: 28px;
-  font-weight: 700;
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
   letter-spacing: -0.02em;
   line-height: 1.2;
 }
 
 .description {
   max-width: 60ch;
-  font-size: 16px;
+  font-size: var(--text-base);
   line-height: 1.5;
-  color: var(--text-muted);
+  color: var(--color-text-muted);
 }
 
 /* The buy box: the one raised surface on the page, so the eye lands on it. */
@@ -152,12 +152,12 @@
   top: 24px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 22px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-  box-shadow: var(--shadow), var(--shadow-hover);
+  gap: var(--space-4);
+  padding: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-1), var(--shadow-2);
 }
 
 .priceRow {
@@ -165,63 +165,63 @@
   flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  gap: 4px 16px;
+  gap: var(--space-1) var(--space-4);
 }
 
 .price {
-  font-size: 32px;
-  font-weight: 700;
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-bold);
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
 
 .stock {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--accent);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  color: var(--color-accent);
 }
 
 .outOfStock {
-  color: var(--danger);
+  color: var(--color-danger);
 }
 
 .pack {
-  margin-top: -10px;
-  font-size: 13px;
-  color: var(--text-muted);
+  margin-top: calc(-1 * var(--space-3));
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
 }
 
 .rx {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 12px 14px;
-  border-radius: 14px;
-  background: var(--danger-soft);
-  font-size: 14px;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--color-danger-soft);
+  font-size: var(--text-md);
   line-height: 1.5;
 }
 
 .rx strong {
-  color: var(--danger);
+  color: var(--color-danger);
 }
 
 .service {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-2);
   margin: 0;
-  padding: 14px 0 0;
-  border-top: 1px solid var(--border);
+  padding: var(--space-4) 0 0;
+  border-top: 1px solid var(--color-border);
   list-style: none;
-  font-size: 13px;
-  color: var(--text-muted);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
 }
 
 .service li {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 /* A small capsule as the bullet, echoing the logo. */
@@ -230,49 +230,49 @@
   width: 12px;
   height: 6px;
   flex-shrink: 0;
-  border: 1.5px solid var(--accent);
-  border-radius: 999px;
-  background: linear-gradient(90deg, var(--accent) 50%, transparent 50%);
+  border: 1.5px solid var(--color-accent);
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, var(--color-accent) 50%, transparent 50%);
 }
 
 /* The facts read like the label on the side of the pack: short pairs in a compact grid. */
 .factsSection {
-  margin-top: 10px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border);
+  margin-top: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
 }
 
 .factsSection h2,
 .section h2,
 .warnings h2 {
-  margin-bottom: 10px;
-  font-size: 15px;
-  font-weight: 600;
+  margin-bottom: var(--space-3);
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
 }
 
 .facts {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 12px 24px;
+  gap: var(--space-3) var(--space-6);
   margin: 0;
-  font-size: 14px;
+  font-size: var(--text-md);
 }
 
 .facts div {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--space-1);
   min-width: 0;
 }
 
 .facts dt {
-  font-size: 13px;
-  color: var(--text-muted);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
 }
 
 .facts dd {
   margin: 0;
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   overflow-wrap: anywhere;
 }
 
@@ -280,36 +280,36 @@
   grid-area: info;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 24px 40px;
-  padding-top: 24px;
-  border-top: 1px solid var(--border-strong);
+  gap: var(--space-6) var(--space-10);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-border-strong);
 }
 
 /* Warnings span the full width and carry the caution colour, so they're read before the rest. */
 .warnings {
   grid-column: 1 / -1;
-  padding: 14px 16px;
-  border-left: 3px solid var(--caution);
-  border-radius: 0 12px 12px 0;
-  background: var(--caution-soft);
+  padding: var(--space-4) var(--space-4);
+  border-left: 3px solid var(--color-caution);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--color-caution-soft);
 }
 
 .warnings h2 {
-  color: var(--caution);
+  color: var(--color-caution);
 }
 
 .section p,
 .section li,
 .warnings p {
   max-width: 68ch;
-  font-size: 15px;
+  font-size: var(--text-base);
   line-height: 1.6;
-  color: var(--text-muted);
+  color: var(--color-text-muted);
 }
 
 .section ul {
   margin: 0;
-  padding-left: 20px;
+  padding-left: var(--space-5);
 }
 
 @media (max-width: 1000px) {
@@ -334,7 +334,7 @@
       "summary"
       "buy"
       "info";
-    gap: 24px;
+    gap: var(--space-6);
   }
 
   /* A short strip instead of a full-width square, so the name is on screen straight away. */
@@ -345,7 +345,7 @@
   }
 
   .name {
-    font-size: 24px;
+    font-size: var(--text-2xl);
   }
 
   .info {

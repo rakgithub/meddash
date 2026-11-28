@@ -3,28 +3,28 @@
   position: fixed;
   right: 24px;
   bottom: calc(24px + env(safe-area-inset-bottom));
-  z-index: 15;
+  z-index: var(--z-floating);
   display: flex;
   align-items: flex-end;
-  gap: 10px;
+  gap: var(--space-3);
   color: inherit;
   text-decoration: none;
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
 }
 
 .root:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--color-accent);
   outline-offset: 4px;
 }
 
 /* The bubble arrives a beat after the doctor, so it reads as the doctor speaking up. */
 .bubble {
   max-width: 240px;
-  margin-bottom: 30px;
-  border: 1px solid var(--border);
-  border-radius: 18px 18px 4px 18px;
-  background: var(--surface);
-  box-shadow: var(--shadow-hover);
+  margin-bottom: var(--space-8);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md) var(--radius-md) var(--radius-2xs) var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-2);
   animation: speak var(--duration-base) var(--ease-out) 900ms backwards;
   transition:
     border-color var(--duration-fast) var(--ease-in-out),
@@ -40,9 +40,9 @@
 
 /* Collapsed, the bubble becomes a pill level with the doctor's face. */
 .root[data-greeting="false"] .bubble {
-  margin-bottom: 22px;
-  border-color: var(--accent);
-  border-radius: var(--radius-control);
+  margin-bottom: var(--space-6);
+  border-color: var(--color-accent);
+  border-radius: var(--radius-pill);
 }
 
 .greeting,
@@ -59,23 +59,23 @@
 
 .greeting {
   flex-direction: column;
-  gap: 2px;
-  padding: 12px 14px;
-  font-size: 13px;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
   line-height: 1.45;
-  color: var(--text-muted);
+  color: var(--color-text-muted);
 }
 
 .greeting strong {
-  font-size: 14px;
-  color: var(--text);
+  font-size: var(--text-md);
+  color: var(--color-text);
 }
 
 .label {
-  padding: 8px 14px;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--accent);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
+  color: var(--color-accent);
   white-space: nowrap;
 }
 
@@ -86,7 +86,7 @@
   width: 76px;
   height: 76px;
   border-radius: 50%;
-  box-shadow: var(--shadow-hover);
+  box-shadow: var(--shadow-2);
   /* Backwards fill only: a held end state would override the hover transform below. */
   animation:
     pop var(--duration-slow) var(--ease-out) backwards,
@@ -125,9 +125,9 @@
 .disc {
   position: absolute;
   inset: 0;
-  border: 2px solid var(--accent);
+  border: 2px solid var(--color-accent);
   border-radius: 50%;
-  background: var(--accent-soft);
+  background: var(--color-accent-soft);
   clip-path: inset(-40px 0 0 0 round 0 0 38px 38px);
 }
 
@@ -137,7 +137,7 @@
   left: 50%;
   width: 84px;
   height: auto;
-  margin-left: -42px;
+  margin-left: calc(-1 * var(--space-10));
   transform-origin: 50% 100%;
   animation: breathe 3.6s var(--ease-in-out) infinite;
 }
@@ -162,7 +162,7 @@
   right: -14px;
   width: 30px;
   height: 30px;
-  fill: var(--accent);
+  fill: var(--color-accent);
   animation: twinkle 2.4s var(--ease-in-out) infinite;
 }
 
@@ -194,7 +194,7 @@
   }
 
   .root[data-greeting="false"] .bubble {
-    margin-bottom: 16px;
+    margin-bottom: var(--space-4);
   }
 
   .avatar {
@@ -208,7 +208,7 @@
 
   .doctor {
     width: 72px;
-    margin-left: -36px;
+    margin-left: calc(-1 * var(--space-10));
   }
 }
 

@@ -15,7 +15,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test:coverage": "vitest run --coverage",
-    "verify": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:coverage && pnpm build && pnpm test:e2e"
+    "check:tokens": "node ../../packages/design-system/scripts/check-tokens.mjs src",
+    "verify": "pnpm lint && pnpm check:tokens && pnpm format:check && pnpm typecheck && pnpm test:coverage && pnpm build && pnpm test:e2e"
   },
   "dependencies": {
     "@meddash/design-system": "workspace:*",

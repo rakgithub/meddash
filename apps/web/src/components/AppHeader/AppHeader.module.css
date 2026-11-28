@@ -1,25 +1,25 @@
 .header {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .inner {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px 24px;
+  gap: var(--space-3) var(--space-6);
   max-width: 1120px;
   margin: 0 auto;
-  padding: 18px 20px;
+  padding: var(--space-5) var(--space-5);
 }
 
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  color: var(--text);
-  font-size: 20px;
-  font-weight: 700;
+  gap: var(--space-3);
+  color: var(--color-text);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
   letter-spacing: -0.02em;
   text-decoration: none;
 }
@@ -31,16 +31,16 @@
 }
 
 .capsuleLeft {
-  fill: var(--accent);
+  fill: var(--color-accent);
 }
 
 .capsuleRight {
-  fill: var(--accent-soft);
+  fill: var(--color-accent-soft);
 }
 
 .capsuleOutline {
   fill: none;
-  stroke: var(--accent);
+  stroke: var(--color-accent);
   stroke-width: 2;
 }
 
@@ -60,8 +60,8 @@
   /* Actions that don't fit beside the logo wrap to the right. */
   .inner {
     justify-content: flex-end;
-    column-gap: 8px;
-    padding-block: 14px;
+    column-gap: var(--space-2);
+    padding-block: var(--space-4);
   }
 
   .brand {

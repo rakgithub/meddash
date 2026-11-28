@@ -1,9 +1,9 @@
 .footer {
-  margin-top: 48px;
-  border-top: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text-muted);
-  font-size: 14px;
+  margin-top: var(--space-12);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: var(--text-md);
 }
 
 /* The one loud thing in the footer: a tinted panel pulled up over the border, with a giant capsule. */
@@ -13,54 +13,54 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 16px 32px;
+  gap: var(--space-4) var(--space-8);
   max-width: 1080px;
-  margin: -40px auto 0;
-  padding: 32px 220px 32px 36px;
+  margin: calc(-1 * var(--space-10)) auto 0;
+  padding: var(--space-8) 220px var(--space-8) var(--space-10); /* token-exempt: room for the doctor illustration */
   overflow: hidden;
-  border: 1px solid var(--accent);
-  border-radius: var(--radius);
-  background: var(--accent-soft);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  background: var(--color-accent-soft);
 }
 
 .askText {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-2);
   max-width: 46ch;
 }
 
 .askText h2 {
-  color: var(--text);
-  font-size: 24px;
-  font-weight: 700;
+  color: var(--color-text);
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
   letter-spacing: -0.02em;
   line-height: 1.2;
 }
 
 .askText p {
-  font-size: 15px;
+  font-size: var(--text-base);
   line-height: 1.5;
 }
 
 .askButton {
   position: relative;
-  z-index: 1;
+  z-index: var(--z-raised);
   display: inline-flex;
   align-items: center;
   height: 44px;
-  padding: 0 22px;
-  border-radius: var(--radius-control);
-  background: var(--accent);
-  color: var(--on-accent);
-  font-size: 15px;
-  font-weight: 600;
+  padding: 0 var(--space-6);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
   text-decoration: none;
   white-space: nowrap;
 }
 
 .askButton:hover {
-  background: var(--accent-hover);
+  background: var(--color-accent-hover);
 }
 
 .askCapsule {
@@ -74,28 +74,28 @@
 }
 
 .capsuleLeft {
-  fill: var(--accent);
+  fill: var(--color-accent);
 }
 
 .capsuleRight {
   fill: none;
-  stroke: var(--accent);
+  stroke: var(--color-accent);
   stroke-width: 1.5;
 }
 
 .inner {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 32px 48px;
+  gap: var(--space-8) var(--space-12);
   max-width: 1120px;
   margin: 0 auto;
-  padding: 40px 20px 32px;
+  padding: var(--space-10) var(--space-5) var(--space-8);
 }
 
 .about {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-3);
   max-width: 40ch;
   line-height: 1.5;
 }
@@ -103,10 +103,10 @@
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  color: var(--text);
-  font-size: 18px;
-  font-weight: 700;
+  gap: var(--space-2);
+  color: var(--color-text);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
   letter-spacing: -0.02em;
 }
 
@@ -118,18 +118,18 @@
 .promises {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin: 4px 0 0;
+  gap: var(--space-2);
+  margin: var(--space-1) 0 0;
   padding: 0;
   list-style: none;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 /* A small capsule as the bullet, like the buy box. */
 .promises li {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .promises li::before {
@@ -137,28 +137,28 @@
   width: 12px;
   height: 6px;
   flex-shrink: 0;
-  border: 1.5px solid var(--accent);
-  border-radius: 999px;
-  background: linear-gradient(90deg, var(--accent) 50%, transparent 50%);
+  border: 1.5px solid var(--color-accent);
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, var(--color-accent) 50%, transparent 50%);
 }
 
 .links {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 24px;
+  gap: var(--space-6);
 }
 
 .links h2 {
-  margin-bottom: 12px;
-  color: var(--text);
-  font-size: 14px;
-  font-weight: 600;
+  margin-bottom: var(--space-3);
+  color: var(--color-text);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
 }
 
 .links ul {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-2);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -167,19 +167,19 @@
 .links a {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  color: var(--text-muted);
+  gap: var(--space-2);
+  color: var(--color-text-muted);
   text-decoration: none;
 }
 
 .links a:hover {
-  color: var(--accent);
+  color: var(--color-accent);
   text-decoration: underline;
 }
 
 /* Each aisle keeps its capsule colour from the product cards. */
 .dot {
-  --cat: var(--text-muted);
+  --cat: var(--color-text-muted);
   width: 8px;
   height: 8px;
   border-radius: 50%;
@@ -207,12 +207,12 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: 8px 32px;
+  gap: var(--space-2) var(--space-8);
   max-width: 1120px;
   margin: 0 auto;
-  padding: 16px 20px 24px;
-  border-top: 1px solid var(--border);
-  font-size: 13px;
+  padding: var(--space-4) var(--space-5) var(--space-6);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--text-sm);
   line-height: 1.5;
 }
 
@@ -223,17 +223,17 @@
 /* Below the page width the panel keeps a gutter instead of touching the window edges. */
 @media (max-width: 1120px) {
   .ask {
-    margin-inline: 20px;
+    margin-inline: var(--space-5);
   }
 }
 
 @media (max-width: 720px) {
   .ask {
-    padding: 24px 20px 88px;
+    padding: var(--space-6) var(--space-5) 88px; /* token-exempt: room for the doctor illustration */
   }
 
   .askText h2 {
-    font-size: 20px;
+    font-size: var(--text-xl);
   }
 
   .askCapsule {
@@ -245,10 +245,10 @@
 
   .inner {
     grid-template-columns: minmax(0, 1fr);
-    padding-top: 32px;
+    padding-top: var(--space-8);
   }
 
   .buyBar {
-    padding-bottom: 72px;
+    padding-bottom: var(--space-18);
   }
 }
