@@ -10,7 +10,7 @@ const sse = (parts: unknown[]) =>
   parts.map((part) => `data: ${JSON.stringify(part)}\n\n`).join("") + "event: done\ndata: {}\n\n";
 
 /**
- * Stands in for the model behind POST /api/assistant/messages and /compare, which cost money per call and need an
+ * Stands in for the model behind POST /api/assistant/messages, which costs money per call and needs an
  * API key. It answers in the real SSE format with real catalogue products, so everything from the
  * browser's stream parsing to the cards is exercised; the server's own turn logic has its own tests.
  */
@@ -57,15 +57,6 @@ async function fakeAssistant(page: Page) {
     }
     await route.fulfill({ contentType: "text/event-stream", body: sse(parts) });
   });
-  // Compare questions go to the model too; this answers the stomach question as it would.
-  await page.route("**/api/assistant/compare", async (route) => {
-    const parts = [
-      { kind: "text", text: "Paracetamol 500mg is gentler. " },
-      { kind: "text", text: "Ibuprofen 400mg has a stomach warning." },
-      { kind: "row", row: "warnings" },
-    ];
-    await route.fulfill({ contentType: "text/event-stream", body: sse(parts) });
-  });
 }
 
 test.describe("Symptom assistant", () => {
@@ -87,7 +78,7 @@ test.describe("Symptom assistant", () => {
     await page.getByRole("button", { name: "Log in" }).click();
 
     await expect(page).toHaveURL(/\/assistant$/);
-    await expect(page.getByRole("heading", { name: "What’s bothering you today?" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "How are you feeling today?" })).toBeVisible();
   });
 
   test("opens from the products page with the search text and answers a starter prompt", async ({
@@ -104,110 +95,32 @@ test.describe("Symptom assistant", () => {
 
     await page.getByRole("button", { name: "Hay fever" }).click();
 
-    await expect(page.getByRole("list", { name: "What I noted" })).toContainText("Hay fever");
+    await expect(page.getByRole("list", { name: "Conversation" })).toContainText("Hay fever");
     await expect(page.getByRole("button", { name: "Since today" })).toBeVisible();
-  });
-
-  test("starts from a body area: tap throat, pick a symptom, see suggestions", async ({ page }) => {
-    await page.goto("/assistant");
-
-    await page.getByRole("button", { name: "Nose and throat" }).click();
-    await page.getByRole("button", { name: "Sore throat" }).click();
-    await expect(page.getByRole("complementary", { name: "Your consultation" })).toContainText(
-      "Sore throat",
-    );
-    await page.getByRole("button", { name: "2–3 days" }).click();
-    await page.getByRole("button", { name: "Me", exact: true }).click();
-
-    await expect(
-      page.getByRole("list", { name: "Suggested products" }).getByRole("article", {
-        name: "Ibuprofen 400mg",
-      }),
-    ).toBeVisible({ timeout: 15_000 });
   });
 
   test("asks two questions, then suggests real products that open their page", async ({ page }) => {
     await page.goto("/assistant");
 
-    await page.getByRole("button", { name: "Sore throat and fever" }).click();
+    await page.getByRole("button", { name: "Dry cough" }).click();
     await page.getByRole("button", { name: "2–3 days" }).click();
     await page.getByRole("button", { name: "Me", exact: true }).click();
 
     const suggestions = page.getByRole("list", { name: "Suggested products" });
     await expect(suggestions.getByRole("article", { name: "Ibuprofen 400mg" })).toContainText(
-      "Best fit",
+      "Brings fever down",
       { timeout: 15_000 },
     );
-    // Prescription-only products sit apart from the real options.
-    await expect(
-      page
-        .getByRole("region", { name: "Also used for this, with a prescription" })
-        .getByRole("article", { name: "Cough Syrup" }),
-    ).toContainText("Needs a prescription");
+    // Prescription-only products are listed after the ones that can be bought.
+    await expect(suggestions.getByRole("article").last()).toHaveAccessibleName("Cough Syrup");
+    await expect(suggestions.getByRole("article", { name: "Cough Syrup" })).toContainText(
+      "Needs a prescription",
+    );
 
     await suggestions.getByRole("link", { name: "Ibuprofen 400mg" }).click();
 
     await expect(page).toHaveURL(/\/products\/1$/);
     await expect(page.getByRole("heading", { name: "Ibuprofen 400mg" })).toBeVisible();
-  });
-
-  test("refines the suggestions from the case file and rules a product out", async ({ page }) => {
-    await page.goto("/assistant");
-
-    await page.getByRole("button", { name: "Sore throat and fever" }).click();
-    await page.getByRole("button", { name: "2–3 days" }).click();
-    await page.getByRole("button", { name: "Me", exact: true }).click();
-    const ibuprofen = page.getByRole("article", { name: "Ibuprofen 400mg" });
-    await expect(ibuprofen).toBeVisible({ timeout: 15_000 });
-
-    // Who it is for changes, so the assistant answers again.
-    await page.getByRole("combobox", { name: "Who it’s for" }).selectOption("A child");
-    await expect(page.getByRole("list", { name: "Conversation" })).toContainText(
-      "Changed who it’s for to A child",
-    );
-    await expect(page.getByRole("article", { name: "Ibuprofen 400mg" })).toHaveCount(2, {
-      timeout: 15_000,
-    });
-
-    // "Not for me" drops the card and notes the reason in the case file.
-    await page
-      .getByRole("article", { name: "Ibuprofen 400mg" })
-      .last()
-      .getByRole("button", { name: "Not for me" })
-      .click();
-    await page.getByRole("button", { name: "Too expensive" }).click();
-    await expect(page.getByRole("article", { name: "Ibuprofen 400mg" })).toHaveCount(0);
-    await expect(page.getByRole("list", { name: "Avoiding" })).toContainText("Expensive options");
-  });
-
-  test("compares the shortlist in a drawer, answers a question and closes on Escape", async ({
-    page,
-  }) => {
-    await page.goto("/assistant");
-
-    await page.getByRole("button", { name: "Sore throat and fever" }).click();
-    await page.getByRole("button", { name: "2–3 days" }).click();
-    await page.getByRole("button", { name: "Me", exact: true }).click();
-    const compare = page.getByRole("button", { name: "Compare" });
-    await expect(compare).toBeVisible({ timeout: 15_000 });
-
-    await compare.click();
-
-    const drawer = page.getByRole("dialog", { name: "Compare products" });
-    await expect(drawer.getByRole("columnheader", { name: /Ibuprofen 400mg/ })).toBeVisible();
-    await expect(drawer.getByRole("columnheader", { name: /Paracetamol 500mg/ })).toBeVisible();
-
-    await drawer.getByRole("button", { name: "Which is gentler on the stomach?" }).click();
-    await expect(drawer.getByRole("status")).toContainText("Ibuprofen 400mg has a stomach warning");
-    await expect(drawer.getByRole("row", { name: /Warnings/ })).toHaveAttribute(
-      "aria-current",
-      "true",
-    );
-
-    await page.keyboard.press("Escape");
-
-    await expect(drawer).toHaveCount(0);
-    await expect(compare).toBeFocused();
   });
 
   test("an urgent symptom gets a doctor alert instead of products", async ({ page }) => {
@@ -224,9 +137,8 @@ test.describe("Symptom assistant", () => {
     await expect(box).toHaveCount(0);
 
     await page.getByRole("button", { name: "Start over" }).click();
-    await page.getByRole("button", { name: "Yes, clear it" }).click();
 
-    await expect(page.getByRole("heading", { name: "What’s bothering you today?" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "How are you feeling today?" })).toBeVisible();
   });
 
   test("stops a reply that is streaming", async ({ page }) => {

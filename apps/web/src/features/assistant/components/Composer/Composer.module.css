@@ -1,12 +1,12 @@
+/* A rounded field with the send button inside it; it grows with the text up to a few lines. */
 .composer {
   display: flex;
   align-items: flex-end;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-2) var(--space-2) var(--space-5);
-  border: 1.5px solid var(--color-input-border);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-input-border);
+  border-radius: var(--radius-xl);
   background: var(--color-surface);
-  box-shadow: var(--shadow-2);
 }
 
 /* The ring sits on the whole box, so the buttons inside it read as part of the field. */
@@ -27,6 +27,7 @@
 .grow::after,
 .input {
   grid-area: 1 / 1;
+  /* One line sits level with the send button beside it. */
   padding: var(--space-2) 0;
   font: inherit;
   font-size: var(--text-base);

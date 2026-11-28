@@ -3,16 +3,16 @@
   max-width: 100%;
 }
 
+/* The one action the assistant offers besides its suggestions: a filled pill, as in the chat design. */
 .toggle {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  min-height: 36px;
-  padding: 0 var(--space-4);
-  border: 1.5px solid var(--color-border-strong);
+  min-height: var(--tap-target);
+  padding: 0 var(--space-5);
   border-radius: var(--radius-pill);
-  background: var(--color-surface);
-  color: var(--color-text);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
   font-size: var(--text-md);
   font-weight: var(--weight-semibold);
   cursor: pointer;
@@ -23,31 +23,21 @@
   display: none;
 }
 
-.toggle::after {
-  content: "";
-  width: 6px;
-  height: 6px;
-  margin-left: var(--space-1);
-  border-right: 1.5px solid currentColor;
-  border-bottom: 1.5px solid currentColor;
-  transform: translateY(-2px) rotate(45deg);
-}
-
-.contact[open] .toggle::after {
-  transform: translateY(1px) rotate(-135deg);
-}
-
 .toggle:hover {
-  border-color: var(--color-accent);
-  background: var(--color-accent-soft);
+  background: var(--color-accent-hover);
+}
+
+.toggle:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
 .card {
-  margin-top: var(--space-2);
-  padding: var(--space-4) var(--space-4);
+  margin-top: var(--space-3);
+  padding: var(--space-4);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-raised);
 }
 
 .lead {

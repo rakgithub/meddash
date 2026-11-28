@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { SafetyAlert } from "./SafetyAlert";
 
 describe("SafetyAlert", () => {
-  it("announces the alert with its title and what to do", () => {
+  it("announces an urgent alert with its title and what to do", () => {
     render(
       <SafetyAlert level="urgent" title="This needs a doctor now" body="Call 112 or your GP." />,
     );
@@ -13,11 +13,12 @@ describe("SafetyAlert", () => {
     expect(screen.getByRole("heading", { name: "This needs a doctor now" })).toBeInTheDocument();
   });
 
-  it("shows a caution the same way", () => {
-    render(<SafetyAlert level="caution" title="Check first" body="Ask a pharmacist." />);
+  it("shows a caution as one announced line, without a heading", () => {
+    render(<SafetyAlert level="caution" title="Check first." body="Ask a pharmacist." />);
 
-    expect(screen.getByRole("alert", { name: "Check first" })).toHaveTextContent(
-      "Ask a pharmacist.",
+    expect(screen.getByRole("alert", { name: "Check first." })).toHaveTextContent(
+      "Check first. Ask a pharmacist.",
     );
+    expect(screen.queryByRole("heading")).not.toBeInTheDocument();
   });
 });

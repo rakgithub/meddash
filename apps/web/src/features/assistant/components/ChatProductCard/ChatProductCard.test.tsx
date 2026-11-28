@@ -1,6 +1,5 @@
 import { screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { coughSyrupDetail, ibuprofenDetail } from "../../../../test/fixtures";
 import { renderWithRouter } from "../../../../test/renderWithRouter";
 import { ChatProductCard } from "./ChatProductCard";
@@ -8,27 +7,24 @@ import { ChatProductCard } from "./ChatProductCard";
 const n = (s: string | null) => s?.replace(/\s/g, " ");
 
 describe("ChatProductCard", () => {
-  it("shows the product with its form, price, stock and why it was picked", () => {
+  it("shows the product's name as a link, why it was picked and its price", () => {
     renderWithRouter(
       <ChatProductCard
         recommendation={{ product: ibuprofenDetail, reason: "Brings fever down", fit: "best" }}
       />,
     );
 
-    const card = screen.getByRole("article", { name: "Ibuprofen 400mg" });
-    expect(card).toHaveTextContent("Best fit");
-    expect(card).toHaveTextContent("Nurofen");
-    expect(card).toHaveTextContent("Film-coated tablet");
-    expect(card).toHaveTextContent("Why this? Brings fever down");
-    expect(n(card.textContent)).toContain("6,49 €");
-    expect(card).toHaveTextContent("In stock");
+    const row = screen.getByRole("article", { name: "Ibuprofen 400mg" });
+    expect(row).toHaveTextContent("Brings fever down");
+    expect(n(row.textContent)).toContain("6,49 €");
+    expect(row).not.toHaveTextContent("In stock");
     expect(screen.getByRole("link", { name: "Ibuprofen 400mg" })).toHaveAttribute(
       "href",
       "/products/1",
     );
   });
 
-  it("shows a caution row when a warning concerns who it is for", () => {
+  it("shows a caution when a warning concerns who it is for", () => {
     renderWithRouter(
       <ChatProductCard
         recommendation={{
@@ -40,88 +36,42 @@ describe("ChatProductCard", () => {
       />,
     );
 
-    expect(screen.getByRole("article", { name: "Ibuprofen 400mg" })).toHaveTextContent(
+    expect(screen.getByRole("article")).toHaveTextContent(
       "Check first: Not suitable for children under 6 years.",
     );
   });
 
-  it("shows low stock", () => {
-    renderWithRouter(
+  it("says when stock is low or gone", () => {
+    const { rerender } = renderWithRouter(
       <ChatProductCard
         recommendation={{
-          product: { ...ibuprofenDetail, stockQuantity: 2 },
+          product: { ...ibuprofenDetail, stockQuantity: 3 },
           reason: "",
           fit: "good",
         }}
       />,
     );
+    expect(screen.getByRole("article")).toHaveTextContent("Only 3 left");
 
-    expect(screen.getByText("Only 2 left")).toBeInTheDocument();
-    expect(screen.queryByText("Best fit")).not.toBeInTheDocument();
-  });
-
-  it("asks about an ingredient when its pill is tapped", async () => {
-    const onAskIngredient = vi.fn();
-    renderWithRouter(
+    rerender(
       <ChatProductCard
-        recommendation={{ product: ibuprofenDetail, reason: "", fit: "good" }}
-        onAskIngredient={onAskIngredient}
+        recommendation={{
+          product: { ...ibuprofenDetail, stockQuantity: 0 },
+          reason: "",
+          fit: "good",
+        }}
       />,
     );
-
-    await userEvent.click(screen.getByRole("button", { name: "Ask about Ibuprofen" }));
-
-    expect(onAskIngredient).toHaveBeenCalledWith("Ibuprofen");
+    expect(screen.getByRole("article")).toHaveTextContent("Out of stock");
   });
 
-  it("shows ingredients as plain text when asking isn't possible", () => {
-    renderWithRouter(
-      <ChatProductCard recommendation={{ product: ibuprofenDetail, reason: "", fit: "good" }} />,
-    );
-
-    expect(screen.getByRole("list", { name: "Active ingredients" })).toHaveTextContent("Ibuprofen");
-    expect(screen.queryByRole("button", { name: /Ask about/ })).not.toBeInTheDocument();
-  });
-
-  it("locks a prescription-only product and offers the prescription upload", () => {
+  it("shows that a prescription-only product needs a prescription, without a price", () => {
     renderWithRouter(
       <ChatProductCard recommendation={{ product: coughSyrupDetail, reason: "", fit: "locked" }} />,
     );
 
-    expect(screen.getByText("Needs a prescription")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Upload prescription" })).toBeInTheDocument();
-    expect(screen.queryByText("In stock")).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Cough Syrup" })).toHaveAttribute(
-      "href",
-      "/products/7",
-    );
-  });
-
-  describe("Not for me", () => {
-    const recommendation = {
-      product: ibuprofenDetail,
-      reason: "Brings fever down",
-      fit: "good" as const,
-    };
-
-    it("is not offered on a read-only card", () => {
-      renderWithRouter(<ChatProductCard recommendation={recommendation} />);
-
-      expect(screen.queryByRole("button", { name: "Not for me" })).not.toBeInTheDocument();
-    });
-
-    it("asks why, then reports the reason", async () => {
-      const onDismiss = vi.fn();
-      renderWithRouter(<ChatProductCard recommendation={recommendation} onDismiss={onDismiss} />);
-      const toggle = screen.getByRole("button", { name: "Not for me" });
-      expect(toggle).toHaveAttribute("aria-expanded", "false");
-
-      await userEvent.click(toggle);
-
-      const reasons = screen.getByRole("list", { name: "Why not?" });
-      expect(reasons.textContent).toBe("Too expensiveI don’t swallow tabletsAlready triedOther");
-      await userEvent.click(screen.getByRole("button", { name: "Too expensive" }));
-      expect(onDismiss).toHaveBeenCalledWith("Too expensive");
-    });
+    const row = screen.getByRole("article", { name: "Cough Syrup" });
+    expect(row).toHaveTextContent("Needs a prescription");
+    expect(n(row.textContent)).not.toContain("€");
   });
 });

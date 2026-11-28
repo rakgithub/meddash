@@ -1,4 +1,3 @@
-import type { ProductDetail } from "../../products";
 import { FOR_WHOM, type CaseField, type CaseFile, type ForWhom, type QuickReply } from "../types";
 
 export const emptyCaseFile: CaseFile = { symptoms: [], duration: null, forWhom: null, avoid: [] };
@@ -39,28 +38,3 @@ export const FOR_WHOM_OPTIONS: QuickReply[] = [
   { label: "Someone pregnant", value: "pregnant" },
   { label: "Someone over 65", value: "senior" },
 ];
-
-/** The "avoid" entry that hides tablets and capsules from every suggestion. */
-export const AVOID_TABLETS = "Tablets";
-
-export const DISMISS_REASONS = [
-  "Too expensive",
-  "I don’t swallow tablets",
-  "Already tried",
-  "Other",
-] as const;
-export type DismissReason = (typeof DISMISS_REASONS)[number];
-
-/** What "Not for me" adds to the case file's `avoid` list for a product and the reason given. */
-export function avoidFor(reason: DismissReason, product: ProductDetail): string {
-  switch (reason) {
-    case "Too expensive":
-      return "Expensive options";
-    case "I don’t swallow tablets":
-      return AVOID_TABLETS;
-    case "Already tried":
-      return `Already tried ${product.name}`;
-    case "Other":
-      return `Not ${product.name}`;
-  }
-}

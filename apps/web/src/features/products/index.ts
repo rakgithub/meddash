@@ -15,6 +15,6 @@ export { fetchProduct } from "./api/fetchProduct";
 export { CATEGORIES } from "./filterOptions";
 export { formatCategory } from "./utils/formatCategory";
 export { formatPrice } from "./utils/formatPrice";
-export { formatStock } from "./utils/formatStock";
+export { formatStock, LOW_STOCK_THRESHOLD } from "./utils/formatStock";
 export { SHOP_PATH } from "./hooks/useSearchQuery";
 export { hasCatalogueParams } from "./utils/hasCatalogueParams";

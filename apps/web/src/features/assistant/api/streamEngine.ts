@@ -1,6 +1,5 @@
 import { ApiError, apiPostStream } from "../../../lib/apiClient";
 import type { AssistantEngine, HistoryMessage, Message, MessagePart } from "../types";
-import { regionFromMessage } from "../utils/bodyRegions";
 import { messageText } from "../utils/consultationReducer";
 import { redFlagAlert } from "../utils/redFlags";
 
@@ -185,19 +184,6 @@ export const streamEngine: AssistantEngine = async function* ({
     yield alert;
     return;
   }
-  // An area chip has a fixed answer: its common symptoms to pick from. No model call needed.
-  const region = regionFromMessage(userText);
-  if (region) {
-    yield { kind: "text", text: "Thanks. Pick what fits best; you can add more afterwards." };
-    yield {
-      kind: "quickReplies",
-      question: `What’s going on with your ${region.label.toLowerCase()}?`,
-      field: "symptoms",
-      options: region.symptoms.map((symptom) => ({ label: symptom, value: symptom })),
-    };
-    return;
-  }
-
   const body = await postAssistant(
     "/assistant/messages",
     { caseFile, history: condenseHistory(history), userText },

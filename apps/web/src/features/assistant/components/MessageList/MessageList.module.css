@@ -1,7 +1,7 @@
 .list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-8);
+  gap: var(--space-5);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -12,10 +12,11 @@
   justify-content: flex-end;
 }
 
+/* The user's words in an accent bubble; the assistant's are plain text on the page. */
 .bubble {
-  max-width: min(80%, 520px);
+  max-width: 78%;
   padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-md) var(--radius-md) var(--radius-2xs);
+  border-radius: var(--radius-xl) var(--radius-xl) var(--radius-2xs) var(--radius-xl);
   background: var(--color-accent);
   color: var(--color-on-accent);
   font-size: var(--text-base);
@@ -24,87 +25,26 @@
   overflow-wrap: anywhere;
 }
 
-/* The assistant's face beside each reply, so it reads as someone talking, not a printout. */
-.turn {
-  display: grid;
-  grid-template-columns: 36px minmax(0, 1fr);
-  align-items: start;
-  gap: var(--space-3);
-}
-
 .reply {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-3);
   min-width: 0;
-  padding: var(--space-4) var(--space-5);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-2xs) var(--radius-md) var(--radius-md);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-1);
-}
-
-/* Three dots that rise in turn while the assistant works out its reply. */
-.typing {
-  display: flex;
-  gap: var(--space-1);
-  padding: var(--space-2) 0;
-}
-
-.typing span[aria-hidden] {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--color-accent);
-  animation: bounce 1.1s var(--ease-in-out) infinite;
-}
-
-.typing span[aria-hidden]:nth-child(2) {
-  animation-delay: 0.15s;
-}
-
-.typing span[aria-hidden]:nth-child(3) {
-  animation-delay: 0.3s;
-}
-
-@keyframes bounce {
-  0%,
-  60%,
-  100% {
-    opacity: 0.4;
-    transform: none;
-  }
-
-  30% {
-    opacity: 1;
-    transform: translateY(-4px);
-  }
-}
-
-/* The advice on when to get medical help, set apart in the caution colour. */
-.doctor {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  padding: var(--space-3) var(--space-4);
-  border-left: 3px solid var(--color-caution);
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  background: var(--color-caution-soft);
-}
-
-.doctorTitle {
-  font-size: var(--text-md);
-  font-weight: var(--weight-bold);
-  color: var(--color-caution);
 }
 
 .text {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  max-width: 62ch;
   font-size: var(--text-base);
-  line-height: 1.6;
+  line-height: 1.65;
+}
+
+/* The advice on when to get medical help, in the caution colour like the caution line. */
+.doctor {
+  font-size: var(--text-md);
+  line-height: 1.5;
+  color: var(--color-caution);
 }
 
 /* A caret after the last word shows the reply is still being written. */
@@ -125,7 +65,29 @@
   }
 }
 
-.waiting,
+/* Two rows side by side when there is room, one per line on a phone. */
+.products {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.skeleton {
+  height: 66px;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-raised);
+  animation: pulse 1.4s var(--ease-in-out) infinite;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
 .note {
   font-size: var(--text-md);
   color: var(--color-text-muted);
@@ -140,45 +102,9 @@
   color: var(--color-danger);
 }
 
-.retry {
-  height: 32px;
-  padding: 0 var(--space-3);
-  border: 1.5px solid var(--color-border-strong);
-  border-radius: var(--radius-pill);
-  background: var(--color-surface);
-  color: var(--color-text);
-  font: inherit;
-  font-size: var(--text-sm);
-  font-weight: var(--weight-semibold);
-  cursor: pointer;
-}
-
-.retry:hover {
-  background: var(--color-bg);
-}
-
-.avatar {
-  display: flex;
-}
-
-/* On a phone the width goes to the reply; the header above already shows who is talking. */
-@media (max-width: 720px) {
-  .turn {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .avatar {
-    display: none;
-  }
-
-  .reply {
-    padding: var(--space-4);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .streaming .text:last-child p:last-child::after,
-  .typing span[aria-hidden] {
+  .skeleton {
     animation: none;
   }
 }

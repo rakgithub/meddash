@@ -1,4 +1,5 @@
 import { Notice } from "@meddash/design-system/components";
+import { useId } from "react";
 import styles from "./SafetyAlert.module.css";
 
 interface SafetyAlertProps {
@@ -13,20 +14,30 @@ const PHONE = (
 );
 
 /**
- * For when the assistant should not recommend. Calm on purpose: it says what to do, not how worried
- * to be. `role="alert"` so a screen reader announces it as soon as it appears.
+ * For when the assistant should not simply recommend. Urgent gets a full notice; a caution is one line
+ * in the caution colour, part of the reply. Calm on purpose: it says what to do, not how worried to be.
+ * `role="alert"` so a screen reader announces either as soon as it appears.
  */
 export function SafetyAlert({ level, title, body }: SafetyAlertProps) {
-  const urgent = level === "urgent";
+  const titleId = useId();
+
+  if (level === "caution") {
+    return (
+      <div className={`${styles.appear} ${styles.caution}`} role="alert" aria-labelledby={titleId}>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 3 2 20h20z" />
+          <path d="M12 10v4M12 17h.01" />
+        </svg>
+        <p>
+          <strong id={titleId}>{title}</strong> {body}
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.appear}>
-      <Notice
-        tone={urgent ? "danger" : "caution"}
-        icon={urgent ? PHONE : undefined}
-        title={title}
-        headingLevel={3}
-        role="alert"
-      >
+      <Notice tone="danger" icon={PHONE} title={title} headingLevel={3} role="alert">
         {body}
       </Notice>
     </div>

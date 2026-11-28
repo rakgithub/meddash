@@ -72,7 +72,6 @@ export function Composer({
       ) : (
         <IconButton
           variant="primary"
-          size="sm"
           type="submit"
           label="Send"
           disabled={!canSend}

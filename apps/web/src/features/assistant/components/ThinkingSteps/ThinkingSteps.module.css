@@ -1,134 +1,53 @@
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  font-size: var(--text-md);
-}
-
-.list li {
+.typing {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  transition: color var(--duration-base) var(--ease-in-out);
+  min-height: 24px;
 }
 
-.done {
-  color: var(--color-text-muted);
-}
-
-.current {
-  color: var(--color-text);
-  font-weight: var(--weight-medium);
-}
-
-.pending {
-  color: var(--color-text-muted);
-  opacity: 0.6;
-}
-
-/* A small dose cup: hollow while waiting, filled with a tick once the check is done. */
-.marker {
-  display: inline-grid;
-  place-items: center;
-  width: 16px;
-  height: 16px;
-  border: 1.5px solid var(--color-border-strong);
-  border-radius: 50%;
-  flex-shrink: 0;
-  transition:
-    background var(--duration-base) var(--ease-in-out),
-    border-color var(--duration-base) var(--ease-in-out);
-}
-
-.marker svg {
-  width: 10px;
-  height: 10px;
-  fill: none;
-  stroke: var(--color-on-accent);
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.done .marker {
-  border-color: var(--color-accent);
-  background: var(--color-accent);
-}
-
-.current .marker {
-  border-color: var(--color-accent);
-  border-top-color: transparent;
-  animation: spin 0.9s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.summary {
+/* Three dots that rise in turn. */
+.dots {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-1);
 }
 
-.summary .list {
-  padding-left: var(--space-6);
+.dots span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-text-secondary);
+  animation: bounce 1.1s var(--ease-in-out) infinite;
 }
 
-.toggle {
-  display: inline-flex;
-  align-items: center;
-  align-self: flex-start;
-  gap: var(--space-2);
-  padding: var(--space-1) var(--space-3) var(--space-1) var(--space-2);
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: var(--color-accent-soft);
-  color: var(--color-text);
-  font: inherit;
+.dots span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.dots span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.label {
   font-size: var(--text-sm);
-  font-weight: var(--weight-medium);
-  cursor: pointer;
-}
-
-.toggle:hover {
-  background: var(--color-accent-soft-hover);
-}
-
-.count {
   color: var(--color-text-muted);
-  font-weight: var(--weight-regular);
 }
 
-.chevron {
-  width: 12px;
-  height: 12px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  transition: transform var(--duration-fast) var(--ease-in-out);
-}
+@keyframes bounce {
+  0%,
+  60%,
+  100% {
+    opacity: 0.4;
+    transform: none;
+  }
 
-.toggle[aria-expanded="true"] .chevron {
-  transform: rotate(90deg);
+  30% {
+    opacity: 1;
+    transform: translateY(-4px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .current .marker {
+  .dots span {
     animation: none;
-    border-top-color: var(--color-accent);
-  }
-
-  .list li,
-  .marker,
-  .chevron {
-    transition: none;
   }
 }

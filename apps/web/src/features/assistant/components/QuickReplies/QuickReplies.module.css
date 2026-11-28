@@ -1,16 +1,13 @@
-/* The open question: its own tinted card inside the reply, so it's clear something is being asked. */
 .root {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  padding: var(--space-4);
-  border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--color-accent-soft) 60%, var(--color-surface));
 }
 
+/* The question reads as part of the reply, the same as its text. */
 .question {
   font-size: var(--text-base);
-  font-weight: var(--weight-semibold);
+  line-height: 1.65;
 }
 
 .options {
@@ -22,21 +19,16 @@
   list-style: none;
 }
 
-/* Matches the accent chip it replaces once the question is answered. */
+/* Past options fade back so only the current question asks for attention. */
 .answered {
   display: inline-flex;
   align-items: center;
   min-height: var(--tap-target);
   padding: 0 var(--space-4);
-  border: 1.5px solid var(--color-accent);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
   font-size: var(--text-md);
   font-weight: var(--weight-medium);
-}
-
-/* Past questions fade back so only the current one asks for attention. */
-.answered {
-  border-color: var(--color-border);
   color: var(--color-text-muted);
 }
 
@@ -46,7 +38,7 @@
   color: var(--color-text);
 }
 
-/* An answered question: one line with a tick, the question muted and the answer in bold. */
+/* An answered question: one quiet line, the question muted and the answer after it. */
 .folded {
   display: flex;
   flex-wrap: wrap;
@@ -62,11 +54,8 @@
 .tick {
   width: 16px;
   height: 16px;
-  padding: var(--space-1);
-  border-radius: 50%;
-  background: var(--color-accent);
   fill: none;
-  stroke: var(--color-on-accent);
+  stroke: var(--color-accent);
   stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;

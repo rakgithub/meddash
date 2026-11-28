@@ -14,10 +14,11 @@
   flex-direction: column;
 }
 
-/* A faint wash of the accent behind the whole consultation, so it reads as its own room. */
+/* A soft glow from the top behind the whole consultation, so it reads as its own room. */
 :global(body):has(.page) {
-  --chat-bg: color-mix(in srgb, var(--color-accent-soft) 55%, var(--color-bg));
-  background: var(--chat-bg);
+  background:
+    radial-gradient(900px 500px at 50% 0%, var(--color-bg-glow), transparent 70%), var(--color-bg);
+  background-attachment: fixed;
 }
 
 .page {
@@ -25,227 +26,56 @@
   flex: 1;
   flex-direction: column;
   width: 100%;
-  max-width: 1080px;
+  padding: 0 var(--space-4);
+}
+
+/* Everything sits in one centred column, from the greeting to the message box. */
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+  max-width: var(--width-chat);
   margin: 0 auto;
-  padding: 0 var(--space-5);
 }
 
-.icon {
-  width: 22px;
-  height: 22px;
-  flex-shrink: 0;
-  fill: none;
-  stroke: var(--color-accent);
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-/* ---------- Start screen ---------- */
+/* ---------- Before the first message ---------- */
 
 .welcome {
-  gap: var(--space-10);
-  max-width: 820px;
-  padding-top: var(--space-12);
+  justify-content: center;
   padding-bottom: var(--space-16);
 }
 
-.hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-3);
-  text-align: center;
-}
-
 .hello {
-  margin-top: var(--space-4);
-  font-size: var(--text-base);
-  font-weight: var(--weight-semibold);
-  color: var(--color-accent);
+  text-align: center;
+  font-size: var(--text-lg);
+  color: var(--color-text-secondary);
 }
 
-.hero h2 {
+.question {
+  margin-bottom: var(--space-5);
+  text-align: center;
   font-size: var(--text-3xl);
   font-weight: var(--weight-bold);
-  letter-spacing: -0.025em;
+  letter-spacing: -0.02em;
   line-height: 1.15;
 }
 
-.lead {
-  max-width: 52ch;
-  font-size: var(--text-base);
-  line-height: 1.55;
-  color: var(--color-text-muted);
-}
-
-/* The message box is the first thing to do, so it sits right under the greeting. */
-.heroComposer {
-  width: 100%;
-  max-width: 640px;
-  margin-top: var(--space-4);
-  text-align: left;
-}
-
-.startWith {
+.starters {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.sectionHeading {
-  font-size: var(--text-base);
-  font-weight: var(--weight-semibold);
-  color: var(--color-text-muted);
-}
-
-.starterGrid,
-.regionGrid {
-  display: grid;
-  gap: var(--space-3);
-  margin: 0;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 var(--space-4);
   padding: 0;
   list-style: none;
 }
 
-.starterGrid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.regionGrid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.starter,
-.region {
-  width: 100%;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  color: var(--color-text);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition:
-    border-color var(--duration-fast) var(--ease-in-out),
-    background var(--duration-fast) var(--ease-in-out);
-}
-
-.starter:hover,
-.region:hover {
-  border-color: var(--color-accent);
-  background: var(--color-accent-soft);
-}
-
-.starter {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-1);
-  height: 100%;
-  padding: var(--space-4);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-1);
-}
-
-.starter .icon {
-  margin-bottom: var(--space-2);
-}
-
-.starterLabel {
-  font-size: var(--text-base);
-  font-weight: var(--weight-semibold);
-}
-
-.starterHint {
-  font-size: var(--text-sm);
-  line-height: 1.4;
-  color: var(--color-text-muted);
-}
-
-.region {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  height: 48px;
-  padding: 0 var(--space-4);
-  border-radius: var(--radius-sm);
-  font-size: var(--text-md);
-  font-weight: var(--weight-medium);
-}
-
-/* ---------- Conversation ---------- */
-
-/* Desktop: chat on the left, consultation summary on the right. */
-.layout {
-  display: grid;
-  flex: 1;
-  grid-template-columns: minmax(0, 1fr) 280px;
-  grid-template-areas: "main side";
-  gap: var(--space-8);
-  width: 100%;
-}
-
-.main {
-  grid-area: main;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  max-width: 760px;
-}
-
-.side {
-  grid-area: side;
-  padding-top: var(--space-6);
-}
-
-/* Who you're talking to and how far along you are, pinned above the chat. */
-.bar {
-  position: sticky;
-  top: 8px;
-  z-index: var(--z-sticky);
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  margin-top: var(--space-6);
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-1);
-}
-
-.who {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.name {
-  font-size: var(--text-base);
-  font-weight: var(--weight-bold);
-}
-
-.status {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--text-xs);
-  color: var(--color-text-muted);
-}
-
-.online {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--color-accent);
-}
+/* ---------- The conversation ---------- */
 
 /* The page scrolls as a whole, so the message box sticks to the bottom of the window. */
 .conversation {
-  display: flex;
   flex: 1;
-  flex-direction: column;
   padding: var(--space-8) 0 var(--space-6);
 }
 
@@ -253,8 +83,8 @@
 .dock {
   position: sticky;
   bottom: 0;
-  padding: var(--space-4) 0 var(--space-3);
-  background: linear-gradient(to bottom, transparent, var(--chat-bg) 16px);
+  padding: var(--space-4) 0 var(--space-5);
+  background: linear-gradient(to bottom, transparent, var(--color-bg) var(--space-4));
 }
 
 /* Takes the message box's place after an urgent alert. */
@@ -264,167 +94,29 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-5);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-xl);
   background: var(--color-surface);
-  box-shadow: var(--shadow-1);
 }
 
 .paused p {
-  margin: 0;
   font-size: var(--text-md);
   color: var(--color-text-muted);
 }
 
-.startOver {
-  height: 40px;
-  padding: 0 var(--space-5);
-  border: none;
-  border-radius: var(--radius-pill);
-  background: var(--color-accent);
-  color: var(--color-on-accent);
-  font: inherit;
-  font-size: var(--text-base);
-  font-weight: var(--weight-semibold);
-  cursor: pointer;
-}
-
-.startOver:hover {
-  background: var(--color-accent-hover);
-}
-
-/* Start over in the summary panel: a quiet text link, since it throws the conversation away. */
-.quiet {
-  align-self: flex-start;
-  padding: var(--space-1) 0;
-  border: 0;
-  background: none;
-  color: var(--color-text-muted);
-  font: inherit;
-  font-size: var(--text-sm);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  cursor: pointer;
-}
-
-.quiet:hover {
-  color: var(--color-danger);
-}
-
 .disclaimer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-2);
-  margin-top: var(--space-2);
-}
-
-.info {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-1) var(--space-2);
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: none;
-  color: var(--color-text-muted);
-  font: inherit;
-  font-size: var(--text-xs);
-  cursor: pointer;
-}
-
-.info:hover {
-  color: var(--color-text);
-}
-
-.info svg {
-  width: 14px;
-  height: 14px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.4;
-  stroke-linecap: round;
-}
-
-.infoNote {
-  max-width: 60ch;
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-1);
-  font-size: var(--text-sm);
-  line-height: 1.5;
   text-align: center;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
-}
-
-/* Narrow screens: the summary becomes a bar above the chat. */
-@media (max-width: 900px) {
-  .layout {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "side" "main";
-    gap: 0;
-  }
-
-  .main {
-    max-width: none;
-  }
-
-  .side {
-    padding-top: var(--space-4);
-  }
-
-  .bar {
-    margin-top: var(--space-3);
-  }
-
-  .starterGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 720px) {
-  .page {
-    padding: 0 var(--space-4);
-  }
-
-  .welcome {
-    gap: var(--space-8);
-    padding-top: var(--space-8);
-  }
-
-  .hero h2 {
+  .question {
     font-size: var(--text-2xl);
-  }
-
-  .regionGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  /* On a phone the summary bar is already above, so progress is a plain centred line, not another card. */
-  .who,
-  .bar > :first-child {
-    display: none;
-  }
-
-  .bar {
-    position: static;
-    justify-content: center;
-    padding: var(--space-1) 0 0;
-    border: 0;
-    background: none;
-    box-shadow: none;
   }
 
   .conversation {
     padding-top: var(--space-5);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .starter,
-  .region {
-    transition: none;
   }
 }
