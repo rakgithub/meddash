@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useActionState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { ApiError } from "../../../../lib/apiClient";
 import { login } from "../../api/authApi";
@@ -16,55 +16,64 @@ function returnPath(state: unknown): string {
   return "/";
 }
 
+interface LoginResult {
+  error: string | null;
+  /** What was typed, put back after a failed attempt. */
+  email: string;
+}
+
 export function LoginPage() {
   const { state, signIn } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
   const next = returnPath(location.state);
 
-  if (state.status === "signed-in" && !submitting) return <Navigate to={next} replace />;
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    setError(null);
-    setSubmitting(true);
+  async function logIn(_previous: LoginResult, form: FormData): Promise<LoginResult> {
+    const email = String(form.get("email"));
     try {
-      const user = await login({
-        email: String(form.get("email")),
-        password: String(form.get("password")),
-      });
-      signIn(user);
+      signIn(await login({ email, password: String(form.get("password")) }));
       navigate(next, { replace: true });
+      return { error: null, email };
     } catch (err) {
-      setError(
-        err instanceof ApiError && err.status === 401
-          ? "That email and password don't match an account. Check them and try again."
-          : "Couldn't log in right now. Try again in a moment.",
-      );
-      setSubmitting(false);
+      return {
+        email,
+        error:
+          err instanceof ApiError && err.status === 401
+            ? "That email and password don't match an account. Check them and try again."
+            : "Couldn't log in right now. Try again in a moment.",
+      };
     }
   }
+
+  const [result, action, submitting] = useActionState(logIn, { error: null, email: "" });
+
+  // While the form's own sign-in is running, it navigates to `next` itself.
+  if (state.status === "signed-in" && !submitting) return <Navigate to={next} replace />;
 
   return (
     <div className={styles.page}>
       <PageTitle title="Log in" />
       <h1 className={styles.title}>Log in</h1>
       <p className={styles.lead}>Log in to keep track of your orders and prescriptions.</p>
-      <form className={styles.form} onSubmit={handleSubmit}>
+      <form className={styles.form} action={action}>
         <label className={styles.field}>
           Email
-          <input name="email" type="email" autoComplete="email" required />
+          {/* React resets the form after each submit; this keeps the email after a failed one. */}
+          <input
+            name="email"
+            type="email"
+            autoComplete="email"
+            required
+            defaultValue={result.email}
+          />
         </label>
         <label className={styles.field}>
           Password
           <input name="password" type="password" autoComplete="current-password" required />
         </label>
-        {error && (
+        {result.error && (
           <p role="alert" className={styles.error}>
-            {error}
+            {result.error}
           </p>
         )}
         <button type="submit" className={styles.submit} disabled={submitting}>

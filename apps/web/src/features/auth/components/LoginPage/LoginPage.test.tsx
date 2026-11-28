@@ -78,6 +78,29 @@ describe("LoginPage", () => {
     expect(screen.getByRole("button", { name: "Log in" })).toBeEnabled();
   });
 
+  it("keeps the email but clears the password after a failed attempt", async () => {
+    vi.mocked(authApi.login).mockRejectedValue(new ApiError(401, "Invalid email or password"));
+    renderLogin();
+
+    await fillAndSubmit("wrong");
+
+    await screen.findByRole("alert");
+    expect(screen.getByLabelText("Email")).toHaveValue(ana.email);
+    expect(screen.getByLabelText("Password")).toHaveValue("");
+  });
+
+  it("shows that it is logging in while the request runs", async () => {
+    let finish: (user: typeof ana) => void = () => {};
+    vi.mocked(authApi.login).mockReturnValue(new Promise((resolve) => (finish = resolve)));
+    renderLogin();
+
+    await fillAndSubmit();
+
+    expect(screen.getByRole("button", { name: "Logging in..." })).toBeDisabled();
+    finish(ana);
+    expect(await screen.findByText("At /")).toBeInTheDocument();
+  });
+
   it("shows a retry message when the server fails", async () => {
     vi.mocked(authApi.login).mockRejectedValue(new ApiError(500, "boom"));
     renderLogin();

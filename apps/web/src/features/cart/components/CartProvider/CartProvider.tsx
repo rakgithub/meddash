@@ -59,5 +59,5 @@ export function CartProvider({ children }: { children: ReactNode }) {
     },
   };
 
-  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
+  return <CartContext value={value}>{children}</CartContext>;
 }
