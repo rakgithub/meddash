@@ -117,6 +117,9 @@ export async function* runTurn(
           model: deps.model,
           max_tokens: MAX_TOKENS,
           output_config: { effort: "low" },
+          // Moves a cache breakpoint to the end of each request, so the next tool round reads the
+          // conversation so far from the cache instead of paying for it again. SYSTEM keeps its own.
+          cache_control: { type: "ephemeral" },
           system: SYSTEM,
           tools: TOOLS,
           messages,

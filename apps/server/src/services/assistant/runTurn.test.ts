@@ -85,6 +85,7 @@ describe("runTurn", () => {
       model: "claude-haiku-5-5",
       max_tokens: MAX_TOKENS,
       output_config: { effort: "low" },
+      cache_control: { type: "ephemeral" },
       system: SYSTEM,
       tools: TOOLS,
     });
