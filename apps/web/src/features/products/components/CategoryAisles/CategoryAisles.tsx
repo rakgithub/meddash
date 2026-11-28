@@ -1,4 +1,5 @@
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { Chip } from "@meddash/design-system/components";
+import { useEffect, useRef, type ReactNode } from "react";
 import { CATEGORIES, type Category } from "../../filterOptions";
 import type { FacetValue } from "../../types";
 import { formatCategory } from "../../utils/formatCategory";
@@ -49,7 +50,6 @@ const AISLES = [
 
 /** Categories as one row of pills you can see at a glance, instead of a dropdown. One is always picked. */
 export function CategoryAisles({ value, onChange, counts }: CategoryAislesProps) {
-  const idPrefix = useId();
   const groupRef = useRef<HTMLDivElement>(null);
 
   // On narrow screens the row scrolls sideways; bring the picked aisle into view if it's off-screen.
@@ -71,24 +71,19 @@ export function CategoryAisles({ value, onChange, counts }: CategoryAislesProps)
   return (
     <div ref={groupRef} role="group" aria-label="Category" className={styles.aisles}>
       {AISLES.map(({ slug, name }) => (
-        <button
+        <Chip
           key={slug}
-          type="button"
-          className={styles.tile}
-          aria-pressed={value === slug}
-          aria-describedby={counts ? `${idPrefix}-${slug || "all"}` : undefined}
+          pressed={value === slug}
           onClick={() => onChange(slug)}
+          meta={counts ? countOf(slug) : undefined}
+          icon={
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              {ICONS[slug]}
+            </svg>
+          }
         >
-          <svg className={styles.icon} viewBox="0 0 24 24" aria-hidden="true">
-            {ICONS[slug]}
-          </svg>
           {name}
-          {counts && (
-            <span id={`${idPrefix}-${slug || "all"}`} className={styles.count}>
-              {countOf(slug)}
-            </span>
-          )}
-        </button>
+        </Chip>
       ))}
     </div>
   );

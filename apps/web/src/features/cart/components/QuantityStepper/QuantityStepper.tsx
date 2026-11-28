@@ -1,3 +1,4 @@
+import { IconButton } from "@meddash/design-system/components";
 import { useId, useState, type KeyboardEvent } from "react";
 import styles from "./QuantityStepper.module.css";
 
@@ -43,17 +44,17 @@ export function QuantityStepper({
       <label className="visually-hidden" htmlFor={id}>
         {label}
       </label>
-      <button
-        type="button"
-        className={styles.step}
-        aria-label="Decrease quantity"
+      <IconButton
+        size="sm"
+        label="Decrease quantity"
         disabled={disabled || value <= 1}
         onClick={() => onChange(value - 1)}
-      >
-        <svg viewBox="0 0 16 16" aria-hidden="true">
-          <path d="M3.5 8h9" />
-        </svg>
-      </button>
+        icon={
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M3.5 8h9" />
+          </svg>
+        }
+      />
       <input
         id={id}
         className={styles.input}
@@ -68,17 +69,17 @@ export function QuantityStepper({
         onBlur={commit}
         onKeyDown={handleKeyDown}
       />
-      <button
-        type="button"
-        className={styles.step}
-        aria-label="Increase quantity"
+      <IconButton
+        size="sm"
+        label="Increase quantity"
         disabled={disabled || value >= max}
         onClick={() => onChange(value + 1)}
-      >
-        <svg viewBox="0 0 16 16" aria-hidden="true">
-          <path d="M3.5 8h9M8 3.5v9" />
-        </svg>
-      </button>
+        icon={
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M3.5 8h9M8 3.5v9" />
+          </svg>
+        }
+      />
     </div>
   );
 }

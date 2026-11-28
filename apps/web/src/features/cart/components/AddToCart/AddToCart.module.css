@@ -10,30 +10,9 @@
   gap: var(--space-3);
 }
 
-.add {
+.addSlot {
   flex: 1;
   min-width: 140px;
-  height: 44px;
-  padding: 0 var(--space-6);
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: var(--color-accent);
-  color: var(--color-on-accent);
-  font: inherit;
-  font-size: var(--text-base);
-  font-weight: var(--weight-bold);
-  cursor: pointer;
-  transition: background var(--duration-fast) var(--ease-in-out);
-}
-
-.add:hover:not(:disabled) {
-  background: var(--color-accent-hover);
-}
-
-.add:disabled {
-  background: var(--color-border);
-  color: var(--color-text-muted);
-  cursor: not-allowed;
 }
 
 .reason {
@@ -135,8 +114,7 @@
     font-variant-numeric: tabular-nums;
   }
 
-  .bar .add {
-    flex: 0 0 auto;
+  .barAdd {
     margin-left: auto;
   }
 }

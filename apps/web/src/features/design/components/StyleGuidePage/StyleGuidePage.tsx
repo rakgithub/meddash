@@ -2,6 +2,7 @@ import tokensCss from "@meddash/design-system/tokens.css?raw";
 import themesCss from "@meddash/design-system/themes.css?raw";
 import { useState, type CSSProperties } from "react";
 import { PageTitle } from "../../../../lib/PageTitle";
+import { ComponentGallery } from "../ComponentGallery/ComponentGallery";
 import { contrastRatio } from "../../utils/contrast";
 import { parseThemes, parseTokenGroups, resolveValue, type Token } from "../../utils/parseTokens";
 import styles from "./StyleGuidePage.module.css";
@@ -194,6 +195,9 @@ export function StyleGuidePage() {
           <li>
             <a href="#shadows">Shadows</a>
           </li>
+          <li>
+            <a href="#components">Components</a>
+          </li>
         </ul>
       </nav>
 
@@ -316,6 +320,14 @@ export function StyleGuidePage() {
             );
           })}
         </ul>
+      </section>
+
+      <section aria-labelledby="components" className={styles.section}>
+        <h2 id="components">Components</h2>
+        <p className={styles.lead}>
+          From <code>@meddash/design-system/components</code>, in each state, in the current theme.
+        </p>
+        <ComponentGallery />
       </section>
     </div>
   );

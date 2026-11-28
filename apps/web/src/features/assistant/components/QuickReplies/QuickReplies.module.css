@@ -22,29 +22,16 @@
   list-style: none;
 }
 
-.option,
+/* Matches the accent chip it replaces once the question is answered. */
 .answered {
   display: inline-flex;
   align-items: center;
-  height: 44px;
-  padding: 0 var(--space-5);
+  min-height: var(--tap-target);
+  padding: 0 var(--space-4);
   border: 1.5px solid var(--color-accent);
   border-radius: var(--radius-pill);
-  font-size: var(--text-base);
+  font-size: var(--text-md);
   font-weight: var(--weight-medium);
-}
-
-.option {
-  background: var(--color-surface);
-  box-shadow: var(--shadow-1);
-  color: var(--color-accent-hover);
-  font-family: inherit;
-  cursor: pointer;
-  transition: background var(--duration-fast) var(--ease-in-out);
-}
-
-.option:hover {
-  background: var(--color-accent-soft);
 }
 
 /* Past questions fade back so only the current one asks for attention. */

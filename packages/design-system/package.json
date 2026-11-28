@@ -6,11 +6,30 @@
   "exports": {
     "./index.css": "./src/index.css",
     "./tokens.css": "./src/tokens.css",
-    "./themes.css": "./src/themes.css"
+    "./themes.css": "./src/themes.css",
+    "./components": "./src/components/index.ts"
   },
   "scripts": {
-    "test": "node --test",
+    "test": "node --test test/ && vitest run",
+    "typecheck": "tsc --noEmit",
     "check:tokens": "node scripts/check-tokens.mjs src",
-    "verify": "pnpm test && pnpm check:tokens"
+    "verify": "pnpm typecheck && pnpm test && pnpm check:tokens"
+  },
+  "peerDependencies": {
+    "react": "^19.3.1"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.10",
+    "@types/react": "^19.3.3",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "jsdom": "^31.0.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.9"
   }
 }

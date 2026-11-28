@@ -207,12 +207,20 @@ behaviour):
 - `Badge` — count and status variants (order status reuses it).
 - `Notice` — `caution`, `danger`, `info`, with icon.
 - `Drawer` — side sheet with scrim, focus trap, Escape to close, focus returns to the opener. The cart
-  uses it in the redesign.
+  uses it in the redesign. **Dropped when built:** the approved redesign keeps the cart a page
+  (its decision 7), so nothing uses a drawer; add it when something does.
 
 Then replace the app's own copies where they are plain duplicates: buttons in `AddToCart`,
 `QuantityStepper`, `CartPage`, `Composer`, `QuickReplies`, `SymptomChips`, `CategoryAisles`;
 `OrderStatusBadge` on `Badge`; `SafetyAlert` on `Notice`. Domain components (`ProductCard`,
 `ChatProductCard`, …) stay in their features.
+
+As built: the package gained React as a peer dependency and dev dependencies for `tsc` and Vitest
+(same versions as `apps/web`); components ship as TSX source under
+`@meddash/design-system/components`, compiled by the app's Vite. `Button href` renders the app's router
+link, handed in once through `LinkProvider`. `SymptomChips` was left as is: its chips are removable
+tags, not toggles, and the redesign deletes it (redesign PR 2). `CartLink`'s count badge is left for
+redesign PR 1, which rebuilds the header.
 
 ### PR 4 — Style guide page and rules
 

@@ -1,11 +1,13 @@
 # packages/design-system
 
-The tokens and base styles for MedDash, shipped as source (no build step). `README.md` has the token
+The tokens, base styles and core React components for MedDash, shipped as source (no build step;
+the app's Vite compiles the TSX). `README.md` has the token
 list, how to use it, and how to add a token.
 
 ## Definition of done
 
-`pnpm verify:design-system` from the repo root (theme parity test, `check-tokens` tests, token guard).
+`pnpm verify:design-system` from the repo root (`tsc`, theme parity and `check-tokens` tests, component
+tests in Vitest, token guard).
 A change here can restyle the whole app, so also run `pnpm verify:web` and look at `/design` and a few
 real pages in both themes.
 
@@ -21,6 +23,9 @@ real pages in both themes.
 - Changing a value: check `/design` for contrast in both themes before and after.
 - `tokens.css` group headings are one-line comments after a blank line; `/design` reads them, so keep
   that shape.
-- Components (when added) are built only from tokens, take no `className` for restyling, and get
+- Components are built only from tokens, take no `className` for restyling, and get
   tests that query by role. Add a variant rather than letting callers override styles.
-- No runtime dependencies. Ask before adding a build step or dev dependency.
+- No runtime dependencies (React is a peer). Ask before adding a build step or dev dependency.
+- Components live in `src/components/<Name>/` (`.tsx`, `.module.css`, `.test.tsx`) and are exported from
+  `src/components/index.ts`. Add each to the gallery on `/design`
+  (`apps/web/src/features/design/components/ComponentGallery`).

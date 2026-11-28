@@ -28,6 +28,26 @@ Then any CSS Module uses the tokens:
 }
 ```
 
+## Components
+
+```tsx
+import { Button, Chip, Notice } from "@meddash/design-system/components";
+```
+
+| Component     | For                                                                                  |
+| ------------- | ------------------------------------------------------------------------------------ |
+| `Button`      | `primary`, `secondary`, `ghost`; `md`, `lg`; `busy`; with `href`, the app's link     |
+| `IconButton`  | An icon-only button; `label` is required and is its accessible name                  |
+| `TextField`   | A labelled input; `hint` and `error` are read with it through `aria-describedby`     |
+| `SearchField` | `TextField` of type search, with a magnifier                                         |
+| `Chip`        | A toggle (`pressed`) for filters, or an `accent` one-shot choice; `meta` for a count |
+| `Badge`       | A status (`neutral`, `accent`, `caution`, `danger`) or a `count` with a read label   |
+| `Notice`      | `info`, `caution`, `danger` with an icon; optional title, heading level and role     |
+
+`Button href` renders through `LinkProvider`, which the app sets once at the root with its router
+link, so the package needs no router. Without a provider it renders a plain `<a>`. Components take no
+`className`; add a variant instead. `/design` shows each one in every state.
+
 ## Files
 
 | File                       | Holds                                                                      |
@@ -36,6 +56,7 @@ Then any CSS Module uses the tokens:
 | `src/themes.css`           | Semantic tokens per theme (`--color-accent`); dark in `:root`, then light  |
 | `src/base.css`             | Reset, body, headings font, focus ring, reduced motion, `.visually-hidden` |
 | `src/index.css`            | Imports the three above, in that order                                     |
+| `src/components/`          | The React components, each with its CSS Module and tests                   |
 | `scripts/check-tokens.mjs` | The token guard run by `pnpm verify:web` and this package's `verify`       |
 
 ## Semantic colours
