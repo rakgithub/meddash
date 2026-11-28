@@ -14,8 +14,8 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe("ThemeToggle", () => {
-  it("starts in the OS theme", () => {
-    mockSystemDark(true);
+  it("starts dark on a first visit, even when the OS prefers light", () => {
+    mockSystemDark(false);
     render(<ThemeToggle />);
 
     expect(screen.getByRole("button", { name: "Dark mode" })).toHaveAttribute(
@@ -24,25 +24,23 @@ describe("ThemeToggle", () => {
     );
   });
 
-  it("turns dark mode on and off", async () => {
-    mockSystemDark(false);
+  it("turns dark mode off and on", async () => {
     const user = userEvent.setup();
     render(<ThemeToggle />);
     const toggle = screen.getByRole("button", { name: "Dark mode" });
 
-    expect(toggle).toHaveAttribute("aria-pressed", "false");
-
-    await user.click(toggle);
     expect(toggle).toHaveAttribute("aria-pressed", "true");
-    expect(document.documentElement).toHaveAttribute("data-theme", "dark");
 
     await user.click(toggle);
     expect(toggle).toHaveAttribute("aria-pressed", "false");
     expect(document.documentElement).toHaveAttribute("data-theme", "light");
+
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute("aria-pressed", "true");
+    expect(document.documentElement).toHaveAttribute("data-theme", "dark");
   });
 
   it("remembers the choice for the next visit", async () => {
-    mockSystemDark(false);
     const user = userEvent.setup();
     const { unmount } = render(<ThemeToggle />);
 
@@ -52,7 +50,7 @@ describe("ThemeToggle", () => {
 
     expect(screen.getByRole("button", { name: "Dark mode" })).toHaveAttribute(
       "aria-pressed",
-      "true",
+      "false",
     );
   });
 });

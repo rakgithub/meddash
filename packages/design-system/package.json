@@ -1,0 +1,14 @@
+{
+  "name": "@meddash/design-system",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "exports": {
+    "./index.css": "./src/index.css",
+    "./tokens.css": "./src/tokens.css"
+  },
+  "scripts": {
+    "test": "node --test",
+    "verify": "pnpm test"
+  }
+}

@@ -18,6 +18,7 @@
     "verify": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm test:coverage && pnpm build && pnpm test:e2e"
   },
   "dependencies": {
+    "@meddash/design-system": "workspace:*",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-router-dom": "^7.18.6"
