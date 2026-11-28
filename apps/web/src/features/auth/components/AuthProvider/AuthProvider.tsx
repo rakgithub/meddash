@@ -37,9 +37,5 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const sessionEnded = () => setState({ status: "signed-out" });
 
-  return (
-    <AuthContext.Provider value={{ state, signIn, signOut, sessionEnded }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext value={{ state, signIn, signOut, sessionEnded }}>{children}</AuthContext>;
 }

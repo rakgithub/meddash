@@ -40,7 +40,7 @@ export function RecommendationStack({
 }: RecommendationStackProps) {
   const [leavingId, setLeavingId] = useState<string | null>(null);
   const [comparing, setComparing] = useState(false);
-  const timerRef = useRef<number>();
+  const timerRef = useRef<number | undefined>(undefined);
   const lockedId = useId();
 
   // Starting over while a card is leaving must not dismiss it in the fresh conversation.

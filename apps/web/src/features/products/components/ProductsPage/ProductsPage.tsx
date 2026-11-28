@@ -12,6 +12,7 @@ import { ProductList } from "../ProductList/ProductList";
 import { RefinePanel } from "../RefinePanel/RefinePanel";
 import { SymptomNudge } from "../SymptomNudge/SymptomNudge";
 import styles from "./ProductsPage.module.css";
+import { PageTitle } from "../../../../lib/PageTitle";
 
 const REFINE_ID = "refine-panel";
 // Below this width the Refine panel moves out of the layout into a bottom sheet.
@@ -47,6 +48,7 @@ export function ProductsPage() {
 
   return (
     <div className={styles.page}>
+      <PageTitle title="Products" />
       <div className={styles.resultsHead}>
         <header className={styles.header}>
           <h1>Products</h1>

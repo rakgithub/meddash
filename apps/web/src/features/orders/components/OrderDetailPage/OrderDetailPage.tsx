@@ -4,6 +4,7 @@ import { useOrder } from "../../hooks/useOrder";
 import { formatOrderDate, itemLabel } from "../../utils/orderFormat";
 import { OrderStatusBadge } from "../OrderStatusBadge/OrderStatusBadge";
 import styles from "./OrderDetailPage.module.css";
+import { PageTitle } from "../../../../lib/PageTitle";
 
 /** One order with its items and prices as placed. Render under <RequireAuth>. */
 export function OrderDetailPage() {
@@ -13,6 +14,7 @@ export function OrderDetailPage() {
 
   return (
     <div className={styles.page}>
+      <PageTitle title={state.status === "not-found" ? "Order not found" : `Order #${id}`} />
       <Link className={styles.back} to="/orders">
         ← All orders
       </Link>

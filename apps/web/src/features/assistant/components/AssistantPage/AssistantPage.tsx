@@ -13,6 +13,7 @@ import { SaveConsultation } from "../SaveConsultation/SaveConsultation";
 import { SavedConsultations } from "../SavedConsultations/SavedConsultations";
 import { StartOver } from "../StartOver/StartOver";
 import styles from "./AssistantPage.module.css";
+import { PageTitle } from "../../../../lib/PageTitle";
 
 const STARTERS = [
   { label: "Sore throat and fever", hint: "Colds, flu, a temperature", icon: "thermometer" },
@@ -145,6 +146,7 @@ export function AssistantPage() {
   if (!started) {
     return (
       <div className={`${styles.page} ${styles.welcome}`}>
+        <PageTitle title="Symptom assistant" />
         <h1 className="visually-hidden">Symptom assistant</h1>
         <section className={styles.hero} aria-labelledby="assistant-greeting">
           <AssistantAvatar size="large" />
@@ -212,6 +214,7 @@ export function AssistantPage() {
 
   return (
     <div className={styles.page}>
+      <PageTitle title="Symptom assistant" />
       <h1 className="visually-hidden">Symptom assistant</h1>
 
       <div className={styles.layout}>

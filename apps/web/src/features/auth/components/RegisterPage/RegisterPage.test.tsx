@@ -75,6 +75,18 @@ describe("RegisterPage", () => {
     expect(screen.getByRole("button", { name: "Create account" })).toBeEnabled();
   });
 
+  it("keeps the name and email but clears the password after a failed attempt", async () => {
+    vi.mocked(authApi.register).mockRejectedValue(new ApiError(409, "x"));
+    renderRegister();
+
+    await fillAndSubmit();
+
+    await screen.findByRole("alert");
+    expect(screen.getByLabelText("Name")).toHaveValue(ana.name);
+    expect(screen.getByLabelText("Email")).toHaveValue(ana.email);
+    expect(screen.getByLabelText("Password")).toHaveValue("");
+  });
+
   it("links to login", () => {
     renderRegister();
     expect(screen.getByRole("link", { name: "Log in" })).toHaveAttribute("href", "/login");

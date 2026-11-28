@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { initials } from "../../utils/initials";
 import styles from "./ProfilePage.module.css";
+import { PageTitle } from "../../../../lib/PageTitle";
 
 /** Read-only account details. Render under <RequireAuth>. */
 export function ProfilePage() {
@@ -11,6 +12,7 @@ export function ProfilePage() {
 
   return (
     <div className={styles.page}>
+      <PageTitle title="Your profile" />
       <Link className={styles.back} to="/">
         ← Back to products
       </Link>
