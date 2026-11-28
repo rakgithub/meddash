@@ -139,3 +139,15 @@ before the assistant-first redesign, which builds on it. Plan:
 - [ ] D2 — Move the app onto the tokens and turn on the guard
 - [ ] D3 — Core components
 - [ ] D4 — Style guide page and rules
+
+## Track — Assistant-first redesign
+
+MedDash opens on the assistant: a short intro that ends in "How are you feeling today?", one top-right
+menu, the catalogue at `/shop`, and shopping from the chat through to the order and back. Builds on the
+design system (needs D3). Plan: [`docs/plans/assistant-first-redesign/`](plans/assistant-first-redesign/README.md).
+
+- [ ] R1 — Top-right menu and `/shop`
+- [ ] R2 — Strip the assistant to the v5 chat
+- [ ] R3 — The assistant becomes home, with the intro
+- [ ] R4 — Shopping from the chat
+- [ ] R5 — Cart page and back to the assistant
