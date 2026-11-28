@@ -1,6 +1,5 @@
 import { useRef, useState } from "react";
 import { useMediaQuery } from "../../../../lib/useMediaQuery";
-import { AssistantLauncher } from "../../../assistant";
 import { useFacets } from "../../hooks/useFacets";
 import { useProductSearch } from "../../hooks/useProductSearch";
 import { formatResultRange } from "../../utils/formatResultRange";
@@ -116,8 +115,6 @@ export function ProductsPage() {
           </section>
         </div>
       </div>
-
-      <AssistantLauncher />
     </div>
   );
 }

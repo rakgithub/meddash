@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as authApi from "../../features/auth/api/authApi";
 import { CartProvider } from "../../features/cart";
 import * as cartApi from "../../features/cart/api/cartApi";
+import { ConsultationProvider } from "../../features/assistant";
 import { AuthProvider } from "../../features/auth";
 import { ana, cartWithIbuprofen } from "../../test/fixtures";
 import { renderWithRouter } from "../../test/renderWithRouter";
@@ -23,7 +24,9 @@ const renderHeader = (route: string) =>
   renderWithRouter(
     <AuthProvider>
       <CartProvider>
-        <AppHeader />
+        <ConsultationProvider>
+          <AppHeader />
+        </ConsultationProvider>
       </CartProvider>
     </AuthProvider>,
     route,
@@ -58,10 +61,7 @@ describe("AppHeader", () => {
 
     await screen.findByRole("link", { name: "Log in" });
     expect(entryNames()).toEqual(["Assistant", "Medicines", "Dark mode", "Log in", "Cart"]);
-    expect(within(menu()).getByRole("link", { name: "Assistant" })).toHaveAttribute(
-      "href",
-      "/assistant",
-    );
+    expect(within(menu()).getByRole("link", { name: "Assistant" })).toHaveAttribute("href", "/");
     expect(within(menu()).getByRole("link", { name: "Medicines" })).toHaveAttribute(
       "href",
       "/shop",
@@ -111,7 +111,6 @@ describe("AppHeader", () => {
 
   it.each([
     ["/shop?q=ibu", "Medicines"],
-    ["/assistant", "Assistant"],
     ["/orders", "Orders"],
     ["/cart", "Cart, 2 items"],
   ])("marks the current page on %s", async (route, name) => {

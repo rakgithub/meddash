@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { ASK_PARAM } from "../../../assistant";
 import styles from "./SymptomNudge.module.css";
 
 interface SymptomNudgeProps {
@@ -21,7 +22,7 @@ export function SymptomNudge({ query, reason }: SymptomNudgeProps) {
       </div>
       <Link
         className={styles.action}
-        to={{ pathname: "/assistant", search: `?${new URLSearchParams({ q: query })}` }}
+        to={{ pathname: "/", search: `?${new URLSearchParams({ [ASK_PARAM]: query })}` }}
       >
         Ask the assistant
       </Link>

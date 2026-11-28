@@ -68,39 +68,67 @@ test.describe("Symptom assistant", () => {
     await fakeAssistant(page);
   });
 
-  test("a signed-out visitor logs in and comes back to the chat", async ({ page }) => {
+  test("a signed-out visitor's first message waits for login, then is sent", async ({ page }) => {
     await page.request.post("/api/auth/logout");
 
-    await page.goto("/assistant");
-    await expect(page).toHaveURL(/\/login$/);
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: "How are you feeling today?" })).toBeVisible();
+    const box = page.getByRole("textbox", { name: "Describe your symptoms" });
+    await box.fill("Itchy eyes");
+    await box.press("Enter");
+
+    await expect(page).toHaveURL(/\/login\?returnTo=%2F$/);
     await page.getByLabel("Email").fill(email);
     await page.getByLabel("Password").fill(password);
     await page.getByRole("button", { name: "Log in" }).click();
 
-    await expect(page).toHaveURL(/\/assistant$/);
-    await expect(page.getByRole("heading", { name: "How are you feeling today?" })).toBeVisible();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.getByRole("list", { name: "Conversation" })).toContainText("Itchy eyes");
+    await expect(page.getByRole("button", { name: "Since today" })).toBeVisible();
   });
 
-  test("opens from the products page with the search text and answers a starter prompt", async ({
+  test("opens from the products page with the search text and answers a starter", async ({
     page,
   }) => {
     await page.goto("/shop?q=sore%20throat");
 
     await page.getByRole("link", { name: "Ask the assistant" }).click();
 
-    await expect(page).toHaveURL(/\/assistant\?q=sore\+throat$/);
+    await expect(page).toHaveURL(/\/\?ask=sore\+throat$/);
     await expect(page.getByRole("textbox", { name: "Describe your symptoms" })).toHaveValue(
       "sore throat",
     );
 
     await page.getByRole("button", { name: "Hay fever" }).click();
 
-    await expect(page.getByRole("list", { name: "Conversation" })).toContainText("Hay fever");
+    await expect(page.getByRole("list", { name: "Conversation" })).toContainText(
+      "Sneezing and itchy eyes",
+    );
     await expect(page.getByRole("button", { name: "Since today" })).toBeVisible();
   });
 
+  test("the conversation survives Medicines and back, and a reload", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Dry cough" }).click();
+    const conversation = page.getByRole("list", { name: "Conversation" });
+    await expect(page.getByRole("button", { name: "Since today" })).toBeVisible();
+
+    await page.getByRole("banner").getByRole("link", { name: "Medicines" }).click();
+    await expect(page.getByRole("heading", { name: "Medicines", level: 1 })).toBeVisible();
+    await page.getByRole("banner").getByRole("link", { name: "Assistant" }).click();
+    await expect(conversation).toContainText("Dry, tickly cough");
+
+    await page.reload();
+    await expect(conversation).toContainText("Dry, tickly cough");
+
+    // The logo starts a new conversation.
+    await page.getByRole("link", { name: "MedDash" }).click();
+    await expect(page.getByRole("heading", { name: "How are you feeling today?" })).toBeVisible();
+    await expect(conversation).toHaveCount(0);
+  });
+
   test("asks two questions, then suggests real products that open their page", async ({ page }) => {
-    await page.goto("/assistant");
+    await page.goto("/");
 
     await page.getByRole("button", { name: "Dry cough" }).click();
     await page.getByRole("button", { name: "2–3 days" }).click();
@@ -124,7 +152,7 @@ test.describe("Symptom assistant", () => {
   });
 
   test("an urgent symptom gets a doctor alert instead of products", async ({ page }) => {
-    await page.goto("/assistant");
+    await page.goto("/");
 
     const box = page.getByRole("textbox", { name: "Describe your symptoms" });
     await box.fill("Sore throat and chest pain");
@@ -144,7 +172,7 @@ test.describe("Symptom assistant", () => {
   test("stops a reply that is streaming", async ({ page }) => {
     // Never answers, so the reply is still streaming when Stop is pressed.
     await page.route("**/api/assistant/messages", () => {});
-    await page.goto("/assistant");
+    await page.goto("/");
 
     const box = page.getByRole("textbox", { name: "Describe your symptoms" });
     await box.fill("Upset stomach");

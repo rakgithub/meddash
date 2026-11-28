@@ -5,7 +5,7 @@ import { AppFooter } from "./AppFooter";
 
 describe("AppFooter", () => {
   it("links to every aisle and the account pages", () => {
-    renderWithRouter(<AppFooter />, "/");
+    renderWithRouter(<AppFooter />, "/shop");
 
     const nav = within(screen.getByRole("navigation", { name: "Footer" }));
     const hrefs = nav
@@ -23,11 +23,10 @@ describe("AppFooter", () => {
     ]);
   });
 
-  it("points people who are unsure to the assistant", () => {
-    renderWithRouter(<AppFooter />, "/");
+  it('no longer has an "Ask MedDash" box: the assistant is the home page', () => {
+    renderWithRouter(<AppFooter />, "/shop");
 
-    const ask = within(screen.getByRole("region", { name: "Not sure which medicine fits?" }));
-    expect(ask.getByRole("link", { name: "Ask MedDash" })).toHaveAttribute("href", "/assistant");
+    expect(screen.queryByRole("link", { name: "Ask MedDash" })).not.toBeInTheDocument();
   });
 
   it("shows the safety note and the copyright", () => {
@@ -38,8 +37,8 @@ describe("AppFooter", () => {
     expect(screen.getByText(`© ${new Date().getFullYear()} MedDash`)).toBeInTheDocument();
   });
 
-  it("stays out of the full-window assistant", () => {
-    renderWithRouter(<AppFooter />, "/assistant");
+  it("stays out of the full-window assistant at /", () => {
+    renderWithRouter(<AppFooter />, "/");
 
     expect(screen.queryByRole("contentinfo")).not.toBeInTheDocument();
   });

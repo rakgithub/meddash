@@ -6,73 +6,6 @@
   font-size: var(--text-md);
 }
 
-/* The one loud thing in the footer: a tinted panel pulled up over the border, with a giant capsule. */
-.ask {
-  position: relative;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4) var(--space-8);
-  max-width: 1080px;
-  margin: calc(-1 * var(--space-10)) auto 0;
-  padding: var(--space-8) 220px var(--space-8) var(--space-10); /* token-exempt: room for the doctor illustration */
-  overflow: hidden;
-  border: 1px solid var(--color-accent);
-  border-radius: var(--radius-md);
-  background: var(--color-accent-soft);
-}
-
-.askText {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  max-width: 46ch;
-}
-
-.askText h2 {
-  color: var(--color-text);
-  font-size: var(--text-2xl);
-  font-weight: var(--weight-bold);
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-}
-
-.askText p {
-  font-size: var(--text-base);
-  line-height: 1.5;
-}
-
-.askButton {
-  position: relative;
-  z-index: var(--z-raised);
-  display: inline-flex;
-  align-items: center;
-  height: 44px;
-  padding: 0 var(--space-6);
-  border-radius: var(--radius-pill);
-  background: var(--color-accent);
-  color: var(--color-on-accent);
-  font-size: var(--text-base);
-  font-weight: var(--weight-semibold);
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.askButton:hover {
-  background: var(--color-accent-hover);
-}
-
-.askCapsule {
-  position: absolute;
-  right: -48px;
-  bottom: -72px;
-  width: 260px;
-  height: 260px;
-  opacity: 0.9;
-  pointer-events: none;
-}
-
 .capsuleLeft {
   fill: var(--color-accent);
 }
@@ -220,29 +153,7 @@
   max-width: 72ch;
 }
 
-/* Below the page width the panel keeps a gutter instead of touching the window edges. */
-@media (max-width: 1120px) {
-  .ask {
-    margin-inline: var(--space-5);
-  }
-}
-
 @media (max-width: 720px) {
-  .ask {
-    padding: var(--space-6) var(--space-5) 88px; /* token-exempt: room for the doctor illustration */
-  }
-
-  .askText h2 {
-    font-size: var(--text-xl);
-  }
-
-  .askCapsule {
-    right: -36px;
-    bottom: -84px;
-    width: 180px;
-    height: 180px;
-  }
-
   .inner {
     grid-template-columns: minmax(0, 1fr);
     padding-top: var(--space-8);

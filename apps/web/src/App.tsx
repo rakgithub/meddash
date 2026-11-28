@@ -4,7 +4,7 @@ import styles from "./App.module.css";
 import { AppFooter } from "./components/AppFooter/AppFooter";
 import { AppHeader } from "./components/AppHeader/AppHeader";
 import { NotFoundPage } from "./components/NotFoundPage/NotFoundPage";
-import { AssistantPage } from "./features/assistant";
+import { ASK_PARAM, ConsultationProvider, HomePage } from "./features/assistant";
 import { AuthProvider, LoginPage, ProfilePage, RegisterPage, RequireAuth } from "./features/auth";
 import { CartPage, CartProvider } from "./features/cart";
 import { OrderDetailPage, OrdersPage } from "./features/orders";
@@ -21,13 +21,24 @@ const StyleGuidePage = import.meta.env.DEV
   ? lazy(() => import("./features/design").then((m) => ({ default: m.StyleGuidePage })))
   : null;
 
-/** `/` still shows the catalogue, but a search or filter link to it (`/?q=…`) belongs on `/shop`. */
+/** `/` is the assistant, but an old catalogue link to it (`/?q=…&category=…`) belongs on `/shop`. */
 function HomeRoute() {
   const { search } = useLocation();
   if (hasCatalogueParams(new URLSearchParams(search))) {
     return <Navigate to={{ pathname: SHOP_PATH, search }} replace />;
   }
-  return <ProductsPage />;
+  return <HomePage />;
+}
+
+/**
+ * The assistant used to live at `/assistant`. Its `?q=` pre-fill becomes `?ask=` on `/`, because a
+ * bare `/?q=` is an old catalogue search.
+ */
+function AssistantRedirect() {
+  const { search } = useLocation();
+  const q = new URLSearchParams(search).get("q");
+  const next = q ? `?${new URLSearchParams({ [ASK_PARAM]: q })}` : "";
+  return <Navigate to={{ pathname: "/", search: next }} replace />;
 }
 
 export default function App() {
@@ -47,71 +58,66 @@ export default function App() {
   return (
     <AuthProvider>
       <CartProvider>
-        <a className={styles.skipLink} href="#main-content">
-          Skip to main content
-        </a>
-        <AppHeader />
-        <main id="main-content" className={styles.main} ref={mainRef} tabIndex={-1}>
-          <Routes>
-            <Route path="/" element={<HomeRoute />} />
-            <Route path={SHOP_PATH} element={<ProductsPage />} />
-            <Route path="/products/:id" element={<ProductDetailPage />} />
-            <Route
-              path="/assistant"
-              element={
-                <RequireAuth>
-                  <AssistantPage />
-                </RequireAuth>
-              }
-            />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route
-              path="/profile"
-              element={
-                <RequireAuth>
-                  <ProfilePage />
-                </RequireAuth>
-              }
-            />
-            <Route
-              path="/cart"
-              element={
-                <RequireAuth>
-                  <CartPage />
-                </RequireAuth>
-              }
-            />
-            <Route
-              path="/orders"
-              element={
-                <RequireAuth>
-                  <OrdersPage />
-                </RequireAuth>
-              }
-            />
-            <Route
-              path="/orders/:id"
-              element={
-                <RequireAuth>
-                  <OrderDetailPage />
-                </RequireAuth>
-              }
-            />
-            {StyleGuidePage && (
+        <ConsultationProvider>
+          <a className={styles.skipLink} href="#main-content">
+            Skip to main content
+          </a>
+          <AppHeader />
+          <main id="main-content" className={styles.main} ref={mainRef} tabIndex={-1}>
+            <Routes>
+              <Route path="/" element={<HomeRoute />} />
+              <Route path={SHOP_PATH} element={<ProductsPage />} />
+              <Route path="/products/:id" element={<ProductDetailPage />} />
+              <Route path="/assistant" element={<AssistantRedirect />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
               <Route
-                path="/design"
+                path="/profile"
                 element={
-                  <Suspense fallback={<p>Loading the style guide…</p>}>
-                    <StyleGuidePage />
-                  </Suspense>
+                  <RequireAuth>
+                    <ProfilePage />
+                  </RequireAuth>
                 }
               />
-            )}
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
-        </main>
-        <AppFooter />
+              <Route
+                path="/cart"
+                element={
+                  <RequireAuth>
+                    <CartPage />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/orders"
+                element={
+                  <RequireAuth>
+                    <OrdersPage />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/orders/:id"
+                element={
+                  <RequireAuth>
+                    <OrderDetailPage />
+                  </RequireAuth>
+                }
+              />
+              {StyleGuidePage && (
+                <Route
+                  path="/design"
+                  element={
+                    <Suspense fallback={<p>Loading the style guide…</p>}>
+                      <StyleGuidePage />
+                    </Suspense>
+                  }
+                />
+              )}
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </main>
+          <AppFooter />
+        </ConsultationProvider>
       </CartProvider>
     </AuthProvider>
   );

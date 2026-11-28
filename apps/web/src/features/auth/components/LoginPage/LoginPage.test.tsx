@@ -20,9 +20,9 @@ function Where() {
   return <p>At {useLocation().pathname}</p>;
 }
 
-const renderLogin = (state?: unknown) =>
+const renderLogin = (state?: unknown, search = "") =>
   render(
-    <MemoryRouter initialEntries={[{ pathname: "/login", state }]}>
+    <MemoryRouter initialEntries={[{ pathname: "/login", search, state }]}>
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
@@ -66,6 +66,35 @@ describe("LoginPage", () => {
     await fillAndSubmit();
 
     expect(await screen.findByText("At /")).toBeInTheDocument();
+  });
+
+  it("returns to the path in ?returnTo=", async () => {
+    vi.mocked(authApi.login).mockResolvedValue(ana);
+    renderLogin(undefined, "?returnTo=%2Forders");
+
+    await fillAndSubmit();
+
+    expect(await screen.findByText("At /orders")).toBeInTheDocument();
+  });
+
+  it.each(["//evil.example", "/\\evil.example", "https://evil.example"])(
+    "ignores ?returnTo=%s, which leaves the site",
+    async (returnTo) => {
+      vi.mocked(authApi.login).mockResolvedValue(ana);
+      renderLogin(undefined, `?${new URLSearchParams({ returnTo })}`);
+
+      await fillAndSubmit();
+
+      expect(await screen.findByText("At /")).toBeInTheDocument();
+    },
+  );
+
+  it("keeps ?returnTo= on the way to registration", () => {
+    renderLogin(undefined, "?returnTo=%2F");
+    expect(screen.getByRole("link", { name: "Create an account" })).toHaveAttribute(
+      "href",
+      "/register?returnTo=%2F",
+    );
   });
 
   it("explains wrong credentials and stays on the page", async () => {

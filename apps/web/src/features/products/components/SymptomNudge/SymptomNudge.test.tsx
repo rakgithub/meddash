@@ -10,7 +10,7 @@ describe("SymptomNudge", () => {
     expect(screen.getByText("“sore throat” sounds like a symptom")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Ask the assistant" })).toHaveAttribute(
       "href",
-      "/assistant?q=sore+throat",
+      "/?ask=sore+throat",
     );
   });
 

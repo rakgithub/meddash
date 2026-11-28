@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
+import { useConsultationContext } from "../../features/assistant";
 import { useAuth, UserMenu } from "../../features/auth";
 import { CartLink } from "../../features/cart";
 import { SHOP_PATH } from "../../features/products";
@@ -9,13 +10,15 @@ import styles from "./AppHeader.module.css";
 export function AppHeader() {
   const { pathname } = useLocation();
   const { state } = useAuth();
+  const { restart } = useConsultationContext();
   // The auth pages keep the header quiet: no menu next to the form, only the theme.
   const slim = pathname === "/login" || pathname === "/register";
 
   return (
     <header className={styles.header}>
       <div className={styles.inner}>
-        <Link className={styles.brand} to="/">
+        {/* Home is the assistant: the logo starts a new conversation, with the intro. */}
+        <Link className={styles.brand} to="/" onClick={restart}>
           {/* A capsule on the diagonal: the filled half is the "dash", the outline is the medicine. */}
           <svg className={styles.mark} viewBox="0 0 32 32" aria-hidden="true">
             <g transform="rotate(-45 16 16)">
@@ -38,10 +41,10 @@ export function AppHeader() {
         ) : (
           <nav className={styles.nav} aria-label="Main">
             <ul className={styles.list}>
-              {/* `/` becomes the assistant, so the link would point at the page itself. */}
+              {/* `/` is the assistant, so there the link would point at the page itself. */}
               {pathname !== "/" && (
                 <li>
-                  <MenuLink to="/assistant" label="Assistant" icon={<AssistantIcon />} />
+                  <MenuLink to="/" label="Assistant" icon={<AssistantIcon />} />
                 </li>
               )}
               <li>
