@@ -53,4 +53,15 @@ describe("ThemeToggle", () => {
       "false",
     );
   });
+
+  it("works the same as a row of the account menu", async () => {
+    const user = userEvent.setup();
+    render(<ThemeToggle variant="menuItem" />);
+    const toggle = screen.getByRole("button", { name: "Dark mode" });
+
+    await user.click(toggle);
+
+    expect(toggle).toHaveAttribute("aria-pressed", "false");
+    expect(document.documentElement).toHaveAttribute("data-theme", "light");
+  });
 });

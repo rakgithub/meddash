@@ -10,6 +10,7 @@ import { CategoryAisles } from "../CategoryAisles/CategoryAisles";
 import { Pagination } from "../Pagination/Pagination";
 import { ProductList } from "../ProductList/ProductList";
 import { RefinePanel } from "../RefinePanel/RefinePanel";
+import { SearchBar } from "../SearchBar/SearchBar";
 import { SymptomNudge } from "../SymptomNudge/SymptomNudge";
 import styles from "./ProductsPage.module.css";
 import { PageTitle } from "../../../../lib/PageTitle";
@@ -48,13 +49,21 @@ export function ProductsPage() {
 
   return (
     <div className={styles.page}>
-      <PageTitle title="Products" />
+      <PageTitle title="Medicines" />
       <div className={styles.resultsHead}>
-        <header className={styles.header}>
-          {/* Hidden: the category aisles below say what the page is; screen readers still need an h1. */}
-          <h1 className="visually-hidden">Products</h1>
-          {range && <p>{range}</p>}
-        </header>
+        <div className={styles.titleRow}>
+          <header className={styles.header}>
+            <h1>Medicines</h1>
+            {range && <p>{range}</p>}
+          </header>
+          <div className={styles.search}>
+            <SearchBar
+              query={filters.q}
+              onSearch={(q) => search({ ...filters, q })}
+              onSelectCategory={(category) => search({ ...filters, q: "", category })}
+            />
+          </div>
+        </div>
         <CategoryAisles
           value={filters.category}
           onChange={(category) => search({ ...filters, category })}

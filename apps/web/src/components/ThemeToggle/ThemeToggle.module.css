@@ -1,32 +1,60 @@
-.toggle {
-  display: inline-flex;
+/* A row of the account menu, matching its other items, with a switch that shows the state. */
+.item {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
+  justify-content: space-between;
+  gap: var(--space-3);
+  height: 38px;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  text-align: left;
+  cursor: pointer;
+}
+
+.item:hover {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.switch {
+  position: relative;
   flex-shrink: 0;
-  padding: 0;
-  border: 1.5px solid var(--color-border);
+  width: 32px;
+  height: 18px;
+  border-radius: var(--radius-pill);
+  background: var(--color-border-strong);
+  transition: background var(--duration-fast) var(--ease-in-out);
+}
+
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
   border-radius: var(--radius-pill);
   background: var(--color-surface);
-  color: var(--color-text-muted);
-  cursor: pointer;
-  transition:
-    border-color 0.15s ease,
-    color 0.15s ease;
+  transition: transform var(--duration-fast) var(--ease-in-out);
 }
 
-.toggle:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent-hover);
+.item[aria-pressed="true"] .switch {
+  background: var(--color-accent);
 }
 
-.toggle svg {
-  width: 18px;
-  height: 18px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.item[aria-pressed="true"] .switch::after {
+  transform: translateX(14px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .switch,
+  .switch::after {
+    transition: none;
+  }
 }

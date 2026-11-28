@@ -8,6 +8,7 @@ import * as searchApi from "./features/products/api/searchProducts";
 import { ana, cartWithIbuprofen, ibuprofen, ibuprofenDetail } from "./test/fixtures";
 import { renderWithRouter } from "./test/renderWithRouter";
 import userEvent from "@testing-library/user-event";
+import { useLocation } from "react-router-dom";
 
 vi.mock("./features/products/api/searchProducts");
 vi.mock("./features/products/api/fetchSuggestions");
@@ -26,11 +27,42 @@ beforeEach(() => {
   vi.mocked(cartApi.getCart).mockResolvedValue(cartWithIbuprofen);
 });
 
+// Shows where the app ended up after a redirect.
+function WithLocation() {
+  const { pathname, search } = useLocation();
+  return (
+    <>
+      <App />
+      <p>At {pathname + search}</p>
+    </>
+  );
+}
+
 describe("App routes", () => {
-  it("shows the product search at /", async () => {
-    renderWithRouter(<App />, "/");
-    expect(await screen.findByRole("heading", { name: "Products", level: 1 })).toBeInTheDocument();
+  it("still shows the catalogue at / in this step of the redesign", async () => {
+    renderWithRouter(<WithLocation />, "/");
+    expect(await screen.findByRole("heading", { name: "Medicines", level: 1 })).toBeInTheDocument();
+    expect(screen.getByText("At /")).toBeInTheDocument();
   });
+
+  it("shows the catalogue at /shop", async () => {
+    renderWithRouter(<App />, "/shop?q=ibu");
+    expect(await screen.findByRole("heading", { name: "Medicines", level: 1 })).toBeInTheDocument();
+    expect(searchApi.searchProducts).toHaveBeenCalledWith(
+      expect.objectContaining({ q: "ibu" }),
+      1,
+      expect.any(AbortSignal),
+    );
+  });
+
+  it.each(["/?q=ibu&category=pain-relief", "/?category=vitamins&page=2", "/?maxPrice=5"])(
+    "redirects the old catalogue link %s to /shop with the same query",
+    async (route) => {
+      renderWithRouter(<WithLocation />, route);
+      expect(await screen.findByText(`At /shop${route.slice(1)}`)).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "Medicines", level: 1 })).toBeInTheDocument();
+    },
+  );
 
   it("shows the product detail page at /products/:id", async () => {
     renderWithRouter(<App />, "/products/1");
@@ -86,7 +118,7 @@ describe("App routes", () => {
     await user.click(await screen.findByRole("button", { name: "Account menu" }));
     await user.click(screen.getByRole("button", { name: "Log out" }));
 
-    expect(await screen.findByRole("heading", { name: "Products", level: 1 })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Medicines", level: 1 })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Log in" })).toBeInTheDocument();
   });
 
@@ -161,7 +193,7 @@ describe("App routes", () => {
     ).toBeInTheDocument();
 
     await user.click(screen.getByRole("link", { name: "MedDash" }));
-    expect(await screen.findByRole("heading", { name: "Products", level: 1 })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Medicines", level: 1 })).toBeInTheDocument();
   });
 
   it("opens a product from the list and goes back to the list", async () => {
@@ -174,7 +206,7 @@ describe("App routes", () => {
     ).toBeInTheDocument();
 
     await user.click(screen.getByRole("link", { name: /Back to products/ }));
-    expect(await screen.findByRole("heading", { name: "Products", level: 1 })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Medicines", level: 1 })).toBeInTheDocument();
   });
 });
 
@@ -197,7 +229,7 @@ describe("App accessibility", () => {
 
   it("leaves focus alone on the first page load", async () => {
     renderWithRouter(<App />, "/");
-    await screen.findByRole("heading", { name: "Products", level: 1 });
+    await screen.findByRole("heading", { name: "Medicines", level: 1 });
     expect(screen.getByRole("main")).not.toHaveFocus();
   });
 

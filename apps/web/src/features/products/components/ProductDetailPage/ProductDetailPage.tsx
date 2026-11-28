@@ -12,7 +12,7 @@ import styles from "./ProductDetailPage.module.css";
 import { PageTitle } from "../../../../lib/PageTitle";
 
 const BackLink = () => (
-  <Link className={styles.back} to="/">
+  <Link className={styles.back} to="/shop">
     ← Back to products
   </Link>
 );

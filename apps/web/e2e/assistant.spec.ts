@@ -93,7 +93,7 @@ test.describe("Symptom assistant", () => {
   test("opens from the products page with the search text and answers a starter prompt", async ({
     page,
   }) => {
-    await page.goto("/?q=sore%20throat");
+    await page.goto("/shop?q=sore%20throat");
 
     await page.getByRole("link", { name: "Ask the assistant" }).click();
 

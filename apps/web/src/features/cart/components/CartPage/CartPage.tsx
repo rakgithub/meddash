@@ -50,7 +50,7 @@ export function CartPage() {
   return (
     <div className={styles.page}>
       <PageTitle title="Your cart" />
-      <Link className={styles.back} to="/">
+      <Link className={styles.back} to="/shop">
         ← Back to products
       </Link>
       <h1 className={styles.title}>Your cart</h1>
@@ -70,7 +70,7 @@ export function CartPage() {
           <span className={styles.emptyWell} aria-hidden="true" />
           <p className={styles.emptyTitle}>Your cart is empty</p>
           <p className={styles.emptyText}>Find what you need and add it from the product page.</p>
-          <Button href="/" size="lg">
+          <Button href="/shop" size="lg">
             Browse products
           </Button>
         </section>

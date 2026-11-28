@@ -21,7 +21,7 @@ function Location() {
 const renderMenu = () =>
   renderWithRouter(
     <AuthProvider>
-      <UserMenu />
+      <UserMenu themeToggle={<button type="button">Dark mode</button>} />
       <p>Elsewhere</p>
       <Location />
     </AuthProvider>,
@@ -44,10 +44,11 @@ describe("UserMenu", () => {
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 
-  it("offers Log in when signed out", async () => {
+  it("offers Log in, and no theme switch, when signed out", async () => {
     vi.mocked(authApi.fetchCurrentUser).mockResolvedValue(null);
     renderMenu();
     expect(await screen.findByRole("link", { name: "Log in" })).toHaveAttribute("href", "/login");
+    expect(screen.queryByRole("button", { name: "Dark mode" })).not.toBeInTheDocument();
   });
 
   it("shows the user's initials with the menu closed", async () => {
@@ -57,7 +58,7 @@ describe("UserMenu", () => {
     expect(screen.queryByText("ana@example.com")).not.toBeInTheDocument();
   });
 
-  it("opens to show who is signed in, Profile and Log out", async () => {
+  it("opens to show who is signed in, Profile, the theme and Log out", async () => {
     const { user, button } = await renderSignedIn();
     await user.click(button);
 
@@ -65,7 +66,9 @@ describe("UserMenu", () => {
     expect(screen.getByText("Ana Weber")).toBeVisible();
     expect(screen.getByText("ana@example.com")).toBeVisible();
     expect(screen.getByRole("link", { name: "Profile" })).toHaveAttribute("href", "/profile");
-    expect(screen.getByRole("link", { name: "Orders" })).toHaveAttribute("href", "/orders");
+    expect(screen.getByRole("button", { name: "Dark mode" })).toBeVisible();
+    // Orders has its own entry in the header menu.
+    expect(screen.queryByRole("link", { name: "Orders" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Log out" })).toBeVisible();
 
     await user.click(button);

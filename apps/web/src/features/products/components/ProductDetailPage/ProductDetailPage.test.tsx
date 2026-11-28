@@ -29,7 +29,7 @@ const renderPage = (id: string) =>
     <AuthProvider>
       <CartProvider>
         <Routes>
-          <Route path="/" element={<ResultsUrl />} />
+          <Route path="/shop" element={<ResultsUrl />} />
           <Route path="/products/:id" element={<ProductDetailPage />} />
         </Routes>
       </CartProvider>
@@ -71,7 +71,10 @@ describe("ProductDetailPage states", () => {
           : Promise.reject(state === "error" ? new Error("x") : new ApiError(404, "Not Found")),
       );
       renderPage("1");
-      expect(screen.getByRole("link", { name: /Back to products/ })).toHaveAttribute("href", "/");
+      expect(screen.getByRole("link", { name: /Back to products/ })).toHaveAttribute(
+        "href",
+        "/shop",
+      );
       await screen.findByText(/Loading product|Could not load product|Product not found/);
     },
   );
@@ -207,6 +210,6 @@ describe("ProductDetailPage filters", () => {
 
     await user.click(screen.getByRole("button", { name: /^Vitamins/ }));
 
-    expect(await screen.findByText("Results at /?category=vitamins")).toBeInTheDocument();
+    expect(await screen.findByText("Results at /shop?category=vitamins")).toBeInTheDocument();
   });
 });

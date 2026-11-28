@@ -10,9 +10,9 @@ test.describe("Product browsing", () => {
   test("shows the first page of results from the real API", async ({ page, request }) => {
     const { items, pagination } = await (await request.get(`${API_URL}/search`)).json();
 
-    await page.goto("/");
+    await page.goto("/shop");
 
-    await expect(page.getByRole("heading", { name: "Products", level: 1 })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Medicines", level: 1 })).toBeVisible();
     await expect(cards(page)).toHaveCount(items.length);
     await expect(
       page.getByText(`Showing 1–${items.length} of ${pagination.total} results`),
@@ -23,7 +23,7 @@ test.describe("Product browsing", () => {
   });
 
   test("renders a card with category, brand, description and price", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/shop");
 
     const card = cards(page).filter({
       has: page.getByRole("heading", { name: "Ibuprofen 400mg", exact: true }),
@@ -39,7 +39,7 @@ test.describe("Product browsing", () => {
   });
 
   test("paginates through the results", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/shop");
     await expect(page.getByText("Page 1 of 2")).toBeVisible();
     await expect(cards(page)).toHaveCount(10);
     await expect(page.getByText("Showing 1–10 of 12 results")).toBeVisible();
@@ -66,9 +66,43 @@ async function setPrice(page: Page, min: string, max: string) {
   await page.getByRole("button", { name: "Apply" }).click();
 }
 
+test.describe("Medicines at /shop", () => {
+  test("an old catalogue link on / opens /shop with the same query", async ({ page }) => {
+    await page.goto("/?q=ibuprofen&maxPrice=7");
+
+    await expect(page).toHaveURL(/\/shop\?q=ibuprofen&maxPrice=7$/);
+    await expect(searchBox(page)).toHaveValue("ibuprofen");
+    await expect(cards(page)).toHaveCount(1);
+  });
+
+  test("the header menu opens Medicines and marks it as the current page", async ({ page }) => {
+    await page.goto("/products/1");
+    const medicines = page.getByRole("navigation", { name: "Main" }).getByRole("link", {
+      name: "Medicines",
+    });
+
+    await medicines.click();
+
+    await expect(page).toHaveURL(/\/shop$/);
+    await expect(page.getByRole("heading", { name: "Medicines", level: 1 })).toBeVisible();
+    await expect(medicines).toHaveAttribute("aria-current", "page");
+  });
+
+  test("the menu fits on one row on a phone, with icon-only links", async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 740 });
+    await page.goto("/shop");
+    const nav = page.getByRole("navigation", { name: "Main" });
+
+    await expect(nav.getByRole("link", { name: "Medicines" })).toBeVisible();
+    await expect(nav.getByText("Medicines")).toHaveCSS("position", "absolute");
+    const header = await page.getByRole("banner").boundingBox();
+    expect(header?.height).toBeLessThan(80);
+  });
+});
+
 test.describe("Search and filters", () => {
   test("only calls the search API when the user searches, not while typing", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/shop");
     await expect(cards(page).first()).toBeVisible();
 
     let calls = 0;
@@ -84,7 +118,7 @@ test.describe("Search and filters", () => {
   });
 
   test("searches by name", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/shop");
 
     await searchBox(page).fill("ibuprofen");
     await searchBox(page).press("Enter");
@@ -94,7 +128,7 @@ test.describe("Search and filters", () => {
   });
 
   test("filters by category and brand as soon as they are picked", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/shop");
 
     await aisle(page, "Skin care").click();
     await page.getByRole("radio", { name: "Eucerin" }).click();
@@ -106,7 +140,7 @@ test.describe("Search and filters", () => {
   });
 
   test("shows how many products each category and brand holds", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/shop");
 
     await expect(aisle(page, "Pain relief")).toHaveAccessibleDescription("3");
     await expect(aisle(page, "All products")).toHaveAccessibleDescription("12");
@@ -120,7 +154,7 @@ test.describe("Search and filters", () => {
   });
 
   test("filters by price range", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/shop");
 
     await setPrice(page, "5", "7");
 
@@ -131,7 +165,7 @@ test.describe("Search and filters", () => {
   });
 
   test("combines the search term with filters", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/shop");
 
     await searchBox(page).fill("ibuprofen");
     await search(page).click();
@@ -144,7 +178,7 @@ test.describe("Search and filters", () => {
   });
 
   test("shows a message when nothing matches", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/shop");
 
     await searchBox(page).fill("zzzz-no-such-product");
     await search(page).click();
@@ -153,7 +187,7 @@ test.describe("Search and filters", () => {
   });
 
   test("filters by a price band in one tap", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/shop");
 
     await page.getByRole("button", { name: "Up to 5 €" }).click();
 
@@ -162,7 +196,7 @@ test.describe("Search and filters", () => {
   });
 
   test("rejects a min price above the max price", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/shop");
 
     await setPrice(page, "20", "5");
 
@@ -171,7 +205,7 @@ test.describe("Search and filters", () => {
   });
 
   test("Clear filters removes the filters and keeps the search term", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/shop");
     await aisle(page, "Pain relief").click();
     await expect(cards(page)).toHaveCount(3);
 
@@ -187,7 +221,7 @@ test.describe("Search suggestions", () => {
   test("suggests products as you type and searches the one picked with the keyboard", async ({
     page,
   }) => {
-    await page.goto("/");
+    await page.goto("/shop");
     const name = searchBox(page);
 
     await name.fill("ibu");
@@ -210,7 +244,7 @@ test.describe("Search suggestions", () => {
   });
 
   test("a symptom suggests a category, which filters the results", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/shop");
 
     await searchBox(page).fill("headache");
     await page
@@ -224,7 +258,7 @@ test.describe("Search suggestions", () => {
   });
 
   test("Escape closes the suggestions and keeps the text", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/shop");
     const name = searchBox(page);
     await name.fill("vit");
     await expect(page.getByRole("listbox", { name: "Suggestions" })).toBeVisible();
@@ -248,7 +282,7 @@ test.describe("Loading, error and empty states", () => {
       },
     );
 
-    await page.goto("/");
+    await page.goto("/shop");
     await expect(page.getByText("Loading products...")).toBeVisible();
 
     release();
@@ -262,7 +296,7 @@ test.describe("Loading, error and empty states", () => {
       (route) => route.fulfill({ status: 500 }),
     );
 
-    await page.goto("/");
+    await page.goto("/shop");
 
     await expect(page.getByText("Could not load products")).toBeVisible();
     await expect(cards(page)).toHaveCount(0);

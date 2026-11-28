@@ -83,7 +83,7 @@ describe("CartPage", () => {
     expect(empty).toHaveTextContent("Your cart is empty");
     expect(within(empty).getByRole("link", { name: "Browse products" })).toHaveAttribute(
       "href",
-      "/",
+      "/shop",
     );
   });
 

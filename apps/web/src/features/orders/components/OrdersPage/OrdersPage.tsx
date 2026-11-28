@@ -13,7 +13,7 @@ export function OrdersPage() {
   return (
     <div className={styles.page}>
       <PageTitle title="Your orders" />
-      <Link className={styles.back} to="/">
+      <Link className={styles.back} to="/shop">
         ← Back to products
       </Link>
       <h1 className={styles.title}>Your orders</h1>
@@ -30,7 +30,7 @@ export function OrdersPage() {
         <section className={styles.empty} aria-label="No orders">
           <p className={styles.emptyTitle}>No orders yet</p>
           <p className={styles.emptyText}>Orders you place show up here.</p>
-          <Link className={styles.primary} to="/">
+          <Link className={styles.primary} to="/shop">
             Browse products
           </Link>
         </section>

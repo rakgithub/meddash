@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ProductsPage } from "./ProductsPage";
 import * as facetsApi from "../../api/fetchFacets";
 import * as api from "../../api/searchProducts";
+import * as suggestApi from "../../api/fetchSuggestions";
 import { EMPTY_FILTERS } from "../../types";
 import { ibuprofen, vitaminD } from "../../../../test/fixtures";
 import { renderWithRouter } from "../../../../test/renderWithRouter";
@@ -26,6 +27,7 @@ const facets = {
 beforeEach(() => {
   vi.resetAllMocks();
   fetchFacets.mockResolvedValue({ categories: [], brands: [], price: null });
+  vi.mocked(suggestApi.fetchSuggestions).mockResolvedValue([]);
 });
 
 describe("ProductsPage header", () => {
@@ -56,7 +58,7 @@ describe("ProductsPage header", () => {
 
     renderWithRouter(<ProductsPage />);
 
-    await screen.findByRole("heading", { name: "Products", level: 1 });
+    await screen.findByRole("heading", { name: "Medicines", level: 1 });
     const header = screen.getByRole("banner");
     expect(header.querySelector("p")).toBeNull();
   });
@@ -67,6 +69,29 @@ describe("ProductsPage search and filters", () => {
     items: [ibuprofen],
     pagination: { page: 1, pageSize: 10, total: 1, totalPages: 1 },
   };
+
+  it("searches from the field in the title row and keeps the filters", async () => {
+    searchProducts.mockResolvedValue(loaded);
+    const user = userEvent.setup();
+    renderWithRouter(<ProductsPage />, "/shop?category=vitamins");
+
+    await user.type(screen.getByRole("combobox", { name: "Search products" }), "d3{Enter}");
+
+    await waitFor(() =>
+      expect(searchProducts).toHaveBeenLastCalledWith(
+        { ...EMPTY_FILTERS, q: "d3", category: "vitamins" },
+        1,
+        expect.any(AbortSignal),
+      ),
+    );
+  });
+
+  it("shows the search term from the URL in the field", () => {
+    searchProducts.mockReturnValue(new Promise(() => {}));
+    renderWithRouter(<ProductsPage />, "/shop?q=ibu");
+
+    expect(screen.getByRole("combobox", { name: "Search products" })).toHaveValue("ibu");
+  });
 
   it("keeps the search term when a filter changes", async () => {
     searchProducts.mockResolvedValue(loaded);

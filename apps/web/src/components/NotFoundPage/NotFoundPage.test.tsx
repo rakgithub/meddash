@@ -7,7 +7,7 @@ describe("NotFoundPage", () => {
   it("says the page was not found and links back to the products", () => {
     renderWithRouter(<NotFoundPage />);
     expect(screen.getByRole("heading", { name: "Page not found", level: 1 })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Back to products" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: "Back to products" })).toHaveAttribute("href", "/shop");
     expect(document.title).toBe("Page not found | MedDash");
   });
 });

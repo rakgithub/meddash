@@ -1,10 +1,15 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { initials } from "../../utils/initials";
 import styles from "./UserMenu.module.css";
 
-export function UserMenu() {
+interface UserMenuProps {
+  /** The theme switch, shown in the panel between Profile and Log out. */
+  themeToggle?: ReactNode;
+}
+
+export function UserMenu({ themeToggle }: UserMenuProps) {
   const { state, signOut } = useAuth();
   const location = useLocation();
   const [error, setError] = useState(false);
@@ -46,7 +51,11 @@ export function UserMenu() {
           to="/login"
           state={{ from: location.pathname + location.search }}
         >
-          Log in
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="8" r="4" />
+            <path d="M4 20.5c1.5-3.8 4.4-5.5 8-5.5s6.5 1.7 8 5.5" />
+          </svg>
+          <span className={styles.loginLabel}>Log in</span>
         </Link>
       </div>
     );
@@ -93,9 +102,7 @@ export function UserMenu() {
           <Link className={styles.item} to="/profile" onClick={close}>
             Profile
           </Link>
-          <Link className={styles.item} to="/orders" onClick={close}>
-            Orders
-          </Link>
+          {themeToggle}
           <button type="button" className={styles.item} onClick={handleLogout}>
             Log out
           </button>

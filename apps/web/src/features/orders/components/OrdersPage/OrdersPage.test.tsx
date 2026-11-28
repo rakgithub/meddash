@@ -38,7 +38,7 @@ describe("OrdersPage", () => {
     expect(empty).toHaveTextContent("No orders yet");
     expect(within(empty).getByRole("link", { name: "Browse products" })).toHaveAttribute(
       "href",
-      "/",
+      "/shop",
     );
   });
 
