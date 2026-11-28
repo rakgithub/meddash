@@ -21,6 +21,7 @@ export default defineConfig({
         "src/db/seed-data.ts",
         "src/db/catalogue/load.ts",
         "src/db/catalogue/checkImages.ts",
+        "src/search/runReindex.ts",
         "src/test/**",
       ],
       reporter: ["text-summary", "lcov"],

@@ -12,6 +12,7 @@
     "db:seed": "tsx --env-file-if-exists=.env src/db/seed.ts",
     "db:catalogue": "tsx --env-file-if-exists=.env src/db/catalogue/load.ts",
     "catalogue:check-images": "tsx src/db/catalogue/checkImages.ts",
+    "search:reindex": "tsx --env-file-if-exists=.env src/search/runReindex.ts",
     "assistant:eval": "tsx --env-file-if-exists=.env evals/assistant/run.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -24,6 +25,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^1.11.0",
     "@asteasolutions/zod-to-openapi": "^7.3.4",
+    "@opensearch-project/opensearch": "^3.10.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "drizzle-orm": "^0.45.4",

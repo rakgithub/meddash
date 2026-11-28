@@ -14,6 +14,46 @@ describe("parseEnv", () => {
       isProduction: false,
       anthropicApiKey: undefined,
       assistantModel: "claude-haiku-5-5",
+      opensearch: undefined,
+    });
+  });
+
+  describe("OpenSearch", () => {
+    const opensearch = {
+      OPENSEARCH_URL: "https://search.example.com:9200",
+      OPENSEARCH_USERNAME: "meddash",
+      OPENSEARCH_PASSWORD: "os-s3cret",
+    };
+
+    it("reads the URL and credentials together", () => {
+      expect(parseEnv({ ...base, ...opensearch }).opensearch).toEqual({
+        url: "https://search.example.com:9200",
+        username: "meddash",
+        password: "os-s3cret",
+      });
+    });
+
+    it.each([undefined, ""])("is off when OPENSEARCH_URL is %j", (url) => {
+      expect(parseEnv({ ...base, ...opensearch, OPENSEARCH_URL: url }).opensearch).toBeUndefined();
+    });
+
+    it.each(["OPENSEARCH_USERNAME", "OPENSEARCH_PASSWORD"])("requires %s with a URL", (key) => {
+      expect(() => parseEnv({ ...base, ...opensearch, [key]: "" })).toThrow(
+        new RegExp(`${key} is required when OPENSEARCH_URL is set`),
+      );
+    });
+
+    it.each(["search.example.com:9200", "https://admin:pw@search.example.com"])(
+      "rejects OPENSEARCH_URL=%s without echoing it",
+      (url) => {
+        const parse = () => parseEnv({ ...base, ...opensearch, OPENSEARCH_URL: url });
+        expect(parse).toThrow(/OPENSEARCH_URL must be an http/);
+        expect(parse).not.toThrow(/pw@/);
+      },
+    );
+
+    it("never echoes OPENSEARCH_PASSWORD when another variable is invalid", () => {
+      expect(() => parseEnv({ ...base, ...opensearch, PORT: "abc" })).not.toThrow(/os-s3cret/);
     });
   });
 
