@@ -37,7 +37,7 @@ jobs:
           --health-timeout 5s
           --health-retries 15
     env:
-      # e2e starts the real API on this database; Playwright's global setup migrates and seeds it.
+      # e2e starts the real API on this database, migrating and seeding it first.
       TEST_DATABASE_URL: postgres://meddash:meddash@localhost:5433/meddash_test
     steps:
       - uses: actions/checkout@v4
