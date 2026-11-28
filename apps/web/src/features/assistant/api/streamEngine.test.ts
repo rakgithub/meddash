@@ -223,23 +223,6 @@ describe("streamEngine", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("offers an area's common symptoms without calling the server", async () => {
-    const fetchMock = stubFetch(sseResponse([DONE]));
-
-    const parts = await collect({ userText: "My nose and throat" });
-
-    expect(parts.at(-1)).toEqual({
-      kind: "quickReplies",
-      question: "What’s going on with your nose and throat?",
-      field: "symptoms",
-      options: ["Sore throat", "Blocked nose", "Sneezing", "Cough"].map((s) => ({
-        label: s,
-        value: s,
-      })),
-    });
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
   it("rejects when aborted mid-stream", async () => {
     const controller = new AbortController();
     const body = new ReadableStream<Uint8Array>({

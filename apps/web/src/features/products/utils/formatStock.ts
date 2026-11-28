@@ -1,4 +1,4 @@
-const LOW_STOCK_THRESHOLD = 5;
+export const LOW_STOCK_THRESHOLD = 5;
 
 export function formatStock(quantity: number): string {
   if (quantity <= 0) return "Out of stock";

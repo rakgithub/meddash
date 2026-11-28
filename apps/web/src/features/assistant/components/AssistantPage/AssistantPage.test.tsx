@@ -1,25 +1,20 @@
-import { screen, waitFor, within } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as engineModule from "../../api/streamEngine";
 import { AuthProvider } from "../../../auth";
-import { ana, ibuprofenDetail } from "../../../../test/fixtures";
-import { endAnimation } from "../../../../test/endAnimation";
+import { ibuprofenDetail } from "../../../../test/fixtures";
 import { renderWithRouter } from "../../../../test/renderWithRouter";
-import type { MessagePart } from "../../types";
-import { BODY_REGIONS } from "../../utils/bodyRegions";
 import { AssistantPage } from "./AssistantPage";
 
 vi.mock("../../api/streamEngine");
 const engine = vi.mocked(engineModule.streamEngine);
 
 /** Answers the session check (GET /api/auth/me), the only request the page makes with the engine mocked. */
-function signedIn(user: typeof ana | null) {
+function signedOut() {
   vi.stubGlobal(
     "fetch",
-    vi.fn(async () =>
-      user ? Response.json(user) : Response.json({ error: { message: "No" } }, { status: 401 }),
-    ),
+    vi.fn(async () => Response.json({ error: { message: "No" } }, { status: 401 })),
   );
 }
 
@@ -34,7 +29,7 @@ const renderPage = (url: string) =>
 beforeEach(() => {
   vi.resetAllMocks();
   localStorage.clear();
-  signedIn(null);
+  signedOut();
   engine.mockImplementation(async function* () {
     yield { kind: "thinking", steps: [{ label: "3 matches", done: true }] };
     yield { kind: "text", text: "Try an " };
@@ -45,52 +40,27 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("AssistantPage", () => {
-  it("greets with starter prompts and the disclaimer", async () => {
+  it("asks how you are, with three starters and the pharmacist line", () => {
     renderPage("/assistant");
 
     expect(
-      screen.getByRole("heading", { name: "What’s bothering you today?" }),
-    ).toBeInTheDocument();
-    for (const starter of ["Sore throat and fever", "Can't sleep", "Hay fever", "Upset stomach"]) {
-      expect(screen.getByRole("button", { name: starter })).toBeInTheDocument();
-    }
-    await userEvent.click(screen.getByRole("button", { name: "Suggestions, not a diagnosis" }));
-    expect(screen.getByText(/It can’t examine you/)).toBeInTheDocument();
-  });
-
-  it("describes each starter and offers every body area", () => {
-    renderPage("/assistant");
-
-    expect(screen.getByRole("button", { name: "Hay fever" })).toHaveAccessibleDescription(
-      "Sneezing, itchy eyes, runny nose",
-    );
-    expect(screen.getByRole("button", { name: "Nose and throat" })).toBeInTheDocument();
-  });
-
-  it("shows who you're talking to and how far along the consultation is", async () => {
-    engine.mockImplementationOnce(async function* () {
-      yield { kind: "symptoms", symptoms: ["Hay fever"] };
-      yield {
-        kind: "products",
-        items: [{ product: ibuprofenDetail, reason: "Eases it", fit: "best" }],
-      };
-    });
-    renderPage("/assistant");
-
-    await userEvent.click(screen.getByRole("button", { name: "Hay fever" }));
-
+      screen.getByRole("heading", { level: 1, name: "How are you feeling today?" }),
+    ).toBeVisible();
+    const starters = screen.getByRole("list", { name: "Start with" });
     expect(
-      await screen.findByRole("heading", { name: "My suggestions for hay fever" }),
+      within(starters)
+        .getAllByRole("button")
+        .map((b) => b.textContent),
+    ).toEqual(["Hay fever", "Dry cough", "Can't sleep"]);
+    expect(screen.getByRole("textbox", { name: "Describe your symptoms" })).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Reviewed by pharmacists. Not a substitute for a doctor — in an emergency, call 112.",
+      ),
     ).toBeInTheDocument();
-    expect(screen.getByText("MedDash assistant")).toBeInTheDocument();
-    const progress = screen.getByRole("list", { name: "Progress" });
-    expect(within(progress).getByText("Suggestions").closest("li")).toHaveAttribute(
-      "aria-current",
-      "step",
-    );
   });
 
-  it("sends a starter prompt and renders the streamed reply", async () => {
+  it("sends a starter and renders the streamed reply in place of the greeting", async () => {
     renderPage("/assistant");
 
     await userEvent.click(screen.getByRole("button", { name: "Hay fever" }));
@@ -102,59 +72,33 @@ describe("AssistantPage", () => {
     ).getAllByRole("listitem");
     expect(question).toHaveTextContent("Hay fever");
     expect(reply).toHaveTextContent("Try an antihistamine.");
-    expect(screen.getByRole("button", { name: "3 matches 1 step" })).toBeInTheDocument();
+    // The finished checks fold away; only the answer stays.
+    expect(reply).not.toHaveTextContent("3 matches");
     expect(
-      screen.queryByRole("heading", { name: "What’s bothering you today?" }),
+      screen.getByRole("heading", { level: 1, name: "Symptom assistant" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "How are you feeling today?" }),
     ).not.toBeInTheDocument();
+    expect(screen.getByText(/Reviewed by pharmacists/)).toBeInTheDocument();
   });
 
-  it("offers every body area as a chip", () => {
+  it("changes the message box's hint once suggestions are shown", async () => {
+    engine.mockImplementationOnce(async function* () {
+      yield {
+        kind: "products",
+        items: [{ product: ibuprofenDetail, reason: "Eases it", fit: "best" }],
+      };
+    });
     renderPage("/assistant");
 
-    const areas = screen.getByRole("region", { name: "Or start from where it bothers you" });
-    expect(
-      within(areas)
-        .getAllByRole("button")
-        .map((b) => b.textContent),
-    ).toEqual(BODY_REGIONS.map((region) => region.label));
-  });
+    await userEvent.click(screen.getByRole("button", { name: "Dry cough" }));
 
-  it("starts from a body area: the area is sent, then a picked symptom seeds the case file", async () => {
-    engine
-      .mockImplementationOnce(async function* () {
-        yield {
-          kind: "quickReplies",
-          question: "What’s going on with your nose and throat?",
-          field: "symptoms",
-          options: [
-            { label: "Sore throat", value: "Sore throat" },
-            { label: "Cough", value: "Cough" },
-          ],
-        };
-      })
-      .mockImplementationOnce(async function* () {
-        yield { kind: "symptoms", symptoms: ["Sore throat"] };
-      });
-    const user = userEvent.setup();
-    renderPage("/assistant");
-
-    await user.click(screen.getByRole("button", { name: "Nose and throat" }));
-
-    expect(engine).toHaveBeenLastCalledWith(
-      expect.objectContaining({ userText: "My nose and throat" }),
+    expect(await screen.findByRole("article", { name: "Ibuprofen 400mg" })).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Describe your symptoms" })).toHaveAttribute(
+      "placeholder",
+      "Reply, or ask something else…",
     );
-    expect(screen.queryByRole("region", { name: /where it bothers you/i })).not.toBeInTheDocument();
-
-    await user.click(await screen.findByRole("button", { name: "Sore throat" }));
-
-    expect(engine).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        userText: "Sore throat",
-        caseFile: expect.objectContaining({ symptoms: ["Sore throat"] }),
-      }),
-    );
-    const panel = await screen.findByRole("complementary", { name: "Your consultation" });
-    expect(within(panel).getByRole("list", { name: "Symptoms" })).toHaveTextContent("Sore throat");
   });
 
   it("pre-fills the message box from the link", () => {
@@ -236,158 +180,11 @@ describe("AssistantPage", () => {
     expect(screen.queryByRole("article")).not.toBeInTheDocument();
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
 
+    expect(screen.getByText(/Not a substitute for a doctor/)).toBeInTheDocument();
+
     await user.click(screen.getByRole("button", { name: "Start over" }));
-    await user.click(screen.getByRole("button", { name: "Yes, clear it" }));
 
-    expect(
-      screen.getByRole("heading", { name: "What’s bothering you today?" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "How are you feeling today?" })).toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "Describe your symptoms" })).toBeInTheDocument();
-  });
-
-  describe("case file", () => {
-    const products = async function* (): AsyncGenerator<MessagePart> {
-      yield { kind: "symptoms", symptoms: ["Sore throat"] };
-      yield {
-        kind: "products",
-        items: [{ product: ibuprofenDetail, reason: "Brings fever down", fit: "best" }],
-      };
-    };
-
-    it("is hidden until the conversation starts", async () => {
-      renderPage("/assistant");
-      expect(
-        screen.queryByRole("complementary", { name: "Your consultation" }),
-      ).not.toBeInTheDocument();
-
-      await userEvent.click(screen.getByRole("button", { name: "Hay fever" }));
-
-      expect(
-        await screen.findByRole("complementary", { name: "Your consultation" }),
-      ).toBeInTheDocument();
-    });
-
-    it("re-runs the engine with the edited case file", async () => {
-      engine.mockImplementation(products);
-      renderPage("/assistant");
-      await userEvent.click(screen.getByRole("button", { name: "Hay fever" }));
-      await screen.findByRole("article", { name: "Ibuprofen 400mg" });
-
-      await userEvent.selectOptions(
-        screen.getByRole("combobox", { name: "Who it’s for" }),
-        "A child",
-      );
-
-      expect(engine).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          userText: "Changed who it’s for to A child",
-          caseFile: expect.objectContaining({ forWhom: "child", symptoms: ["Sore throat"] }),
-        }),
-      );
-      expect(await screen.findAllByRole("article", { name: "Ibuprofen 400mg" })).toHaveLength(2);
-    });
-
-    it("drops a card the user says is not for them and does not bring it back", async () => {
-      engine.mockImplementation(products);
-      renderPage("/assistant");
-      await userEvent.click(screen.getByRole("button", { name: "Hay fever" }));
-      const card = await screen.findByRole("article", { name: "Ibuprofen 400mg" });
-
-      await userEvent.click(within(card).getByRole("button", { name: "Not for me" }));
-      await userEvent.click(within(card).getByRole("button", { name: "Too expensive" }));
-      endAnimation(card.closest("li"));
-
-      await waitFor(() => expect(screen.queryByRole("article")).not.toBeInTheDocument());
-      expect(screen.getByRole("list", { name: "Avoiding" })).toHaveTextContent("Expensive options");
-      expect(engine).toHaveBeenCalledTimes(1);
-
-      // The same engine answer again: the dismissed product is left out.
-      await userEvent.selectOptions(screen.getByRole("combobox", { name: "How long" }), "Longer");
-      await waitFor(() => expect(engine).toHaveBeenCalledTimes(2));
-      await waitFor(() => expect(screen.getByRole("status")).toBeEmptyDOMElement());
-      expect(screen.queryByRole("article")).not.toBeInTheDocument();
-    });
-
-    it("asks before clearing a conversation, then returns to the greeting", async () => {
-      renderPage("/assistant");
-      await userEvent.click(screen.getByRole("button", { name: "Hay fever" }));
-      await screen.findByRole("status");
-
-      await userEvent.click(screen.getByRole("button", { name: "Start over" }));
-      await userEvent.click(screen.getByRole("button", { name: "Keep chatting" }));
-      expect(
-        screen.queryByRole("heading", { name: "What’s bothering you today?" }),
-      ).not.toBeInTheDocument();
-
-      await userEvent.click(screen.getByRole("button", { name: "Start over" }));
-      await userEvent.click(screen.getByRole("button", { name: "Yes, clear it" }));
-
-      expect(
-        screen.getByRole("heading", { name: "What’s bothering you today?" }),
-      ).toBeInTheDocument();
-      expect(
-        screen.queryByRole("complementary", { name: "Your consultation" }),
-      ).not.toBeInTheDocument();
-    });
-
-    it("is read-only after an urgent alert", async () => {
-      engine.mockImplementationOnce(async function* () {
-        yield { kind: "symptoms", symptoms: ["Chest pain"] };
-        yield {
-          kind: "alert",
-          level: "urgent",
-          title: "This needs a doctor now",
-          body: "Call 112.",
-        };
-      });
-      renderPage("/assistant");
-      await userEvent.click(screen.getByRole("button", { name: "Hay fever" }));
-      await screen.findByRole("alert", { name: /doctor now/ });
-
-      expect(screen.getByRole("combobox", { name: "How long" })).toBeDisabled();
-      expect(screen.queryByRole("button", { name: "Remove Chest pain" })).not.toBeInTheDocument();
-    });
-  });
-  describe("saved consultations", () => {
-    const products = async function* (): AsyncGenerator<MessagePart> {
-      yield { kind: "symptoms", symptoms: ["Sore throat"] };
-      yield {
-        kind: "products",
-        items: [{ product: ibuprofenDetail, reason: "Brings fever down", fit: "best" }],
-      };
-    };
-
-    it("are only offered when signed in", async () => {
-      engine.mockImplementation(products);
-      renderPage("/assistant");
-      await userEvent.click(screen.getByRole("button", { name: "Sore throat and fever" }));
-      await screen.findByRole("article", { name: ibuprofenDetail.name });
-
-      expect(screen.queryByRole("button", { name: "Save consultation" })).not.toBeInTheDocument();
-    });
-
-    it("can be saved, then reopened from the start screen after starting over", async () => {
-      signedIn(ana);
-      engine.mockImplementation(products);
-      const user = userEvent.setup();
-      renderPage("/assistant");
-      await user.click(screen.getByRole("button", { name: "Sore throat and fever" }));
-      await screen.findByRole("article", { name: ibuprofenDetail.name });
-
-      await user.click(await screen.findByRole("button", { name: "Save consultation" }));
-      expect(screen.getByText(/^Saved\./)).toBeInTheDocument();
-
-      await user.click(screen.getByRole("button", { name: "Start over" }));
-      await user.click(screen.getByRole("button", { name: "Yes, clear it" }));
-      const saved = screen.getByRole("region", { name: "Your consultations" });
-      expect(saved).toHaveTextContent("Sore throat → 1 suggestion");
-
-      await user.click(within(saved).getByRole("button", { name: "Reopen Sore throat" }));
-
-      expect(screen.getByRole("article", { name: ibuprofenDetail.name })).toBeInTheDocument();
-      expect(screen.getByRole("complementary", { name: "Your consultation" })).toHaveTextContent(
-        "Sore throat",
-      );
-    });
   });
 });

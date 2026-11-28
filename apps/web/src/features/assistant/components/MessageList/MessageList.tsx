@@ -1,43 +1,29 @@
+import { Button } from "@meddash/design-system/components";
 import { useEffect, useRef } from "react";
-import type { ProductDetail } from "../../../products";
-import type { CaseField, Message, MessagePart, QuickReply } from "../../types";
-import type { DismissReason } from "../../utils/caseFile";
+import type { CaseField, Message, MessagePart, QuickReply, Recommendation } from "../../types";
 import { messageText } from "../../utils/consultationReducer";
-import { AssistantAvatar } from "../AssistantAvatar/AssistantAvatar";
+import { ChatProductCard } from "../ChatProductCard/ChatProductCard";
+import { PharmacistContact } from "../PharmacistContact/PharmacistContact";
 import { QuickReplies } from "../QuickReplies/QuickReplies";
-import { RecommendationStack } from "../RecommendationStack/RecommendationStack";
 import { SafetyAlert } from "../SafetyAlert/SafetyAlert";
-import { SymptomChips } from "../SymptomChips/SymptomChips";
 import { ThinkingSteps } from "../ThinkingSteps/ThinkingSteps";
 import styles from "./MessageList.module.css";
 
 /** What the user can still do with the parts of one reply; a missing handler makes that part read-only. */
 interface PartActions {
-  /** The case file's current symptoms, shown on the latest symptoms part. */
-  symptoms?: string[];
-  /** The case file's symptoms on every reply, to name what the suggestions are for. */
-  topic?: string[];
   onAnswer?: (field: CaseField, option: QuickReply) => void;
-  onAskIngredient?: (ingredient: string) => void;
-  onDismiss?: (product: ProductDetail, reason: DismissReason) => void;
   /** The option the user picked for this reply's question, i.e. their next message. */
   selected?: string;
 }
 
-interface MessageListProps extends Omit<PartActions, "selected"> {
+interface MessageListProps {
   messages: Message[];
   onRetry: () => void;
+  onAnswer?: PartActions["onAnswer"];
 }
 
-/** A paragraph that tells people when to get medical help; it gets its own box so it isn't skimmed past. */
+/** A paragraph that tells people when to get medical help; it is set apart so it isn't skimmed past. */
 const DOCTOR_ADVICE = /^(see|call|talk to|contact|ask) (a|your) (doctor|gp)\b/i;
-
-/** "sore throat and fever" from ["Sore throat", "Fever"]. */
-function symptomPhrase(symptoms: string[]) {
-  const words = symptoms.map((s) => s.toLowerCase());
-  if (words.length <= 1) return words[0] ?? "";
-  return `${words.slice(0, -1).join(", ")} and ${words.at(-1)}`;
-}
 
 /** How close to the bottom still counts as "following the conversation". */
 const STICK_THRESHOLD = 80;
@@ -45,6 +31,47 @@ const STICK_THRESHOLD = 80;
 function isNearBottom() {
   const { scrollHeight } = document.documentElement;
   return window.innerHeight + window.scrollY >= scrollHeight - STICK_THRESHOLD;
+}
+
+/** Prescription-only products can't be bought here yet, so they come after the real options. */
+function byBuyable(items: Recommendation[]) {
+  return [
+    ...items.filter((item) => item.fit !== "locked"),
+    ...items.filter((item) => item.fit === "locked"),
+  ];
+}
+
+function Products({ part }: { part: Extract<MessagePart, { kind: "products" }> }) {
+  const loading = part.loading ?? 0;
+  const unavailable = part.unavailable ?? 0;
+  if (loading > 0) {
+    return (
+      <div className={styles.products} role="status" aria-label="Loading suggestions">
+        {Array.from({ length: loading }, (_, i) => (
+          <div key={i} className={styles.skeleton} />
+        ))}
+      </div>
+    );
+  }
+  return (
+    <>
+      {part.items.length > 0 && (
+        <ul className={styles.products} aria-label="Suggested products">
+          {byBuyable(part.items).map((item) => (
+            <li key={item.product.id}>
+              <ChatProductCard recommendation={item} />
+            </li>
+          ))}
+        </ul>
+      )}
+      {unavailable > 0 && (
+        <p className={styles.note}>
+          {unavailable} {unavailable === 1 ? "suggestion" : "suggestions"} unavailable
+        </p>
+      )}
+      {part.items.length > 0 && <PharmacistContact />}
+    </>
+  );
 }
 
 function Part({
@@ -60,7 +87,8 @@ function Part({
     case "thinking":
       return <ThinkingSteps steps={part.steps} active={active} />;
     case "symptoms":
-      return <SymptomChips symptoms={actions.symptoms ?? part.symptoms} />;
+      // Noted in the case file for the assistant's questions; the chat itself doesn't list them.
+      return null;
     case "quickReplies": {
       const { onAnswer } = actions;
       return (
@@ -73,21 +101,7 @@ function Part({
       );
     }
     case "products":
-      return (
-        <RecommendationStack
-          title={
-            actions.topic?.length
-              ? `My suggestions for ${symptomPhrase(actions.topic)}`
-              : "My suggestions"
-          }
-          items={part.items}
-          loading={part.loading}
-          unavailable={part.unavailable}
-          ruledOut={part.ruledOut}
-          onAskIngredient={actions.onAskIngredient}
-          onDismiss={actions.onDismiss}
-        />
-      );
+      return <Products part={part} />;
     case "alert":
       return <SafetyAlert level={part.level} title={part.title} body={part.body} />;
     case "text":
@@ -95,10 +109,10 @@ function Part({
         <div className={styles.text}>
           {part.text.split(/\n{2,}/).map((paragraph, i) =>
             DOCTOR_ADVICE.test(paragraph) ? (
-              <div key={i} className={styles.doctor}>
-                <p className={styles.doctorTitle}>When to see a doctor</p>
-                <p>{paragraph}</p>
-              </div>
+              <p key={i} className={styles.doctor}>
+                <strong>When to see a doctor: </strong>
+                {paragraph}
+              </p>
             ) : (
               <p key={i}>{paragraph}</p>
             ),
@@ -121,34 +135,22 @@ function AssistantMessage({
 }) {
   const streaming = message.status === "streaming";
   return (
-    <div className={styles.turn}>
-      <span className={styles.avatar}>
-        <AssistantAvatar />
-      </span>
-      <div className={streaming ? `${styles.reply} ${styles.streaming}` : styles.reply}>
-        {message.parts.map((part, i) => (
-          <Part key={i} part={part} active={streaming} actions={actions} />
-        ))}
-        {streaming && message.parts.length === 0 && (
-          <p className={styles.typing}>
-            <span aria-hidden="true" />
-            <span aria-hidden="true" />
-            <span aria-hidden="true" />
-            <span className="visually-hidden">Thinking…</span>
-          </p>
-        )}
-        {message.status === "stopped" && <p className={styles.note}>Stopped</p>}
-        {message.status === "error" && (
-          <div className={styles.error} role="alert">
-            <p>{message.error ?? "Something went wrong and the reply didn’t finish."}</p>
-            {isLast && (
-              <button className={styles.retry} type="button" onClick={onRetry}>
-                Retry
-              </button>
-            )}
-          </div>
-        )}
-      </div>
+    <div className={streaming ? `${styles.reply} ${styles.streaming}` : styles.reply}>
+      {message.parts.map((part, i) => (
+        <Part key={i} part={part} active={streaming} actions={actions} />
+      ))}
+      {streaming && message.parts.length === 0 && <ThinkingSteps steps={[]} active />}
+      {message.status === "stopped" && <p className={styles.note}>Stopped</p>}
+      {message.status === "error" && (
+        <div className={styles.error} role="alert">
+          <p>{message.error ?? "Something went wrong and the reply didn’t finish."}</p>
+          {isLast && (
+            <Button variant="secondary" onClick={onRetry}>
+              Retry
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -189,14 +191,7 @@ function announcementFor(message: Message): string {
   return said.filter(Boolean).join(" ");
 }
 
-export function MessageList({
-  messages,
-  onRetry,
-  symptoms,
-  onAnswer,
-  onAskIngredient,
-  onDismiss,
-}: MessageListProps) {
+export function MessageList({ messages, onRetry, onAnswer }: MessageListProps) {
   // A ref, not state: following the conversation never needs a re-render of its own.
   const stickRef = useRef(true);
   const countRef = useRef(messages.length);
@@ -219,20 +214,12 @@ export function MessageList({
   }, [messages]);
 
   const last = messages.at(-1);
-  const idle = last?.status !== "streaming";
-  // Only the most recent list of symptoms follows the case file; older ones are a record.
-  const latestSymptoms = messages.findLast((m) => m.parts.some((p) => p.kind === "symptoms"));
 
   function actionsFor(message: Message, index: number): PartActions {
     const next = messages[index + 1];
-    const isLatestSymptoms = message === latestSymptoms;
     return {
-      symptoms: isLatestSymptoms ? symptoms : undefined,
-      topic: symptoms,
       // A question can be answered only while it is the last thing said and the reply has finished.
       onAnswer: message === last && message.status === "done" ? onAnswer : undefined,
-      onAskIngredient: idle ? onAskIngredient : undefined,
-      onDismiss: idle ? onDismiss : undefined,
       selected: next?.role === "user" ? messageText(next) : undefined,
     };
   }

@@ -1,7 +1,6 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as engineModule from "../api/streamEngine";
-import { ibuprofenDetail } from "../../../test/fixtures";
 import type { MessagePart } from "../types";
 import { useConsultation } from "./useConsultation";
 
@@ -190,55 +189,20 @@ describe("useConsultation", () => {
     expect(lastMessage(result).error).toBe("Your session has ended.");
   });
 
-  it("sends a case file edit as a message and gives the engine the edited case file", async () => {
-    engine.mockImplementation(reply({ kind: "symptoms", symptoms: ["Cough", "Fever"] }));
-    const { result } = renderHook(() => useConsultation());
-    act(() => result.current.send("Cough and fever"));
-    await waitFor(() => expect(result.current.caseFile.symptoms).toEqual(["Cough", "Fever"]));
-    await waitFor(() => expect(result.current.isStreaming).toBe(false));
-
-    act(() =>
-      result.current.refine(
-        { ...result.current.caseFile, symptoms: ["Cough"] },
-        "Removed a symptom",
-      ),
-    );
-
-    expect(result.current.caseFile.symptoms).toEqual(["Cough"]);
-    expect(engine.mock.lastCall?.[0]).toMatchObject({
-      userText: "Removed a symptom",
-      caseFile: { symptoms: ["Cough"] },
+  it("starts over: cancels a reply in progress and clears the conversation", async () => {
+    let aborted = false;
+    engine.mockImplementation(async function* ({ signal }) {
+      signal.addEventListener("abort", () => (aborted = true));
+      yield* hangingEngine()({ signal });
     });
-    await waitFor(() => expect(result.current.isStreaming).toBe(false));
-  });
-
-  it("ignores a case file edit while a reply streams", () => {
-    engine.mockImplementation(hangingEngine());
     const { result } = renderHook(() => useConsultation());
     act(() => result.current.send("Headache"));
+    await waitFor(() => expect(lastMessage(result).parts).toHaveLength(1));
 
-    act(() => result.current.refine(result.current.caseFile, "Changed duration to Longer"));
+    act(() => result.current.startOver());
 
-    expect(engine).toHaveBeenCalledTimes(1);
-    expect(result.current.messages).toHaveLength(2);
-  });
-
-  it("rules a product out and remembers why, without asking the engine again", async () => {
-    engine.mockImplementation(
-      reply({
-        kind: "products",
-        items: [{ product: ibuprofenDetail, reason: "Brings fever down", fit: "best" }],
-      }),
-    );
-    const { result } = renderHook(() => useConsultation());
-    act(() => result.current.send("Headache"));
-    await waitFor(() => expect(result.current.isStreaming).toBe(false));
-
-    act(() => result.current.dismiss(ibuprofenDetail, "I don’t swallow tablets"));
-
-    expect(result.current.caseFile.avoid).toEqual(["Tablets"]);
-    expect(engine).toHaveBeenCalledTimes(1);
-    const [products] = result.current.messages[1].parts;
-    expect(products).toMatchObject({ kind: "products", items: [], ruledOut: 1 });
+    expect(aborted).toBe(true);
+    expect(result.current.messages).toEqual([]);
+    expect(result.current.caseFile.symptoms).toEqual([]);
   });
 });

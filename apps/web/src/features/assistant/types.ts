@@ -1,5 +1,4 @@
 import type { ProductDetail } from "../products";
-import type { CompareRowKey } from "./utils/compareProducts";
 
 /**
  * The message protocol between the chat UI and the assistant engine. The UI renders only these typed
@@ -19,7 +18,7 @@ export interface CaseFile {
   symptoms: string[];
   duration: string | null;
   forWhom: ForWhom | null;
-  /** What the user wants to steer away from, e.g. "Tablets". Set by "Not for me" and the case file panel. */
+  /** What the user wants to steer away from. Part of the API's case file; the chat no longer sets it. */
   avoid: string[];
 }
 
@@ -60,20 +59,9 @@ export type MessagePart =
       loading?: number;
       /** Suggestions that could not be loaded and were left out. */
       unavailable?: number;
-      /** Suggestions left out because the user ruled them out. Set by the reducer. */
-      ruledOut?: number;
     }
   /** `urgent` = this needs a doctor now; the conversation stops recommending until it starts over. */
   | { kind: "alert"; level: "urgent" | "caution"; title: string; body: string };
-
-/**
- * One event of an answer in the compare drawer (`AssistantCompareEvent` on the server): the answer's
- * text, the table row it is about, or the urgent alert for a red flag in the question.
- */
-export type CompareEvent =
-  | { kind: "text"; text: string }
-  | { kind: "row"; row: CompareRowKey }
-  | Extract<MessagePart, { kind: "alert" }>;
 
 /** `stopped` = the user pressed Stop; `error` = the engine threw. */
 export type MessageStatus = "streaming" | "done" | "stopped" | "error";

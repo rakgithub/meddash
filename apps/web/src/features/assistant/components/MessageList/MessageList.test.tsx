@@ -1,8 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ibuprofenDetail } from "../../../../test/fixtures";
-import { endAnimation } from "../../../../test/endAnimation";
+import { coughSyrupDetail, ibuprofenDetail } from "../../../../test/fixtures";
 import { renderWithRouter } from "../../../../test/renderWithRouter";
 import type { Message, MessagePart } from "../../types";
 import { MessageList } from "./MessageList";
@@ -189,25 +188,15 @@ describe("MessageList", () => {
       ],
     };
 
-    it("shows the case file's symptoms on the latest symptom list, read-only", () => {
+    it("doesn't list the symptoms it noted; they only feed the case file", () => {
       render(
         <MessageList
-          messages={[
-            question,
-            reply("a1", [{ kind: "symptoms", symptoms: ["Old"] }]),
-            said("u2", "Cough too"),
-            reply("a2", [{ kind: "symptoms", symptoms: ["Cough"] }]),
-          ]}
-          symptoms={["Sneezing", "Cough"]}
+          messages={[question, reply("a1", [{ kind: "symptoms", symptoms: ["Sneezing"] }])]}
           onRetry={() => {}}
         />,
       );
 
-      const [older, latest] = screen.getAllByRole("list", { name: "What I noted" });
-      expect(older).toHaveTextContent("Old");
-      expect(latest).toHaveTextContent("SneezingCough");
-      // Edits happen in the case file panel, which asks for a fresh recommendation.
-      expect(screen.queryByRole("button", { name: /^Remove/ })).not.toBeInTheDocument();
+      expect(screen.queryByText("Sneezing")).not.toBeInTheDocument();
     });
 
     const products: MessagePart = {
@@ -215,33 +204,47 @@ describe("MessageList", () => {
       items: [{ product: ibuprofenDetail, reason: "Brings fever down", fit: "best" }],
     };
 
-    it("lets the user rule out a suggestion once the reply has finished", async () => {
-      const onDismiss = vi.fn();
+    it("lists the suggestions as rows, prescription-only ones last, with the pharmacist after them", () => {
       renderWithRouter(
         <MessageList
-          messages={[question, reply("a1", [products])]}
-          onDismiss={onDismiss}
+          messages={[
+            question,
+            reply("a1", [
+              {
+                kind: "products",
+                items: [
+                  { product: coughSyrupDetail, reason: "Loosens a cough", fit: "locked" },
+                  ...(products.kind === "products" ? products.items : []),
+                ],
+                unavailable: 1,
+              },
+            ]),
+          ]}
           onRetry={() => {}}
         />,
       );
 
-      await userEvent.click(screen.getByRole("button", { name: "Not for me" }));
-      await userEvent.click(screen.getByRole("button", { name: "Already tried" }));
-      endAnimation(screen.getByRole("article", { name: "Ibuprofen 400mg" }).closest("li"));
-
-      expect(onDismiss).toHaveBeenCalledWith(ibuprofenDetail, "Already tried");
+      const rows = within(screen.getByRole("list", { name: "Suggested products" })).getAllByRole(
+        "article",
+      );
+      expect(rows.map((row) => row.getAttribute("aria-label"))).toEqual([
+        "Ibuprofen 400mg",
+        "Cough Syrup",
+      ]);
+      expect(screen.getByText("1 suggestion unavailable")).toBeInTheDocument();
+      expect(screen.getByText("Talk to a pharmacist")).toBeInTheDocument();
     });
 
-    it("keeps suggestions read-only while a reply streams", () => {
-      renderWithRouter(
+    it("shows placeholders while the suggestions load", () => {
+      render(
         <MessageList
-          messages={[question, reply("a1", [products], "streaming")]}
-          onDismiss={() => {}}
+          messages={[question, reply("a1", [{ kind: "products", items: [], loading: 2 }])]}
           onRetry={() => {}}
         />,
       );
 
-      expect(screen.queryByRole("button", { name: "Not for me" })).not.toBeInTheDocument();
+      expect(screen.getByRole("status", { name: "Loading suggestions" })).toBeInTheDocument();
+      expect(screen.queryByText("Talk to a pharmacist")).not.toBeInTheDocument();
     });
 
     it("lets the user answer the last question", async () => {
@@ -296,41 +299,9 @@ describe("MessageList", () => {
         />,
       );
 
-      expect(screen.getByText("When to see a doctor").parentElement).toHaveTextContent(
-        "See a doctor if it lasts more than a week.",
+      expect(screen.getByText(/When to see a doctor/).closest("p")).toHaveTextContent(
+        "When to see a doctor: See a doctor if it lasts more than a week.",
       );
-    });
-
-    it("shows product cards and asks about an ingredient only when idle", async () => {
-      const onAskIngredient = vi.fn();
-      const products: MessagePart = {
-        kind: "products",
-        items: [{ product: ibuprofenDetail, reason: "Brings fever down", fit: "best" }],
-      };
-      const { rerender } = renderWithRouter(
-        <MessageList
-          messages={[question, reply("a1", [products])]}
-          onAskIngredient={onAskIngredient}
-          onRetry={() => {}}
-        />,
-      );
-
-      await userEvent.click(screen.getByRole("button", { name: "Ask about Ibuprofen" }));
-      expect(onAskIngredient).toHaveBeenCalledWith("Ibuprofen");
-
-      rerender(
-        <MessageList
-          messages={[
-            question,
-            reply("a1", [products]),
-            said("u2", "Hi"),
-            reply("a2", [], "streaming"),
-          ]}
-          onAskIngredient={onAskIngredient}
-          onRetry={() => {}}
-        />,
-      );
-      expect(screen.queryByRole("button", { name: "Ask about Ibuprofen" })).not.toBeInTheDocument();
     });
   });
 });
