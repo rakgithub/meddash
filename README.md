@@ -154,7 +154,7 @@ You need **Node.js 22+**, **[pnpm](https://pnpm.io)** (version pinned in `packag
 ```bash
 pnpm install                                   # 1. bring in the supplies
 cp apps/server/.env.example apps/server/.env   # 2. cut the keys (set JWT_SECRET, see below)
-pnpm db:up                                     # 3. unlock the stock room (Postgres in Docker)
+pnpm db:up                                     # 3. unlock the stock room (Postgres and OpenSearch in Docker)
 pnpm db:migrate && pnpm db:seed                # 4. build the shelves and stock them
 pnpm dev                                       # 5. open the doors
 ```
@@ -273,10 +273,11 @@ Run everything from the repo root.
 | `pnpm dev`            | Web and API together                                 |
 | `pnpm dev:web`        | Web only                                             |
 | `pnpm dev:server`     | API only                                             |
-| `pnpm db:up`          | Start Postgres in Docker and wait until healthy      |
-| `pnpm db:down`        | Stop Postgres (data is kept)                         |
+| `pnpm db:up`          | Start Postgres + OpenSearch, wait until healthy      |
+| `pnpm db:down`        | Stop them (data is kept)                             |
 | `pnpm db:migrate`     | Apply migrations from `apps/server/drizzle`          |
 | `pnpm db:seed`        | Replace the products with the seed catalogue         |
+| `pnpm search:reindex` | Rebuild the OpenSearch products index from Postgres  |
 | `pnpm test`           | Unit tests in both apps                              |
 | `pnpm test:e2e`       | Playwright e2e against the real API and Vite server  |
 | `pnpm build`          | Production build of both apps                        |

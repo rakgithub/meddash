@@ -33,8 +33,23 @@ jobs:
           --health-interval 2s
           --health-timeout 5s
           --health-retries 15
+      # The reindex integration test needs a real node; same version and settings as docker-compose.yml.
+      opensearch:
+        image: opensearchproject/opensearch:3.10.1
+        env:
+          discovery.type: single-node
+          OPENSEARCH_JAVA_OPTS: -Xms1g -Xmx1g
+          OPENSEARCH_INITIAL_ADMIN_PASSWORD: MedDash-local-search-1!
+          plugins.security.ssl.http.enabled: "false"
+        ports: ["9200:9200"]
+        options: >-
+          --health-cmd "curl -fsu 'admin:MedDash-local-search-1!' http://localhost:9200/_cluster/health?wait_for_status=yellow"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 30
     env:
       TEST_DATABASE_URL: postgres://meddash:meddash@localhost:5433/meddash_test
+      TEST_OPENSEARCH_URL: http://localhost:9200
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

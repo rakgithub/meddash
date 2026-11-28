@@ -5,6 +5,7 @@ import {
   desc,
   eq,
   getTableColumns,
+  gt,
   gte,
   ilike,
   inArray,
@@ -190,6 +191,21 @@ export async function listAllProducts(): Promise<Product[]> {
     .orderBy(asc(products.id))
     .limit(LIST_LIMIT);
   return rows.map(toProduct);
+}
+
+/** One page of full rows in id order, for the search reindex. Keyset paging stays fast at any depth. */
+export async function findProductRowsAfter(afterId: number, limit: number): Promise<ProductRow[]> {
+  return db
+    .select(productColumns)
+    .from(products)
+    .where(gt(products.id, afterId))
+    .orderBy(asc(products.id))
+    .limit(limit);
+}
+
+export async function countProducts(): Promise<number> {
+  const [row] = await db.select({ n: count() }).from(products);
+  return row?.n ?? 0;
 }
 
 export async function findProductById(id: number): Promise<ProductDetail | null> {

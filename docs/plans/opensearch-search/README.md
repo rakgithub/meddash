@@ -1,6 +1,6 @@
 # Plan — OpenSearch search platform
 
-Status: draft 2026-11-28, revised the same day for free-tier hosting; awaiting approval of the decisions below.
+Status: PR 1 in progress (2026-11-28). Draft 2026-11-28, revised the same day for free-tier hosting.
 Roadmap entry: [Track — Search platform (OpenSearch)](../../PLAN.md#track--search-platform-opensearch).
 Builds on: [Postgres products DB](../postgres-products-db/README.md), [1,000-product catalogue](../bulk-product-import/README.md),
 [Symptom assistant backend](../symptom-assistant-backend/README.md) (the `search_products` tool).

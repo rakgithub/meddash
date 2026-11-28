@@ -18,5 +18,45 @@ services:
       timeout: 5s
       retries: 15
 
+  # Search index (docs/plans/opensearch-search). Optional for the app: without OPENSEARCH_URL it
+  # searches Postgres. The server tests need it (reindex integration test).
+  opensearch:
+    image: opensearchproject/opensearch:3.10.1
+    environment:
+      discovery.type: single-node
+      OPENSEARCH_JAVA_OPTS: -Xms1g -Xmx1g
+      # Local-only password; the security plugin stays on so auth works as in production.
+      OPENSEARCH_INITIAL_ADMIN_PASSWORD: MedDash-local-search-1!
+      # Plain HTTP locally, so the client never has to skip certificate checks. Hosted OpenSearch uses HTTPS.
+      plugins.security.ssl.http.enabled: "false"
+    ports:
+      - "9200:9200"
+    volumes:
+      - opensearchdata:/usr/share/opensearch/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsu 'admin:MedDash-local-search-1!' 'http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=1s'",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  # Optional UI: `docker compose --profile dashboards up -d`, then http://localhost:5601 (admin).
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:3.10.1
+    profiles: [dashboards]
+    environment:
+      OPENSEARCH_HOSTS: '["http://opensearch:9200"]'
+      OPENSEARCH_USERNAME: admin
+      OPENSEARCH_PASSWORD: MedDash-local-search-1!
+    ports:
+      - "5601:5601"
+    depends_on:
+      opensearch:
+        condition: service_healthy
+
 volumes:
   pgdata:
+  opensearchdata:
